@@ -1,0 +1,34 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+
+# Environment files
+.env
+.env.local
+*.env
+
+# Model weights (track via release/artifact, not git history)
+*.pt
+*.onnx
+ai-service/models/*.pt
+
+# Dataset raw/intermediate files (large, sourced separately — see /dataset/README.md)
+dataset/raw/
+dataset/merged/
+dataset/yolo_format/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.log
