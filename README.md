@@ -97,7 +97,7 @@ uvicorn main:app --reload --port 8000
 ```bash
 cd backend
 npm install
-cp .env.example .env   # fill in SUPABASE_URL, SUPABASE_KEY, AI_SERVICE_URL
+cp .env.example .env   # fill in SUPABASE_URL, SUPABASE_SERVICE_KEY (or SUPABASE_SECRET_KEY), AI_SERVICE_URL
 npm run dev
 ```
 
@@ -107,6 +107,24 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Local MCP Servers (Workspace)
+
+This repo now includes workspace MCP configuration at:
+
+```text
+.vscode/mcp.json
+```
+
+Configured servers:
+
+- `github` → `https://api.githubcopilot.com/mcp/`
+- `supabase` → `https://mcp.supabase.com/mcp`
+
+Notes:
+
+- GitHub MCP was checked before adding workspace config; repository-level MCP config was not present, so workspace MCP entries were added.
+- If your editor already has global MCP server entries, keep one source of truth (global or workspace) to avoid duplicates.
 
 ## Deployment
 

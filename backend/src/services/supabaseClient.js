@@ -1,11 +1,30 @@
+import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
+import ws from "ws";
 
-// Service-role key — server-side only, never sent to the browser.
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseSecretKey =
+  process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY;
+
+if (!supabaseUrl) {
+  throw new Error("Missing SUPABASE_URL in backend environment");
+}
+
+if (!supabaseSecretKey) {
+  throw new Error(
+    "Missing Supabase secret key in backend environment. Set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_KEY."
+  );
+}
+
+// Secret key — server-side only, never sent to the browser.
 // This is the whole point of routing uploads through Node rather than
 // having React talk to Supabase directly.
 export const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  supabaseUrl,
+  supabaseSecretKey,
+  {
+    realtime: { transport: ws },
+  }
 );
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "beach-waste-images";
