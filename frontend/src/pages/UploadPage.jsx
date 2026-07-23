@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { ImageOff } from "lucide-react";
+import { ImageOff, Download } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import UploadForm  from "../components/UploadForm.jsx";
 import ResultPanel from "../components/ResultPanel.jsx";
@@ -29,7 +29,7 @@ export default function UploadPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setResult(data);
-      loadStats(); // refresh dashboard stats globally
+      loadStats();
     } catch (err) {
       setError(
         err.response?.data?.error || "Analysis failed — is the backend running?"
@@ -42,14 +42,15 @@ export default function UploadPage() {
   return (
     <div className="page-container">
       <div className="page-heading">
-        <h1>Upload &amp; Analyze</h1>
-        <p>Submit a beach photo to detect waste and get an instant pollution report.</p>
+        <h1>Detect Waste</h1>
+        <p>Upload or capture a beach photo to detect waste using AI.</p>
       </div>
 
       <div className="upload-layout">
-        {/* Left pane — sticky upload form */}
+        {/* Left — upload form */}
         <div className="upload-pane">
           <div className="upload-card">
+            <div className="upload-card-title">Upload Image</div>
             <UploadForm onUpload={handleUpload} loading={loading} />
             {error && (
               <p className="error" style={{ marginTop: "0.85rem" }}>
@@ -59,16 +60,19 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* Right pane — result or placeholder */}
+        {/* Right — result */}
         <div>
-          {result ? (
-            <ResultPanel result={result} />
-          ) : (
-            <div className="result-placeholder">
-              <ImageOff size={44} strokeWidth={1.4} />
-              <p>Your analysis results will appear here after you upload and analyze a photo.</p>
-            </div>
-          )}
+          <div className="upload-card">
+            <div className="upload-card-title">Detection Result</div>
+            {result ? (
+              <ResultPanel result={result} />
+            ) : (
+              <div className="result-placeholder" style={{ boxShadow: 'none', background: 'transparent', padding: '3rem 1rem' }}>
+                <ImageOff size={44} strokeWidth={1.4} />
+                <p>Your analysis results will appear here after you upload and analyze a photo.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

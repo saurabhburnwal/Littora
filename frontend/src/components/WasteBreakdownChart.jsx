@@ -22,7 +22,7 @@ export default function WasteBreakdownChart({ aggregateDetections }) {
 
   return (
     <div className="chart-card">
-      <p className="chart-card-title">All-Time Waste Breakdown</p>
+      <p className="chart-card-title">Waste Composition</p>
       {total === 0 ? (
         <div className="chart-empty">
           No waste data yet — upload a photo to populate this chart.

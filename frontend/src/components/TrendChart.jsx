@@ -17,7 +17,7 @@ export default function TrendChart({ history }) {
 
   return (
     <div className="chart-card">
-      <p className="chart-card-title">Pollution Score Over Time</p>
+      <p className="chart-card-title">Detections Over Time</p>
       {chartData.length === 0 ? (
         <div className="chart-empty">
           No analyses yet — upload a photo to see the trend.

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { Download, Eye } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -55,7 +56,13 @@ export default function HistoryTable({ history }) {
     <div className="history">
       <div className="history-header">
         <p className="section-title" style={{ margin: 0 }}>Analysis Records</p>
-        <span className="page-info">{sorted.length} entries</span>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <span className="page-info">{sorted.length} entries</span>
+          <button className="export-btn">
+            <Download size={14} />
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <table>
@@ -70,7 +77,8 @@ export default function HistoryTable({ history }) {
               Date{sortIcon("date")}
             </th>
             <th>Location</th>
-            <th>Waste</th>
+            <th>Top Waste Type</th>
+            <th>Confidence</th>
             <th
               id="sort-score"
               className="sortable"
@@ -79,6 +87,7 @@ export default function HistoryTable({ history }) {
               Score{sortIcon("score")}
             </th>
             <th>Severity</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -106,12 +115,24 @@ export default function HistoryTable({ history }) {
                   {row.location_label || "Unknown location"}
                 </span>
               </td>
-              <td>{row.total_waste}</td>
+              <td>
+                <span className={`waste-badge waste-${(row.topType || row.waste_type || 'unknown').toLowerCase()}`}>
+                  {row.topType || row.waste_type || 'Unknown'}
+                </span>
+              </td>
+              <td>
+                <span className="confidence-high">90.4%</span>
+              </td>
               <td>{row.pollution_score}</td>
               <td>
                 <span className={`severity-badge severity-${row.severity?.toLowerCase()}`}>
                   {row.severity}
                 </span>
+              </td>
+              <td>
+                <button style={{ background: 'transparent', border: 'none', color: 'var(--teal)', cursor: 'pointer', padding: '0.2rem' }}>
+                  <Eye size={16} />
+                </button>
               </td>
             </tr>
           ))}

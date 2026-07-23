@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, Camera } from "lucide-react";
 
 export default function UploadForm({ onUpload, loading }) {
   const [file,       setFile]       = useState(null);
@@ -72,7 +72,7 @@ export default function UploadForm({ onUpload, loading }) {
             <span className="upload-label-text">
               Drag &amp; drop or click to browse
             </span>
-            <span className="upload-hint">JPEG · PNG · WEBP</span>
+            <span className="upload-hint">Supports: JPG, PNG, JPEG (Max 10MB)</span>
           </div>
         )}
       </label>
@@ -88,6 +88,16 @@ export default function UploadForm({ onUpload, loading }) {
       <button type="submit" className="upload-btn" disabled={!file || isBusy}>
         <UploadCloud size={18} strokeWidth={2} />
         {btnLabel}
+      </button>
+
+      <div className="upload-divider">Or capture image</div>
+      <button
+        type="button"
+        className="camera-btn"
+        onClick={() => alert('Camera capture coming soon!')}
+      >
+        <Camera size={16} strokeWidth={1.8} />
+        Open Camera
       </button>
 
       {locStatus === "denied" && (

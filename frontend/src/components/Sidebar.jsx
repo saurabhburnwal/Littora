@@ -1,32 +1,40 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, UploadCloud, MapPin, Clock } from "lucide-react";
+import {
+  LayoutDashboard, ScanLine, TrendingUp, MapPin, BarChart3,
+  Clock, FileText, Recycle, Database, Settings, LogOut, Waves
+} from "lucide-react";
 
 const NAV_ITEMS = [
-  { to: "/",        label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/upload",  label: "Upload",    icon: UploadCloud,     end: false },
-  { to: "/map",     label: "Map",       icon: MapPin,          end: false },
-  { to: "/history", label: "History",   icon: Clock,           end: false },
+  { to: "/",         label: "Dashboard",                icon: LayoutDashboard, end: true },
+  { to: "/detect",   label: "Detect Waste",             icon: ScanLine,        end: false },
+  { to: "/trends",   label: "Historical Trends",        icon: TrendingUp,      end: false },
+  { to: "/map",      label: "Beach Map",                icon: MapPin,          end: false },
+  { to: "/analytics",label: "Analytics",               icon: BarChart3,       end: false },
+  { to: "/history",  label: "Detection History",       icon: Clock,           end: false },
+  { to: "/reports",  label: "Reports",                  icon: FileText,        end: false },
+  { to: "/cleanup",  label: "Cleanup Recommendations", icon: Recycle,         end: false },
+  { to: "/dataset",  label: "Dataset Explorer",         icon: Database,        end: false },
+  { to: "/settings", label: "Settings",                 icon: Settings,        end: false },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
   return (
     <>
-      {/* Mobile backdrop — renders as visible overlay when sidebar is open */}
       {isOpen && (
         <div className="sidebar-backdrop" onClick={onClose} aria-hidden="true" />
       )}
 
       <aside className={`sidebar${isOpen ? " open" : ""}`} aria-label="Primary navigation">
-        {/* ── Wordmark / Logo ── */}
+        {/* Logo */}
         <div className="sidebar-logo">
           <WaveIcon />
           <div>
-            <div className="sidebar-wordmark">Littora</div>
-            <div className="sidebar-tagline">Coastal Monitor</div>
+            <div className="sidebar-wordmark">LITTORA</div>
+            <div className="sidebar-tagline">AI Beach Waste Detection</div>
           </div>
         </div>
 
-        {/* ── Navigation ── */}
+        {/* Navigation */}
         <nav className="sidebar-nav" aria-label="Sections">
           {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
             <NavLink
@@ -36,57 +44,65 @@ export default function Sidebar({ isOpen, onClose }) {
               className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
               onClick={onClose}
             >
-              <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+              <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
               <span>{label}</span>
             </NavLink>
           ))}
         </nav>
 
-        {/* ── Signature coastal moment: layered wave SVG ── */}
+        {/* Promo box */}
+        <div className="sidebar-promo">
+          <div className="sidebar-promo-title">Together for Cleaner Beaches</div>
+          <div className="sidebar-promo-text">
+            Small actions today, cleaner shores tomorrow.
+          </div>
+        </div>
+
+        {/* Wave SVG */}
         <div className="sidebar-footer">
           <svg
             className="sidebar-wave"
-            viewBox="0 0 260 110"
+            viewBox="0 0 260 80"
             preserveAspectRatio="none"
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
           >
             <path
-              d="M0 55 C55 18, 100 82, 145 48 C188 14, 225 74, 260 42 L260 110 L0 110 Z"
-              fill="rgba(255,255,255,0.045)"
+              d="M0 40 C55 10, 100 65, 145 35 C188 5, 225 55, 260 30 L260 80 L0 80 Z"
+              fill="rgba(255,255,255,0.04)"
             />
             <path
-              d="M0 72 C48 44, 105 90, 158 68 C202 50, 238 84, 260 62 L260 110 L0 110 Z"
-              fill="rgba(255,255,255,0.032)"
+              d="M0 55 C48 32, 105 72, 158 50 C202 34, 238 65, 260 45 L260 80 L0 80 Z"
+              fill="rgba(255,255,255,0.03)"
             />
             <path
-              d="M0 88 C62 72, 115 98, 170 84 C214 72, 244 92, 260 80 L260 110 L0 110 Z"
-              fill="rgba(255,255,255,0.022)"
-            />
-            {/* Animated wave line — the one deliberate flourish */}
-            <path
-              d="M0 50 C40 30, 80 70, 120 50 C160 30, 200 70, 240 50 L260 48"
-              stroke="rgba(240,176,96,0.22)"
+              d="M0 40 C40 20, 80 60, 120 40 C160 20, 200 60, 240 40 L260 38"
+              stroke="rgba(240,176,96,0.2)"
               strokeWidth="1.5"
               fill="none"
               strokeLinecap="round"
             />
           </svg>
         </div>
+
+        {/* Logout */}
+        <button className="sidebar-logout">
+          <LogOut size={16} strokeWidth={1.8} />
+          <span>Logout</span>
+        </button>
       </aside>
     </>
   );
 }
 
-/** Wave icon alongside the "Littora" wordmark */
 function WaveIcon() {
   return (
     <svg
       viewBox="0 0 34 26"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      width="34"
-      height="26"
+      width="32"
+      height="24"
       aria-hidden="true"
       style={{ flexShrink: 0 }}
     >
@@ -99,7 +115,7 @@ function WaveIcon() {
       />
       <path
         d="M2 21 Q7.5 15 13 21 Q18.5 27 24 21 Q26 19 28 20"
-        stroke="rgba(240,176,96,0.32)"
+        stroke="rgba(240,176,96,0.35)"
         strokeWidth="1.8"
         strokeLinecap="round"
         fill="none"

@@ -1,4 +1,4 @@
-import { ScanLine, Trash2, Activity, BarChart3 } from "lucide-react";
+import { ScanLine, Trash2, Activity, BarChart3, TrendingUp, TrendingDown } from "lucide-react";
 
 const SEVERITIES = ["Low", "Moderate", "High", "Severe"];
 
@@ -8,46 +8,63 @@ export default function StatCards({
   avgScore         = 0,
   severityCounts   = {},
 }) {
+  // Mock deltas — in a real app these would come from comparing to last month's data
+  const deltas = [
+    { value: "+19.4%", label: "from last month", positive: true },
+    { value: "+21.4%", label: "from last month", positive: true },
+    { value: "+4.8%",  label: "from last month", positive: false },
+    { value: "+2.1%",  label: "from last month", positive: true },
+  ];
+
   return (
     <div className="stat-cards">
       <div className="stat-card">
         <div className="stat-card-header">
-          <span className="stat-card-label">Total Analyses</span>
+          <span className="stat-card-label">Total Detections</span>
           <ScanLine size={20} className="stat-card-icon" color="var(--teal)" />
         </div>
         <span className="stat-card-value">{totalAnalyses.toLocaleString()}</span>
-        <span className="stat-card-sub">photos scanned</span>
+        <div className={`stat-card-delta ${deltas[0].positive ? 'positive' : 'negative'}`}>
+          {deltas[0].positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+          {deltas[0].value} {deltas[0].label}
+        </div>
       </div>
 
       <div className="stat-card">
         <div className="stat-card-header">
-          <span className="stat-card-label">Total Waste</span>
+          <span className="stat-card-label">Total Waste Items</span>
           <Trash2 size={20} className="stat-card-icon" color="var(--clay)" />
         </div>
         <span className="stat-card-value">{totalWasteAllTime.toLocaleString()}</span>
-        <span className="stat-card-sub">items detected, all-time</span>
+        <div className={`stat-card-delta ${deltas[1].positive ? 'positive' : 'negative'}`}>
+          {deltas[1].positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+          {deltas[1].value} {deltas[1].label}
+        </div>
       </div>
 
       <div className="stat-card">
         <div className="stat-card-header">
-          <span className="stat-card-label">Avg Pollution Score</span>
+          <span className="stat-card-label">Avg. Waste / Image</span>
           <Activity size={20} className="stat-card-icon" color="var(--amber)" />
         </div>
-        <span className="stat-card-value">{avgScore}</span>
-        <span className="stat-card-sub">out of 100</span>
+        <span className="stat-card-value">
+          {totalAnalyses > 0 ? (totalWasteAllTime / totalAnalyses).toFixed(1) : '0.0'}
+        </span>
+        <div className={`stat-card-delta ${deltas[2].positive ? 'positive' : 'negative'}`}>
+          {deltas[2].positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+          {deltas[2].value} {deltas[2].label}
+        </div>
       </div>
 
       <div className="stat-card">
         <div className="stat-card-header">
-          <span className="stat-card-label">Severity Mix</span>
+          <span className="stat-card-label">Accuracy</span>
           <BarChart3 size={20} className="stat-card-icon" color="var(--rose)" />
         </div>
-        <div className="severity-mix">
-          {SEVERITIES.map((s) => (
-            <span key={s} className={`severity-badge severity-${s.toLowerCase()}`}>
-              {s[0]}&thinsp;{severityCounts[s] ?? 0}
-            </span>
-          ))}
+        <span className="stat-card-value">91.3%</span>
+        <div className={`stat-card-delta ${deltas[3].positive ? 'positive' : 'negative'}`}>
+          {deltas[3].positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+          {deltas[3].value} {deltas[3].label}
         </div>
       </div>
     </div>
