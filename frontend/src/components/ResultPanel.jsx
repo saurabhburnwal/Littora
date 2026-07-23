@@ -1,9 +1,11 @@
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import {
+  PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, Legend,
+} from "recharts";
 
-// Simple recyclable/non-recyclable split for the pie chart.
-// Refine this once Member 1's research settles on a proper reference.
+// Recyclable: bottle, can — Non-recyclable: bag, wrapper
 const RECYCLABLE_TYPES = new Set(["bottle", "can"]);
-
 const COLORS = ["#2f6f5e", "#c97b3d", "#a13d3d", "#3d6ea1"];
 
 export default function ResultPanel({ result }) {
@@ -21,7 +23,7 @@ export default function ResultPanel({ result }) {
     else nonRecyclable += count;
   }
   const pieData = [
-    { name: "Recyclable", value: recyclable },
+    { name: "Recyclable",     value: recyclable },
     { name: "Non-recyclable", value: nonRecyclable },
   ];
 
@@ -38,13 +40,16 @@ export default function ResultPanel({ result }) {
         </div>
         <div>
           <span className="stat-label">Severity</span>
-          <span className={`severity-badge severity-${severity.toLowerCase()}`}>{severity}</span>
+          <span className={`severity-badge severity-${severity.toLowerCase()}`}>
+            {severity}
+          </span>
         </div>
       </div>
 
       <div className="charts">
         <div className="chart-box">
-          <h3>By waste type</h3>
+          {/* Label distinguishes this from the all-time breakdown chart */}
+          <h3>This Photo — Waste Breakdown</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={barData}>
               <XAxis dataKey="type" />
@@ -59,7 +64,13 @@ export default function ResultPanel({ result }) {
           <h3>Recyclable vs non-recyclable</h3>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
-              <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={80} label>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={80}
+                label
+              >
                 {pieData.map((entry, index) => (
                   <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                 ))}

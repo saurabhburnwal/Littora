@@ -13,7 +13,7 @@ Node.js / Express API
       │  • persists analysis + detections to Postgres
       │  • shapes/returns combined response to React
       ▼
-Python AI Service (FastAPI + YOLOv8n)
+Python AI Service (FastAPI + YOLOv8m)
       │  • runs detection
       │  • computes total_waste, pollution_score, severity
       │  • returns structured JSON only — no DB or storage access
@@ -42,7 +42,7 @@ Two beach-specific academic datasets exist (BePLi Dataset v1 — 3,709 Japan coa
 ## 3. Decisions Incorporated
 
 - **Node's responsibilities are explicit**: Supabase Storage upload, Supabase Postgres writes, response assembly, and (optionally) auth/session handling. The AI service stays stateless — it only does inference and returns JSON.
-- **Model choice**: use `yolov8n.pt` (nano), not `s`/`m`/`l`. Render/Railway free-to-hobby tiers are CPU-only, and nano is the only variant that keeps inference latency reasonable for a live demo.
+- **Model choice**: use `yolov8m.pt` (medium) for higher accuracy and recall. The medium variant provides a strong balance between detection performance and inference speed, and is better at detecting small or partially occluded beach waste items compared to the nano variant.
 - **Severity/score logic lives in one place**: FastAPI computes `total_waste`, `pollution_score`, and `severity` alongside the raw detection counts, so Node never duplicates that math — it just stores and forwards what FastAPI returns.
 - **Upload path**: the browser uploads to Node (not directly to Supabase). Node forwards the image buffer to FastAPI for inference, then uploads the same image to Supabase Storage and writes the analysis row. This keeps Supabase credentials server-side only and avoids CORS/signed-URL complexity on the client.
 
@@ -86,7 +86,7 @@ Two beach-specific academic datasets exist (BePLi Dataset v1 — 3,709 Japan coa
 | Member | Responsibilities | Tech |
 |---|---|---|
 | **1 — Data & Research Lead** | Literature review, sourcing & merging TACO + Roboflow beach aggregation + Lebanese University set, class remapping (bottle/can/bag/wrapper), annotation cleanup, documentation, test datasets | Roboflow, OpenCV, LabelImg, TACO, research papers |
-| **2 — AI/ML Engineer** | Train `yolov8n`, optimize for CPU inference, build `/detect` endpoint, compute severity/score logic, evaluation | Python, PyTorch, YOLOv8 (nano), FastAPI |
+| **2 — AI/ML Engineer** | Train `yolov8m`, optimize for inference, build `/detect` endpoint, compute severity/score logic, evaluation | Python, PyTorch, YOLOv8 (medium), FastAPI |
 | **3 — Full Stack Engineer** | React frontend, Node/Express API (storage upload, persistence, auth), Supabase integration, deployment | React, Node.js, Express, Supabase, Recharts |
 
 ## 6. Tech Stack
@@ -96,7 +96,7 @@ Two beach-specific academic datasets exist (BePLi Dataset v1 — 3,709 Japan coa
 | Frontend | React.js |
 | Backend (orchestration, storage, persistence) | Node.js + Express |
 | AI Service (stateless inference only) | Python + FastAPI |
-| Detection Model | YOLOv8n |
+| Detection Model | YOLOv8m |
 | Database | Supabase PostgreSQL |
 | Storage | Supabase Storage |
 | Visualization | Recharts |

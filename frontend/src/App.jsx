@@ -1,65 +1,42 @@
-import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-
-import UploadForm from "./components/UploadForm.jsx";
-import ResultPanel from "./components/ResultPanel.jsx";
-import HistoryTable from "./components/HistoryTable.jsx";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Menu } from "lucide-react";
+import Sidebar from "./components/Sidebar.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
+import UploadPage    from "./pages/UploadPage.jsx";
+import MapPage       from "./pages/MapPage.jsx";
+import HistoryPage   from "./pages/HistoryPage.jsx";
 
 export default function App() {
-  const [result, setResult] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const loadHistory = useCallback(async () => {
-    try {
-      const { data } = await axios.get(`${API_BASE}/api/analyses`);
-      setHistory(data);
-    } catch (err) {
-      console.error("Failed to load history:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadHistory();
-  }, [loadHistory]);
-
-  async function handleUpload(file) {
-    setLoading(true);
-    setError(null);
-
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const { data } = await axios.post(`${API_BASE}/api/analyze`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setResult(data);
-      loadHistory();
-    } catch (err) {
-      setError(err.response?.data?.error || "Analysis failed. Is the backend running?");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <main className="page">
-      <header className="page-header">
-        <h1>Beach Waste Monitor</h1>
-        <p>Upload a beach photo to detect waste and track pollution over time.</p>
-      </header>
+    <div className="app-shell">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <UploadForm onUpload={handleUpload} loading={loading} />
+      <div className="content-area">
+        {/* Shown only on mobile */}
+        <div className="topbar">
+          <button
+            className="hamburger"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open navigation"
+          >
+            <Menu size={22} />
+          </button>
+          <span className="topbar-title">Littora</span>
+        </div>
 
-      {error && <p className="error">{error}</p>}
-
-      {result && <ResultPanel result={result} />}
-
-      <HistoryTable history={history} />
-    </main>
+        <main className="main-content">
+          <Routes>
+            <Route path="/"        element={<DashboardPage />} />
+            <Route path="/upload"  element={<UploadPage />} />
+            <Route path="/map"     element={<MapPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="*"        element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </div>
   );
 }

@@ -1,33 +1,115 @@
+import { useState, useMemo, useEffect } from "react";
+
+const PAGE_SIZE = 10;
+
+/**
+ * HistoryTable — sortable + paginated table of analyses.
+ * Filter is now managed by the parent (HistoryPage) and applied before
+ * passing data in, so this component only handles sort + pagination.
+ */
 export default function HistoryTable({ history }) {
+  const [sortField, setSortField] = useState("date");
+  const [sortDir,   setSortDir]   = useState("desc");
+  const [page,      setPage]      = useState(0);
+
+  useEffect(() => {
+    setPage(0);
+  }, [history]);
+
+  const sorted = useMemo(() => {
+    const mul = sortDir === "asc" ? 1 : -1;
+    return [...(history || [])].sort((a, b) => {
+      if (sortField === "date")
+        return mul * (new Date(a.created_at) - new Date(b.created_at));
+      if (sortField === "score")
+        return mul * ((a.pollution_score || 0) - (b.pollution_score || 0));
+      return 0;
+    });
+  }, [history, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const safePage   = Math.min(page, totalPages - 1);
+  const paged      = sorted.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
+  function toggleSort(field) {
+    if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortField(field); setSortDir("desc"); }
+    setPage(0);
+  }
+
+  const sortIcon = (field) =>
+    sortField !== field ? " ↕" : sortDir === "asc" ? " ↑" : " ↓";
+
   if (!history || history.length === 0) {
     return (
-      <section className="history">
-        <h2>Analysis history</h2>
-        <p className="empty-state">No analyses yet — upload a photo to get started.</p>
-      </section>
+      <div className="history">
+        <div className="history-header">
+          <p className="section-title" style={{ margin: 0 }}>Analysis Records</p>
+        </div>
+        <p className="empty-state">No analyses match the selected filter.</p>
+      </div>
     );
   }
 
   return (
-    <section className="history">
-      <h2>Analysis history</h2>
+    <div className="history">
+      <div className="history-header">
+        <p className="section-title" style={{ margin: 0 }}>Analysis Records</p>
+        <span className="page-info">{sorted.length} entries</span>
+      </div>
+
       <table>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Total waste</th>
-            <th>Score</th>
+            <th>Photo</th>
+            <th
+              id="sort-date"
+              className="sortable"
+              onClick={() => toggleSort("date")}
+            >
+              Date{sortIcon("date")}
+            </th>
+            <th>Location</th>
+            <th>Waste</th>
+            <th
+              id="sort-score"
+              className="sortable"
+              onClick={() => toggleSort("score")}
+            >
+              Score{sortIcon("score")}
+            </th>
             <th>Severity</th>
           </tr>
         </thead>
         <tbody>
-          {history.map((row) => (
+          {paged.map((row) => (
             <tr key={row.id}>
-              <td>{new Date(row.created_at).toLocaleDateString()}</td>
+              <td>
+                {row.image_url ? (
+                  <img
+                    src={row.image_url}
+                    alt="Beach analysis thumbnail"
+                    className="thumb"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="thumb-placeholder" title="No image">🖼</div>
+                )}
+              </td>
+              <td>
+                {new Date(row.created_at).toLocaleDateString("en-IN", {
+                  day: "numeric", month: "short", year: "numeric",
+                })}
+              </td>
+              <td>
+                <span className="location-text">
+                  {row.location_label || "Unknown location"}
+                </span>
+              </td>
               <td>{row.total_waste}</td>
               <td>{row.pollution_score}</td>
               <td>
-                <span className={`severity-badge severity-${row.severity.toLowerCase()}`}>
+                <span className={`severity-badge severity-${row.severity?.toLowerCase()}`}>
                   {row.severity}
                 </span>
               </td>
@@ -35,6 +117,30 @@ export default function HistoryTable({ history }) {
           ))}
         </tbody>
       </table>
-    </section>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button
+            type="button"
+            className="pagination-btn"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={safePage === 0}
+          >
+            ← Prev
+          </button>
+          <span className="page-info">
+            {safePage + 1} / {totalPages}
+          </span>
+          <button
+            type="button"
+            className="pagination-btn"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={safePage >= totalPages - 1}
+          >
+            Next →
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

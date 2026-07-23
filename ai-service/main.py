@@ -16,11 +16,11 @@ from severity import compute_score
 
 app = FastAPI(title="Beach Waste Detection AI Service")
 
-# yolov8n.pt is intentionally the nano checkpoint — keeps CPU inference
-# latency reasonable on free/hobby-tier hosting (Railway/Render).
-# Replace with the path to your trained weights once Member 2 finishes
-# training on the remapped (bottle/can/bag/wrapper) dataset.
-MODEL_PATH = "models/yolov8n.pt"
+# yolov8m.pt (medium) is used for higher accuracy and recall over the nano
+# variant — better suited for detecting small or partially occluded beach
+# waste items. Replace with the path to your trained weights once Member 2
+# finishes training on the remapped (bottle/can/bag/wrapper) dataset.
+MODEL_PATH = "models/yolov8m.pt"
 model = YOLO(MODEL_PATH)
 
 # YOLO class names → our four target classes. If the trained model's
