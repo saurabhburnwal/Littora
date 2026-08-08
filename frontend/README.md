@@ -1,35 +1,35 @@
-# 💻 Littora Frontend — React 18 + Vite Web Application
+# Littora Frontend — React 18 + Vite Web Application
 
 The frontend of **Littora** is a responsive, feature-rich Single Page Application (SPA) built with **React 18**, **Vite**, and **Vanilla CSS tokens** with full dark-mode and theme customization.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-- **🎨 Dual Theme Engine**:
+- **Dual Theme Engine**:
   - **Earth Theme**: Warm sand tones (`#f7f2e8`), watercolor botanical artwork accents.
   - **Dark Theme**: High-contrast dark mode (`#0a0f1e` deep navy, `#00d4aa` glowing cyan).
-- **🔒 Auth & Guest Access Control**:
+- **Auth & Guest Access Control**:
   - Integrated with **Supabase Auth** via `<AuthProvider>`.
   - Implements **Standard Supabase Sliding Sessions** (seamless background token rotation without artificial hard cutoffs).
   - **Guest Visitor Access**: Enables full preview browsing of stats, maps, and datasets; locks interactive actions behind an `AuthRequiredModal`.
-- **👤 Floating Account Menu & Collapsable Navigation**:
+- **Floating Account Menu & Collapsable Navigation**:
   - **Floating Account Menu**: Top-right glassmorphic popover displaying user avatar, role status (*Administrator, Account Member, Preview Guest*), quick links (`/settings`, `/history`, `/analytics`), and modal logout confirmation.
   - **Collapsable Sidebar**: Smooth grid layout transition (`250px` expanded vs `72px` collapsed) with persistent preference state.
-- **⚙️ User-Scoped Settings Engine**:
+- **User-Scoped Settings Engine**:
   - **LocalStorage Key Isolation**: Formats storage keys as `littora_*_user_<id>` for signed-in users and `littora_*_guest` for visitors.
   - **Language Switcher**: English, Hindi, Tamil.
   - **Date Formatters**: `DD MMM YYYY`, `MM/DD/YYYY`, `YYYY-MM-DD`.
   - **Dynamic Pagination**: `10`, `25`, `50` rows per page.
-- **📊 Interactive Reports & PDF Export**:
+- **Interactive Reports & PDF Export**:
   - Compact, publication-ready PDF Reports (`Daily`, `Weekly`, `Monthly`, `Custom`).
   - Powered by `jsPDF` + `html2canvas` with **75% JPEG compression** (~200KB file size).
-- **📍 Interactive Beach Pollution Map**:
+- **Interactive Beach Pollution Map**:
   - Powered by Leaflet & React-Leaflet with satellite, clean light, and street map tiles, and coastal beach presets.
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 frontend/
@@ -69,7 +69,7 @@ frontend/
 
 ---
 
-## 🚀 Development & Testing
+## Development & Testing
 
 ### 1. Installation
 ```bash

@@ -1,35 +1,35 @@
-# 🌊 LITTORA — AI Beach Waste Detection & Coastal Pollution Monitoring Platform
+# LITTORA — AI Beach Waste Detection & Coastal Pollution Monitoring Platform
 
 **Littora** is an end-to-end AI-powered web application that detects, classifies, and analyzes beach and coastal waste items (*plastics, bottles, cans, bags, foam, glass, metal*) using **YOLOv8** object detection. It scores pollution severity, tracks environmental trends over time, visualizes beach pollution heatmaps, and provides automated cleanup recommendations.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-- **🤖 Smart AI Detection**: Real-time object detection powered by YOLOv8n with bounding boxes, confidence scoring, waste classification, and pollution severity calculation (Low, Moderate, High, Severe).
-- **🎨 Dual Theme Design System**:
+- **Smart AI Detection**: Real-time object detection powered by YOLOv8n with bounding boxes, confidence scoring, waste classification, and pollution severity calculation (Low, Moderate, High, Severe).
+- **Dual Theme Design System**:
   - **Earth Theme**: Warm coastal dune aesthetic (`#f7f2e8` sand tones with custom watercolor botany artwork).
   - **Dark Theme**: High-contrast dark dashboard (`#0a0f1e` deep navy with `#00d4aa` cyan accents, custom glowing cyber-botanical artwork, and high-contrast typography).
-- **🔒 Auth & 3-Tier Data Access Isolation**:
+- **Auth & 3-Tier Data Access Isolation**:
   - Integrated Supabase Auth with Role-Based Access Control.
   - **Administrator**: System-wide platform metrics across all uploaders with uploader email & name enrichment.
   - **Account Member**: User-scoped metrics and personal detection history gallery.
   - **Guest Visitor**: Interactive preview access (statistics, maps, dataset explorer) with locked actions (*AI detection, data export, report generation, deletion*) prompting an `AuthRequiredModal`.
   - Implements **Standard Supabase Sliding Sessions** (seamless background token rotation without artificial hard cutoffs).
-- **👤 Floating Account Menu & Collapsable Navigation**:
+- **Floating Account Menu & Collapsable Navigation**:
   - **Top-Right Floating Account Trigger**: Elevated glassmorphic badge displaying avatar, role status (*Administrator amber, Member teal, Guest grey*), quick links (`/settings`, `/history`, `/analytics`), and modal logout confirmation.
   - **Collapsable Sidebar**: Smooth grid transition between expanded (`250px`) and icon-only (`72px`) view with persistent state.
-- **📄 High-Performance PDF Report Generation**:
+- **High-Performance PDF Report Generation**:
   - Export styled, publication-ready PDF reports (`Daily`, `Weekly`, `Monthly`, `Custom`).
   - Optimized vector/canvas PDF generator using `jsPDF` + `html2canvas` with **75% JPEG compression** (~200KB file size, 97%+ reduction).
-- **⚙️ User-Scoped Settings System**:
+- **User-Scoped Settings System**:
   - **Isolated Storage**: Dynamic localStorage keys formatted as `littora_*_user_<id>` for logged-in users and `littora_*_guest` for guest visitors.
   - **Language Preferences**: Interface language switcher (English, Hindi, Tamil).
   - **Date Format Control**: Configurable date formatting across all tables and charts (`DD MMM YYYY`, `MM/DD/YYYY`, `YYYY-MM-DD`).
   - **Dynamic Pagination**: Customizable rows per page (`10`, `25`, `50`) persisted across sessions.
   - **Notification Controls**: Email alerts, high-pollution threshold notifications, and weekly report preferences.
   - **Data Export & Privacy**: One-click JSON data export of all user analyses and account deletion workflows.
-- **📊 Comprehensive Analytics & Reporting**:
+- **Comprehensive Analytics & Reporting**:
   - **Historical Trends**: Detections over time, waste breakdown stacked charts, day/time pollution heatmaps.
   - **Interactive Beach Map**: Geolocation tracking of pollution hot spots with interactive markers and coastal beach presets (*Marina Beach, Puri Beach, Malpe Beach*).
   - **Cleanup Recommendations**: Automated priority-based cleanup suggestions based on severity.
@@ -37,7 +37,7 @@
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
                           ┌───────────────────────────┐
@@ -63,7 +63,7 @@
 
 ---
 
-## 📁 Repository Layout
+## Repository Layout
 
 ```text
 Littora/
@@ -91,7 +91,7 @@ Littora/
 
 ---
 
-## 👥 Team Roles & Tech Stack
+## Team Roles & Tech Stack
 
 | Member | Role | Key Technologies |
 |---|---|---|
@@ -101,7 +101,7 @@ Littora/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. AI Service (Python + FastAPI)
 ```bash
@@ -129,7 +129,7 @@ npm run dev                 # Runs on http://localhost:5173
 
 ---
 
-## 🧪 Testing & Verification
+## Testing & Verification
 
 ### Backend Test Coverage (Jest)
 - **Statements**: **89.76%**
@@ -152,5 +152,5 @@ npm run test:coverage
 
 ---
 
-## 📄 License
+## License
 Developed for educational and environmental monitoring research.

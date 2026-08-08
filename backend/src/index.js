@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import express from "express";
 import cors from "cors";
+import compression from "compression";
 
 import analyzeRouter    from "./routes/analyze.js";
 import analysesRouter   from "./routes/analyses.js";
@@ -10,9 +11,11 @@ import authRouter       from "./routes/auth.js";
 import myAnalysesRouter from "./routes/myAnalyses.js";
 import adminRouter      from "./routes/admin.js";
 import emailRouter      from "./routes/email.js";
+import modelRouter      from "./routes/model.js";
 
 const app = express();
-app.use(cors());
+app.use(compression());
+app.use(cors({ maxAge: 86400 }));
 app.use(express.json());
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
@@ -36,6 +39,9 @@ app.use("/api/my-analyses",  myAnalysesRouter);
 app.use("/api/admin",        adminRouter);
 
 app.use("/api/email",        emailRouter);
+
+// GET /api/model, POST /api/model — active AI model configuration
+app.use("/api/model",        modelRouter);
 
 export default app;
 

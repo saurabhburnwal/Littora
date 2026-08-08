@@ -137,9 +137,7 @@ export default function TrendsPage() {
   return (
     <div className="page-container" style={{ maxWidth: '1280px', margin: '0 auto' }}>
       <div className="page-heading">
-        <h1>
-          {isAdmin ? "Historical Trends & Analytics (System-Wide)" : user ? "Historical Trends & Analytics (Your Detections)" : "Historical Trends & Analytics"}
-        </h1>
+        <h1>Historical Trends &amp; Analytics</h1>
         <p>Monitor seasonal pollution shifts, waste category composition, and day/time detection density.</p>
       </div>
 
@@ -255,30 +253,49 @@ export default function TrendsPage() {
           <div className="charts-row" style={{ padding: 0 }}>
             <div className="chart-card">
               <div className="chart-card-title">Detections Over Time</div>
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-lt)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="detections" stroke={linePrimary} strokeWidth={2.5} dot={{ r: 4 }} name="Total Detections" />
-                  <Line type="monotone" dataKey="forecast" stroke={lineForecast} strokeWidth={2} strokeDasharray="5 5" dot={false} name="Forecast" />
+              <ResponsiveContainer width="100%" height={230}>
+                <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--card-bg)",
+                      border: "1px solid var(--border-lt)",
+                      borderRadius: "10px",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                      fontSize: "12px",
+                      color: "var(--ink)",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px", fontWeight: 600 }} />
+                  <Line type="monotone" dataKey="detections" stroke={linePrimary} strokeWidth={2.5} dot={{ r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} name="Total Detections" />
+                  <Line type="monotone" dataKey="forecast" stroke={lineForecast} strokeWidth={2} strokeDasharray="4 4" dot={false} name="Forecast" />
                   <Line type="monotone" dataKey="previous" stroke={linePrevious} strokeWidth={1.8} dot={false} name="Previous Year" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
+
             <div className="chart-card">
               <div className="chart-card-title">Waste Category Trend (by Count)</div>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={wasteTypeData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-lt)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Legend />
+              <ResponsiveContainer width="100%" height={230}>
+                <BarChart data={wasteTypeData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--card-bg)",
+                      border: "1px solid var(--border-lt)",
+                      borderRadius: "10px",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                      fontSize: "12px",
+                      color: "var(--ink)",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px", fontWeight: 600 }} />
                   {Object.entries(WASTE_COLORS).map(([key, color]) => (
-                    <Bar key={key} dataKey={key} stackId="a" fill={color} />
+                    <Bar key={key} dataKey={key} stackId="a" fill={color} radius={[0, 0, 0, 0]} />
                   ))}
                 </BarChart>
               </ResponsiveContainer>
@@ -288,30 +305,32 @@ export default function TrendsPage() {
           {/* Heatmap */}
           <div className="chart-card" style={{ marginBottom: '1.5rem' }}>
             <div className="chart-card-title">Heatmap — Detections by Day &amp; Time</div>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '20px' }}>
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start', paddingTop: '0.2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingTop: '22px' }}>
                 {DAYS.map(d => (
-                  <div key={d} style={{ height: '28px', display: 'flex', alignItems: 'center', fontSize: '0.7rem', color: 'var(--muted)', width: '28px' }}>{d}</div>
+                  <div key={d} style={{ height: '26px', display: 'flex', alignItems: 'center', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--muted)', width: '30px' }}>{d}</div>
                 ))}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
                   {HOURS.map(h => (
-                    <div key={h} style={{ flex: 1, fontSize: '0.65rem', color: 'var(--muted)', textAlign: 'center' }}>{h}</div>
+                    <div key={h} style={{ flex: 1, fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--muted)', textAlign: 'center' }}>{h}</div>
                   ))}
                 </div>
                 {heatmapData.map(row => (
-                  <div key={row.day} style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                  <div key={row.day} style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
                     {row.hours.map(cell => (
                       <div
                         key={cell.hour}
                         style={{
                           flex: 1,
-                          height: '28px',
-                          borderRadius: '4px',
+                          height: '26px',
+                          borderRadius: '6px',
                           background: getHeatmapColor(cell.value, isDark),
+                          border: '1px solid rgba(0,0,0,0.03)',
+                          transition: 'transform 0.15s ease',
                         }}
-                        title={`${row.day} ${cell.hour}: ${cell.value}`}
+                        title={`${row.day} ${cell.hour}: ${cell.value} detections`}
                       />
                     ))}
                   </div>

@@ -15,6 +15,22 @@ describe("UploadForm component", () => {
     expect(screen.getByRole("button", { name: /analyze photo/i })).toBeDisabled();
   });
 
+  it("does not render active model selector for non-admin users", () => {
+    render(<UploadForm onUpload={vi.fn()} loading={false} result={null} isAdmin={false} />);
+    expect(screen.queryByText("AI Inference Model")).not.toBeInTheDocument();
+  });
+
+  it("renders interactive model selector buttons for Admin users", () => {
+    const onUpdateModel = vi.fn();
+    render(<UploadForm onUpload={vi.fn()} loading={false} result={null} isAdmin={true} onUpdateModel={onUpdateModel} />);
+
+    expect(screen.getByText("System Admin Control:")).toBeInTheDocument();
+    const modelBtn = screen.getByRole("button", { name: /YOLOv11 Medium/i });
+    fireEvent.click(modelBtn);
+
+    expect(onUpdateModel).toHaveBeenCalledWith("yolov11m");
+  });
+
   it("previews selected file and enables Analyze photo button", () => {
     const { container } = render(<UploadForm onUpload={vi.fn()} loading={false} result={null} />);
     const file = new File(["dummy content"], "beach.jpg", { type: "image/jpeg" });

@@ -207,7 +207,7 @@ export default function HistoryPage() {
       {/* Error state */}
       {!loading && error && (
         <div className="admin-error-banner" style={{ marginBottom: "1.5rem" }}>
-          ⚠️ {error}
+          {error}
         </div>
       )}
 

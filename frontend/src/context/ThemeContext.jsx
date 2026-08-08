@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 const ThemeContext = createContext();
 
@@ -13,14 +13,16 @@ export function ThemeProvider({ children }) {
     localStorage.setItem("littora_theme", theme);
   }, [theme]);
 
-  const setTheme = (newTheme) => {
+  const setTheme = useCallback((newTheme) => {
     if (["earth", "dark"].includes(newTheme)) {
       setThemeState(newTheme);
     }
-  };
+  }, []);
+
+  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

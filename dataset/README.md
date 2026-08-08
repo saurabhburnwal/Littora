@@ -1,10 +1,10 @@
-# 📦 Littora Dataset — Coastal Litter & Beach Waste
+# Littora Dataset — Coastal Litter & Beach Waste
 
 This directory documents the sourcing, labeling, merging, and pre-processing workflow for training the **YOLOv8** object detection model used in Littora's `ai-service`.
 
 ---
 
-## 🎯 Target Classes
+## Target Classes
 
 The model focuses on four primary litter categories commonly found in coastal environments:
 1. `bottle` — Plastic water/soda bottles, glass bottles
@@ -14,7 +14,7 @@ The model focuses on four primary litter categories commonly found in coastal en
 
 ---
 
-## 🌐 Source Datasets
+## Source Datasets
 
 The dataset combines 5 open-source Roboflow / YOLOv8 packages:
 
@@ -28,7 +28,7 @@ The dataset combines 5 open-source Roboflow / YOLOv8 packages:
 
 ---
 
-## 🔄 Merging & Processing Workflow
+## Merging & Processing Workflow
 
 1. **Import & Consolidate**: Import raw annotations from all 5 sources into a unified Roboflow workspace.
 2. **Class Remapping**: Collapse granular labels (e.g., *"Clear plastic bottle"*, *"Drink can"*, *"Garbage bag"*, *"Crisp packet"*) into the 4 target classes (`bottle`, `can`, `bag`, `wrapper`).
@@ -37,7 +37,7 @@ The dataset combines 5 open-source Roboflow / YOLOv8 packages:
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 dataset/

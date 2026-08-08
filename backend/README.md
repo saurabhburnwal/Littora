@@ -1,25 +1,25 @@
-# ⚙️ Littora Backend — Node.js & Express API Server
+# Littora Backend — Node.js & Express API Server
 
 The backend of **Littora** serves as the central orchestration API between the React frontend, the Python AI Inference Service, and Supabase (PostgreSQL & Storage).
 
 ---
 
-## 🌟 Responsibilities
+## Responsibilities
 
-- **📷 Image Storage Orchestration**: Receives multipart image uploads from the browser, forwards them to the AI service for inference, uploads image buffers to Supabase Storage (`beach-waste-images`), and persists analysis records.
-- **🔒 3-Tier Data Access Isolation**:
+- **Image Storage Orchestration**: Receives multipart image uploads from the browser, forwards them to the AI service for inference, uploads image buffers to Supabase Storage (`beach-waste-images`), and persists analysis records.
+- **3-Tier Data Access Isolation**:
   - **Admin**: System-wide platform metrics across all uploaders with uploader email & name enrichment via Supabase Auth Admin API (`listAllAnalysesAdmin`).
   - **Regular User**: User-scoped metrics (`getStats(userId)`), personal analysis listing (`listAnalysesByUser`), and owned row deletion (`deleteAnalysisForUser`).
   - **Guest Visitor**: Empty stats fallback & 0 totals for guest preview mode.
-- **🔒 Auth & Middleware**:
+- **Auth & Middleware**:
   - `requireAuth`: Verifies Bearer JWT tokens with Supabase Auth (`supabase.auth.getUser(token)`).
   - `requireAdmin`: Enforces admin privileges by matching `req.user.email` against `ADMIN_EMAIL`.
-- **📧 Email Notifications**: Automated report emailing via Nodemailer transport (`/api/email/send-report`).
-- **📊 Analytics Aggregation**: Pure JS aggregation for severity breakdowns, waste item counts, geolocated beach markers, and chronological history lists.
+- **Email Notifications**: Automated report emailing via Nodemailer transport (`/api/email/send-report`).
+- **Analytics Aggregation**: Pure JS aggregation for severity breakdowns, waste item counts, geolocated beach markers, and chronological history lists.
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 backend/
@@ -47,7 +47,7 @@ backend/
 
 ---
 
-## 🚀 Environment Setup & Running
+## Environment Setup & Running
 
 ### 1. Configure Environment Variables
 Copy `.env.example` to `.env`:
@@ -73,7 +73,7 @@ npm run dev
 
 ---
 
-## 🧪 Testing & Coverage
+## Testing & Coverage
 
 ```bash
 # Run unit & integration test suite

@@ -39,8 +39,12 @@ router.post("/", upload.single("image"), async (req, res) => {
       }
     }
 
-    // 1. Run inference (stateless call to the AI service)
-    const result = await runDetection(buffer, originalname, mimetype);
+    // 1. Fetch current active AI model configured by Admin
+    const { getActiveSystemModel } = await import("../services/supabaseClient.js");
+    const activeModel = await getActiveSystemModel();
+
+    // 2. Run inference using active model
+    const result = await runDetection(buffer, originalname, mimetype, activeModel);
 
     // 2. Persist the image to Supabase Storage
     const imageUrl = await uploadImage(buffer, originalname, mimetype);

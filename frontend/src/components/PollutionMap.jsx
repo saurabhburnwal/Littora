@@ -232,7 +232,7 @@ export default function PollutionMap({ locations = [] }) {
                           </span>
                         </div>
                         <div className="map-popup-date">
-                          📅 {new Date(loc.created_at).toLocaleDateString("en-IN", {
+                          {new Date(loc.created_at).toLocaleDateString("en-IN", {
                             day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
                           })}
                         </div>

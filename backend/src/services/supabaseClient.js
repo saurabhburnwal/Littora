@@ -125,21 +125,24 @@ export async function listAllAnalysesAdmin() {
 
   if (error) throw error;
 
-  // Collect unique user IDs and fetch their emails/names from Auth
+  // Collect unique user IDs and fetch their emails/names from Auth in parallel
   const uniqueUserIds = [...new Set(data.map((r) => r.user_id).filter(Boolean))];
   const emailMap = {};
   const nameMap = {};
-  for (const uid of uniqueUserIds) {
-    try {
-      const { data: { user }, error: ue } = await supabase.auth.admin.getUserById(uid);
-      if (!ue && user) {
-        emailMap[uid] = user.email ?? null;
-        nameMap[uid]  = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? null;
+
+  await Promise.all(
+    uniqueUserIds.map(async (uid) => {
+      try {
+        const { data: { user }, error: ue } = await supabase.auth.admin.getUserById(uid);
+        if (!ue && user) {
+          emailMap[uid] = user.email ?? null;
+          nameMap[uid]  = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? null;
+        }
+      } catch (_) {
+        // non-fatal — leave email/name as null
       }
-    } catch (_) {
-      // non-fatal — leave email/name as undefined
-    }
-  }
+    })
+  );
 
   return data.map((row) => ({
     ...row,
@@ -307,3 +310,78 @@ export async function getStats(userId = null) {
     history,
   };
 }
+
+export const AVAILABLE_MODELS = [
+  {
+    id: "yolov8m",
+    name: "YOLOv8 Medium",
+    tag: "Standard Baseline",
+    architecture: "YOLOv8m",
+    params: "25.9M",
+    description: "Balanced speed & precision for general coastal debris detection.",
+    badge: "Default"
+  },
+  {
+    id: "yolov11m",
+    name: "YOLOv11 Medium",
+    tag: "Enhanced Accuracy",
+    architecture: "YOLOv11m",
+    params: "20.1M",
+    description: "Enhanced feature extraction & attention mechanisms for complex or occluded waste.",
+    badge: "High Precision"
+  },
+  {
+    id: "yolov26s",
+    name: "YOLOv26 Small",
+    tag: "Ultra-Fast Edge",
+    architecture: "YOLOv26s",
+    params: "9.6M",
+    description: "Lightweight, low-latency inference optimized for real-time mobile & drone feeds.",
+    badge: "Fastest"
+  }
+];
+
+let cachedActiveModel = "yolov11m";
+
+/**
+ * Returns the currently active AI model ID configured by the Admin.
+ */
+export async function getActiveSystemModel() {
+  try {
+    const { data, error } = await supabase
+      .from("system_settings")
+      .select("value")
+      .eq("key", "active_ai_model")
+      .single();
+
+    if (!error && data?.value) {
+      cachedActiveModel = data.value;
+    }
+  } catch (_) {
+    // Fall back to in-memory model cache
+  }
+  return cachedActiveModel;
+}
+
+/**
+ * Sets the system-wide active AI model ID (Admin only).
+ */
+export async function setActiveSystemModel(modelId) {
+  const isValid = AVAILABLE_MODELS.some((m) => m.id === modelId);
+  if (!isValid) {
+    throw new Error(`Invalid model ID: ${modelId}`);
+  }
+
+  cachedActiveModel = modelId;
+
+  try {
+    await supabase
+      .from("system_settings")
+      .upsert({ key: "active_ai_model", value: modelId }, { onConflict: "key" });
+  } catch (err) {
+    console.warn("Could not persist active model to system_settings:", err.message);
+  }
+
+  return modelId;
+}
+

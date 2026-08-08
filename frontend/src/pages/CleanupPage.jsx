@@ -1,4 +1,4 @@
-import { Recycle, MapPin, Clock, AlertTriangle } from "lucide-react";
+import { Recycle, MapPin, Clock, AlertTriangle, Users, Waves } from "lucide-react";
 
 const RECOMMENDATIONS = [
   {
@@ -8,7 +8,6 @@ const RECOMMENDATIONS = [
     action: "Organize a cleanup drive within 48 hours",
     reason: "Detected increase in plastic waste. Plastic bottles are the most detected waste type.",
     estimate: { volunteers: "20-30", time: "4 hours" },
-    icon: "🏖️",
   },
   {
     beach: "Juhu Beach",
@@ -17,7 +16,6 @@ const RECOMMENDATIONS = [
     action: "Deploy waste collection bins along the shoreline",
     reason: "High pollution level compared to other beaches",
     estimate: { volunteers: "10-15", time: "2 hours" },
-    icon: "🌊",
   },
   {
     beach: "Goa Beach",
@@ -26,7 +24,6 @@ const RECOMMENDATIONS = [
     action: "Schedule regular weekly monitoring",
     reason: "Moderate pollution with upward trend detected",
     estimate: { volunteers: "5-10", time: "3 hours" },
-    icon: "🐚",
   },
   {
     beach: "Kavalam Beach",
@@ -35,7 +32,6 @@ const RECOMMENDATIONS = [
     action: "Awareness campaign for local visitors",
     reason: "Low pollution but preventive measures recommended",
     estimate: { volunteers: "5-8", time: "2 hours" },
-    icon: "🌴",
   },
 ];
 
@@ -59,8 +55,8 @@ export default function CleanupPage() {
           <p className="section-title">Recommended Actions</p>
           {RECOMMENDATIONS.map((r, i) => (
             <div key={i} className="cleanup-card">
-              <div className="cleanup-icon" style={{ background: r.priority === 'high' ? '#fee2e2' : r.priority === 'medium' ? '#fef9c3' : '#d1fae5' }}>
-                {r.icon}
+              <div className="cleanup-icon" style={{ background: r.priority === 'high' ? 'rgba(239, 68, 68, 0.12)' : r.priority === 'medium' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)', color: r.priority === 'high' ? '#ef4444' : r.priority === 'medium' ? '#f59e0b' : '#10b981' }}>
+                <Waves size={18} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
@@ -72,8 +68,12 @@ export default function CleanupPage() {
                 <div style={{ fontSize: '0.73rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>{r.location}</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--ink-light)', marginBottom: '0.4rem' }}>{r.action}</div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>👥 {r.estimate.volunteers} volunteers</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>⏱ {r.estimate.time}</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Users size={12} /> {r.estimate.volunteers} volunteers
+                  </span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Clock size={12} /> {r.estimate.time}
+                  </span>
                 </div>
               </div>
             </div>

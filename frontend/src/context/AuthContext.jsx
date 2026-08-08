@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "../lib/supabase.js";
 
 export const AuthContext = createContext(null);
@@ -38,11 +38,8 @@ export function AuthProvider({ children }) {
 
   /**
    * Register a new user with email + password.
-   * Supabase sends a confirmation email; if email confirmation is enabled,
-   * the returned user will be unconfirmed until they click the link.
-   * Throws if the email is already registered or on any Supabase error.
    */
-  const signUp = async (email, password, fullName) => {
+  const signUp = useCallback(async (email, password, fullName) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -51,35 +48,32 @@ export function AuthProvider({ children }) {
       },
     });
     if (error) throw error;
-    // Supabase returns an empty identities array when the email is already taken
     if (data.user && data.user.identities?.length === 0) {
       throw new Error("This email is already registered. Please sign in instead.");
     }
     return data;
-  };
+  }, []);
 
   /**
    * Sign in with email + password.
-   * Throws on failure (caller should catch and show error).
    */
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     sessionStorage.setItem("littora_session_active", "true");
     return data;
-  };
+  }, []);
 
   /**
    * Sign out and clear local session.
    */
-  const logout = async () => {
+  const logout = useCallback(async () => {
     sessionStorage.removeItem("littora_session_active");
     await supabase.auth.signOut();
-  };
+  }, []);
 
   /**
    * Returns the current access token (JWT) for attaching to API requests.
-   * Returns null if not authenticated.
    */
   const getToken = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -88,8 +82,13 @@ export function AuthProvider({ children }) {
 
   const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
 
+  const value = useMemo(
+    () => ({ user, loading, login, signUp, logout, isAdmin, getToken }),
+    [user, loading, login, signUp, logout, isAdmin, getToken]
+  );
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signUp, logout, isAdmin, getToken }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

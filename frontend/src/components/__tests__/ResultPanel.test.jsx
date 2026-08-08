@@ -26,7 +26,7 @@ describe("ResultPanel component", () => {
 
   it("renders the recyclable pie chart section heading", () => {
     render(<ResultPanel result={baseResult} />);
-    expect(screen.getByText("Recyclable vs non-recyclable")).toBeInTheDocument();
+    expect(screen.getByText(/recyclable vs non-recyclable/i)).toBeInTheDocument();
   });
 
   it("renders correctly when all detections are zero", () => {

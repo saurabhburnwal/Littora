@@ -45,6 +45,17 @@ describe("UploadPage component", () => {
     supabase.auth.onAuthStateChange.mockReturnValue({
       data: { subscription: { unsubscribe: vi.fn() } },
     });
+    axios.get.mockResolvedValue({
+      data: {
+        activeModel: "yolov8m",
+        activeModelDetails: { id: "yolov8m", name: "YOLOv8 Medium", tag: "Baseline", badge: "Default" },
+        availableModels: [
+          { id: "yolov8m", name: "YOLOv8 Medium", tag: "Baseline", params: "25.9M" },
+          { id: "yolov11m", name: "YOLOv11 Medium", tag: "Precision", params: "20.1M" },
+          { id: "yolov26s", name: "YOLOv26 Small", tag: "Fast", params: "9.6M" },
+        ],
+      },
+    });
   });
 
   it("renders page title and upload placeholder card", async () => {
@@ -55,6 +66,30 @@ describe("UploadPage component", () => {
     expect(screen.getByText("Upload & Detection View")).toBeInTheDocument();
     expect(screen.getByText("Detection Result & Analytics")).toBeInTheDocument();
     expect(screen.getByText(/Your analysis breakdown and charts will appear here/i)).toBeInTheDocument();
+  });
+
+  it("allows Admin to switch active AI model globally", async () => {
+    const adminUser = { id: "admin-1", email: import.meta.env.VITE_ADMIN_EMAIL || "admin@littora.app" };
+    axios.post.mockResolvedValueOnce({
+      data: {
+        activeModel: "yolov11m",
+        activeModelDetails: { id: "yolov11m", name: "YOLOv11 Medium", tag: "Precision", badge: "High Precision" },
+      },
+    });
+
+    renderUploadPage({ user: adminUser });
+    await vi.waitFor(() => screen.getByText("System Admin Control:"));
+
+    const btn = screen.getByRole("button", { name: /YOLOv11 Medium/i });
+    fireEvent.click(btn);
+
+    await vi.waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining("/api/model"),
+        { modelId: "yolov11m" },
+        expect.any(Object)
+      );
+    });
   });
 
   it("opens AuthRequiredModal when unauthenticated guest attempts to upload file", async () => {
@@ -76,11 +111,12 @@ describe("UploadPage component", () => {
       total_waste: 4,
       pollution_score: 55,
       severity: "Moderate",
+      model_name: "YOLOv8 Medium",
       latitude: 19.07,
       longitude: 72.87,
       location_label: "Juhu Beach",
       detections: { bottle: 2, can: 2 },
-      bBoxes: [],
+      boxes: [],
     };
     axios.post.mockResolvedValueOnce({ data: mockResult });
 

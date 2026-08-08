@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { ImageOff } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth }  from "../context/AuthContext.jsx";
 import UploadForm  from "../components/UploadForm.jsx";
 import ResultPanel from "../components/ResultPanel.jsx";
-
 import AuthRequiredModal from "../components/AuthRequiredModal.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || "admin@littora.app";
 
 export default function UploadPage() {
   const { loadStats }  = useStats();
@@ -17,6 +17,59 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Model state
+  const [modelInfo, setModelInfo] = useState({
+    activeModel: "yolov8m",
+    activeModelDetails: { name: "YOLOv8 Medium", tag: "Standard Baseline", description: "Balanced speed & precision for general coastal debris detection.", badge: "Default" },
+    availableModels: [
+      { id: "yolov8m", name: "YOLOv8 Medium", tag: "Standard Baseline", params: "25.9M", description: "Balanced speed & precision for general coastal debris detection.", badge: "Default" },
+      { id: "yolov11m", name: "YOLOv11 Medium", tag: "Enhanced Accuracy", params: "20.1M", description: "Enhanced feature extraction & attention mechanisms for complex or occluded waste.", badge: "High Precision" },
+      { id: "yolov26s", name: "YOLOv26 Small", tag: "Ultra-Fast Edge", params: "9.6M", description: "Lightweight, low-latency inference optimized for real-time mobile & drone feeds.", badge: "Fastest" },
+    ],
+  });
+  const [updatingModel, setUpdatingModel] = useState(false);
+
+  const isAdmin = user && user.email === ADMIN_EMAIL;
+
+  useEffect(() => {
+    fetchModelInfo();
+  }, []);
+
+  async function fetchModelInfo() {
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/model`);
+      if (data && data.activeModel) {
+        setModelInfo(data);
+      }
+    } catch (_) {
+      // Non-fatal: fallback default modelInfo state is used
+    }
+  }
+
+  async function handleUpdateModel(newModelId) {
+    if (!isAdmin) return;
+    setUpdatingModel(true);
+    setError(null);
+
+    try {
+      const token = await getToken();
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const { data } = await axios.post(`${API_BASE}/api/model`, { modelId: newModelId }, { headers });
+      
+      if (data && data.activeModel) {
+        setModelInfo((prev) => ({
+          ...prev,
+          activeModel: data.activeModel,
+          activeModelDetails: data.activeModelDetails,
+        }));
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to update system AI model");
+    } finally {
+      setUpdatingModel(false);
+    }
+  }
 
   async function handleUpload(file, coords) {
     if (!user) {
@@ -70,10 +123,14 @@ export default function UploadPage() {
               loading={loading}
               result={result}
               onReset={() => setResult(null)}
+              modelInfo={modelInfo}
+              onUpdateModel={handleUpdateModel}
+              isAdmin={isAdmin}
+              updatingModel={updatingModel}
             />
             {error && (
               <p className="error" style={{ marginTop: "0.85rem" }}>
-                ⚠️ {error}
+                {error}
               </p>
             )}
           </div>

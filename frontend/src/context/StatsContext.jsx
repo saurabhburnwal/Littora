@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext.jsx";
 
@@ -38,8 +38,10 @@ export function StatsProvider({ children }) {
     loadStats();
   }, [loadStats]);
 
+  const value = useMemo(() => ({ stats, loadStats }), [stats, loadStats]);
+
   return (
-    <StatsContext.Provider value={{ stats, loadStats }}>
+    <StatsContext.Provider value={value}>
       {children}
     </StatsContext.Provider>
   );

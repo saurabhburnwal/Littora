@@ -1,33 +1,34 @@
-# 🤖 Littora AI Service — Python FastAPI + YOLOv8 Inference
+# Littora AI Service — Python FastAPI + YOLOv8 Inference
 
-The **ai-service** component is a stateless microservice responsible for real-time computer vision inference on uploaded coastal images. It uses a custom-trained **YOLOv8n** model to detect, classify, and score beach litter.
-
----
-
-## 🌟 Responsibilities
-
-- **🎯 Object Detection**: Classifies waste items into core categories (`bottle`, `can`, `bag`, `wrapper`, `glass`, `foam`, `metal`, `other`).
-- **📐 Bounding Box Output**: Returns normalized bounding boxes (`x_min`, `y_min`, `x_max`, `y_max`) and detection confidence scores.
-- **📈 Pollution Scoring**: Calculates a normalized pollution score (0–100) and severity classification (`Low`, `Moderate`, `High`, `Severe`) based on waste density and category weights (`severity.py`).
-- **⚡ Stateless Execution**: Operates purely in-memory; returns JSON inference results without direct database or storage dependencies.
+The **ai-service** component is a stateless microservice responsible for real-time computer vision inference on uploaded coastal images. It uses custom-trained YOLO models (YOLOv8 Medium, YOLOv11 Medium, YOLOv26 Small) to detect, classify, and score beach litter.
 
 ---
 
-## 📁 Directory Structure
+## Responsibilities
+
+- **Object Detection**: Classifies waste items into core categories (`bottle`, `can`, `bag`, `wrapper`, `glass`, `foam`, `metal`, `other`).
+- **Bounding Box Output**: Returns normalized bounding boxes (`x_min`, `y_min`, `x_max`, `y_max`) and detection confidence scores.
+- **Pollution Scoring**: Calculates a normalized pollution score (0–100) and severity classification (`Low`, `Moderate`, `High`, `Severe`) based on waste density and category weights (`severity.py`).
+- **Stateless Execution**: Operates purely in-memory; returns JSON inference results without direct database or storage dependencies.
+
+---
+
+## Directory Structure
 
 ```text
 ai-service/
 ├── main.py            → FastAPI application & /detect endpoint
 ├── severity.py        → Pollution scoring algorithm & severity calculator
 ├── models/            → YOLOv8 model weights directory
-│   └── best.pt        → Trained YOLOv8n weights
+│   ├── yolov11m.pt    → Trained YOLOv11 Medium weights
+│   └── yolov26s.pt    → Trained YOLOv26 Small weights
 ├── requirements.txt   → PyTorch, Ultralytics, FastAPI, OpenCV, Uvicorn dependencies
 └── README.md
 ```
 
 ---
 
-## 🚀 Setup & Running
+## Setup & Running
 
 ### 1. Create & Activate Virtual Environment
 ```bash
@@ -48,11 +49,11 @@ uvicorn main:app --reload --port 8000
 
 ---
 
-## 🔌 API Endpoint
+## API Endpoint
 
 ### `POST /detect`
 - **Content-Type**: `multipart/form-data`
-- **Body**: `file` (image binary)
+- **Body**: `file` (image binary), `model_name` (optional: `yolov8m`, `yolov11m`, `yolov26s`)
 - **Response**:
 ```json
 {
@@ -62,6 +63,8 @@ uvicorn main:app --reload --port 8000
   ],
   "total_waste": 2,
   "pollution_score": 24,
-  "severity": "Low"
+  "severity": "Low",
+  "model_used": "yolov11m",
+  "model_name": "YOLOv11 Medium"
 }
 ```

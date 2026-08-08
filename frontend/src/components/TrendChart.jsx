@@ -30,35 +30,41 @@ export default function TrendChart({ history }) {
           >
             <defs>
               <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor="#2f6f5e" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#2f6f5e" stopOpacity={0}    />
+                <stop offset="5%"  stopColor="var(--teal)" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="var(--teal)" stopOpacity={0}    />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ddd3bf" />
+            <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" vertical={false} />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 11, fill: "#6b7a72" }}
+              tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }}
+              axisLine={{ stroke: "var(--border-lt)" }}
+              tickLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fontSize: 11, fill: "#6b7a72" }}
+              tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }}
+              axisLine={{ stroke: "var(--border-lt)" }}
+              tickLine={false}
             />
             <Tooltip
               contentStyle={{
-                background:   "#fff",
-                border:       "1px solid #ddd3bf",
-                borderRadius: 8,
-                fontSize:     13,
+                background:   "var(--card-bg)",
+                border:       "1px solid var(--border-lt)",
+                borderRadius: 10,
+                boxShadow:    "0 8px 24px rgba(0,0,0,0.12)",
+                fontSize:     12,
+                color:        "var(--ink)",
               }}
             />
             <Area
               type="monotone"
               dataKey="score"
-              stroke="#2f6f5e"
+              stroke="var(--teal)"
               strokeWidth={2}
               fill="url(#scoreGradient)"
-              dot={{ fill: "#2f6f5e", r: 3 }}
+              dot={{ fill: "var(--teal)", r: 3, strokeWidth: 0 }}
               activeDot={{ r: 5 }}
               name="Pollution Score"
             />

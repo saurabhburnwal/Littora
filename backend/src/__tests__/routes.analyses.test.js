@@ -20,6 +20,9 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
   deleteAnalysis:        jest.fn(),
   listAnalyses:          mockListAnalyses,
   getStats:              mockGetStats,
+  AVAILABLE_MODELS:      [],
+  getActiveSystemModel:  jest.fn().mockResolvedValue("yolov8m"),
+  setActiveSystemModel:  jest.fn(),
 }));
 
 const { default: app } = await import("../index.js");

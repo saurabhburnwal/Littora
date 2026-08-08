@@ -1,6 +1,3 @@
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-
 /**
  * Generates and downloads a styled PDF report for Littora Beach Waste Detection.
  * @param {string} reportType - "daily" | "weekly" | "monthly" | "custom"
@@ -8,6 +5,11 @@ import html2canvas from "html2canvas";
  * @param {object} user - Current logged in user
  */
 export async function generatePdfReport(reportType, stats = {}, user = null) {
+  // Dynamically load heavy PDF generation libraries on demand
+  const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+    import("jspdf"),
+    import("html2canvas"),
+  ]);
   const titleMap = {
     daily: "Daily Beach Waste Report",
     weekly: "Weekly Beach Waste Report",
@@ -57,7 +59,7 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0d9488; padding-bottom: 20px; margin-bottom: 24px;">
         <div>
           <div style="font-size: 26px; font-weight: 800; color: #0d9488; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;">
-            🌊 LITTORA
+            LITTORA
           </div>
           <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
             AI Beach Waste Detection & Monitoring System

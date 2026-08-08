@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { AuthContext } from "./AuthContext.jsx";
 
 export const SettingsContext = createContext(null);
@@ -50,29 +50,31 @@ export function SettingsProvider({ children }) {
     setNotificationsState(readLocal("littora_notifs", userId, DEFAULTS.notifications));
   }, [userId]);
 
-  const setLanguage = (v) => {
+  const setLanguage = useCallback((v) => {
     setLanguageState(v);
     localStorage.setItem(getKey("littora_language", userId), JSON.stringify(v));
-  };
-  const setDateFormat = (v) => {
+  }, [userId]);
+
+  const setDateFormat = useCallback((v) => {
     setDateFormatState(v);
     localStorage.setItem(getKey("littora_dateformat", userId), JSON.stringify(v));
-  };
-  const setItemsPerPage = (v) => {
+  }, [userId]);
+
+  const setItemsPerPage = useCallback((v) => {
     const num = Number(v);
     setItemsPerPageState(num);
     localStorage.setItem(getKey("littora_ipp", userId), JSON.stringify(num));
-  };
-  const setNotifications = (v) => {
+  }, [userId]);
+
+  const setNotifications = useCallback((v) => {
     setNotificationsState(v);
     localStorage.setItem(getKey("littora_notifs", userId), JSON.stringify(v));
-  };
+  }, [userId]);
 
   /**
    * Format a date string or Date according to the active dateFormat setting.
-   * Returns a formatted string.
    */
-  const formatDate = (dateInput) => {
+  const formatDate = useCallback((dateInput) => {
     if (!dateInput) return "—";
     const d = new Date(dateInput);
     if (isNaN(d)) return String(dateInput);
@@ -85,18 +87,27 @@ export function SettingsProvider({ children }) {
       case "YYYY-MM-DD": return `${year}-${mm}-${day}`;
       default:           return `${day} ${month} ${year}`;
     }
-  };
+  }, [dateFormat]);
+
+  const value = useMemo(
+    () => ({
+      language, setLanguage,
+      dateFormat, setDateFormat,
+      itemsPerPage, setItemsPerPage,
+      notifications, setNotifications,
+      formatDate,
+    }),
+    [
+      language, setLanguage,
+      dateFormat, setDateFormat,
+      itemsPerPage, setItemsPerPage,
+      notifications, setNotifications,
+      formatDate,
+    ]
+  );
 
   return (
-    <SettingsContext.Provider
-      value={{
-        language, setLanguage,
-        dateFormat, setDateFormat,
-        itemsPerPage, setItemsPerPage,
-        notifications, setNotifications,
-        formatDate,
-      }}
-    >
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   );

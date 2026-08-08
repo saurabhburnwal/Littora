@@ -669,9 +669,10 @@ body {
 }
 
 .topbar-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .hamburger {
@@ -715,9 +716,10 @@ body {
 }
 
 .page-heading h1 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.025em;
   color: var(--ink);
   line-height: 1.15;
   margin-bottom: 0.25rem;
@@ -1052,26 +1054,27 @@ body {
 .stat-card {
   background: var(--card-bg);
   border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-lt);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   padding: 1.25rem 1.35rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  border-top: 3px solid transparent;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   position: relative;
   overflow: hidden;
 }
 
 .stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--card-shadow-h);
+  transform: translateY(-2px);
+  border-color: var(--border);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 
-.stat-card:nth-child(1) { border-top-color: var(--teal); }
-.stat-card:nth-child(2) { border-top-color: var(--clay); }
-.stat-card:nth-child(3) { border-top-color: var(--amber); }
-.stat-card:nth-child(4) { border-top-color: var(--rose); }
+.stat-card:nth-child(1) { border-top: 3px solid var(--teal); }
+.stat-card:nth-child(2) { border-top: 3px solid var(--clay); }
+.stat-card:nth-child(3) { border-top: 3px solid var(--amber); }
+.stat-card:nth-child(4) { border-top: 3px solid var(--rose); }
 
 .stat-card-header {
   display: flex;
@@ -1081,9 +1084,9 @@ body {
 }
 
 .stat-card-label {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -1091,8 +1094,10 @@ body {
 .stat-card-icon { opacity: 0.3; }
 
 .stat-card-value {
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 2.1rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.04em;
   color: var(--ink);
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -1126,14 +1131,16 @@ body {
 .chart-card {
   background: var(--card-bg);
   border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-lt);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   padding: 1.3rem 1.4rem;
+  transition: border-color 0.18s ease;
 }
 
 .chart-card-title {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
   margin: 0 0 1rem;
@@ -1535,8 +1542,8 @@ button {
   background: var(--card-bg);
   padding: 1.1rem 1.4rem;
   border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-lt);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   margin-bottom: 1.5rem;
   flex-wrap: nowrap;
 }
@@ -1705,9 +1712,10 @@ button {
 
 .map-page-header { margin-bottom: 0.85rem; }
 .map-page-header h1 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.025em;
   color: var(--ink);
   margin-bottom: 0.2rem;
 }
@@ -2189,7 +2197,9 @@ button {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity;
+  transform: translateZ(0);
 }
 
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
@@ -2202,8 +2212,10 @@ button {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 24px 72px rgba(0,0,0,0.35);
-  animation: slideUp 0.22s ease;
+  animation: slideUp 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 @keyframes slideUp {
@@ -2213,10 +2225,13 @@ button {
 
 .modal-img {
   width: 100%;
-  max-height: 320px;
+  min-height: 220px;
+  max-height: 340px;
   object-fit: cover;
+  background: var(--bg-card);
   border-radius: 18px 18px 0 0;
   display: block;
+  transition: opacity 0.2s ease;
 }
 
 .modal-body { padding: 1.5rem; }
@@ -2632,6 +2647,22 @@ tbody tr:last-child td { border-bottom: none; }
   transition: opacity 0.15s;
 }
 
+/* Global Recharts Tooltip Text Contrast Overrides */
+.recharts-default-tooltip {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-lt) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  color: var(--ink) !important;
+}
+
+.recharts-tooltip-item,
+.recharts-tooltip-item-name,
+.recharts-tooltip-item-value,
+.recharts-tooltip-label {
+  color: var(--ink) !important;
+}
+
 /* Trend metric cards */
 .trend-metric-cards {
   display: grid;
@@ -2643,11 +2674,18 @@ tbody tr:last-child td { border-bottom: none; }
 .trend-metric-card {
   background: var(--card-bg);
   border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-lt);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   padding: 1.25rem 1.35rem;
   display: flex;
   align-items: center;
   gap: 0.85rem;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.trend-metric-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border);
 }
 
 .trend-metric-icon {
@@ -2661,18 +2699,22 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 .trend-metric-value {
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 1.6rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.04em;
   color: var(--ink);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .trend-metric-label {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--muted);
-  font-weight: 500;
-  margin-top: 0.15rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
 }
 
 .trend-metric-delta {

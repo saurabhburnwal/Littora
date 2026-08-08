@@ -23,7 +23,6 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
     return (
       <div className="gallery-grid">
         <div className="gallery-empty">
-          <span>🏖️</span>
           <p>No photos match the selected filter.</p>
         </div>
       </div>
@@ -53,7 +52,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
                   loading="lazy"
                 />
               ) : (
-                <div className="gallery-thumb-placeholder">🖼</div>
+                <div className="gallery-thumb-placeholder">—</div>
               )}
               <span
                 className={`severity-overlay severity-${row.severity?.toLowerCase()}`}
@@ -134,6 +133,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
                 src={modalItem.image_url}
                 alt="Full-size beach analysis"
                 className="modal-img"
+                decoding="async"
               />
             )}
 

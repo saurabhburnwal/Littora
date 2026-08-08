@@ -169,7 +169,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                     loading="lazy"
                   />
                 ) : (
-                  <div className="thumb-placeholder" title="No image">🖼</div>
+                  <div className="thumb-placeholder" title="No image">—</div>
                 )}
               </td>
               <td>
@@ -199,9 +199,10 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                   <span
                     className="admin-card-user"
                     title={row.user_name ? `${row.user_name} (${row.user_email || ""})` : (row.user_email || row.user_id || "Anonymous")}
-                    style={{ fontSize: "0.78rem", fontWeight: 600 }}
+                    style={{ fontSize: "0.78rem", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px" }}
                   >
-                    👤 {row.user_name || (row.user_email
+                    <User size={12} />
+                    {row.user_name || (row.user_email
                       ? row.user_email.split("@")[0]
                       : row.user_id
                         ? row.user_id.slice(0, 8) + "…"
@@ -289,6 +290,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                 src={selectedRow.image_url}
                 alt="Full-size beach analysis"
                 className="modal-img"
+                decoding="async"
               />
             )}
 

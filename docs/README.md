@@ -1,16 +1,16 @@
-# 📖 Littora System Documentation
+# Littora System Documentation
 
 This directory contains technical specifications, architecture blueprints, database schemas, and implementation roadmaps for the **Littora Beach Waste Detection & Monitoring Platform**.
 
 ---
 
-## 📁 Documentation Files
+## Documentation Files
 
 - **[`roadmap.md`](file:///home/krypton/MCA/TRIMESTER%20IV/SPD/Littora/docs/roadmap.md)**: End-to-end development roadmap, multi-phase timeline, architecture breakdown, and database schemas.
 
 ---
 
-## 🏗️ Core Architecture Overview
+## Core Architecture Overview
 
 ```text
 Browser (React 18 SPA)
