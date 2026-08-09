@@ -176,7 +176,7 @@ describe("listAllAnalysesAdmin", () => {
     expect(res[0].user_email).toBe("user1@test.com");
     expect(res[0].user_name).toBe("User One");
     expect(res[1].user_email).toBe("user2@test.com");
-    expect(res[1].user_name).toBe("user2");
+    expect(res[1].user_name).toBe("user2@test.com");
     expect(res[2].user_email).toBeNull();
     expect(res[2].user_name).toBeNull();
   });

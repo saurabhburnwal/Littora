@@ -35,8 +35,16 @@ export default function FloatingAccountMenu() {
     }
   };
 
-  const displayName = user ? (user.email?.split("@")[0] ?? "User") : "Guest Visitor";
-  const initial     = user ? (displayName[0]?.toUpperCase() ?? "U") : "G";
+  const rawFullName = user?.user_metadata?.full_name?.trim() || user?.user_metadata?.name?.trim();
+  const isAdminUser = isAdmin || user?.email?.toLowerCase() === "admin@littora.app";
+
+  const displayName = user
+    ? (rawFullName || (isAdminUser ? "Admin" : (user.email ?? "User")))
+    : "Guest Visitor";
+
+  const initial = user
+    ? (displayName[0]?.toUpperCase() ?? "U")
+    : "G";
 
   return (
     <div className="floating-account-menu-container" ref={menuRef} style={{ position: "relative", zIndex: 1000 }}>
@@ -83,7 +91,7 @@ export default function FloatingAccountMenu() {
         <span style={{
           fontSize: "0.85rem",
           fontWeight: 700,
-          maxWidth: "110px",
+          maxWidth: "135px",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",

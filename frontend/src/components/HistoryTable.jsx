@@ -202,11 +202,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                     style={{ fontSize: "0.78rem", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px" }}
                   >
                     <User size={12} />
-                    {row.user_name || (row.user_email
-                      ? row.user_email.split("@")[0]
-                      : row.user_id
-                        ? row.user_id.slice(0, 8) + "…"
-                        : "Anon")}
+                    {row.user_name || row.user_email || (row.user_id ? row.user_id.slice(0, 8) + "…" : "Anon")}
                   </span>
                 </td>
               )}
@@ -299,7 +295,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                 <div className="admin-card-user" style={{ marginBottom: "0.5rem", fontSize: "0.85rem" }}>
                   <User size={14} style={{ display: "inline", marginRight: "4px" }} />
                   Uploaded by: <strong title={selectedRow.user_email || selectedRow.user_id}>
-                    {selectedRow.user_name || (selectedRow.user_email ? selectedRow.user_email.split("@")[0] : (selectedRow.user_id?.slice(0, 12) + "…"))}
+                    {selectedRow.user_name || selectedRow.user_email || (selectedRow.user_id?.slice(0, 12) + "…")}
                   </strong>
                 </div>
               )}

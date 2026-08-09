@@ -58,10 +58,17 @@ describe("FloatingAccountMenu component", () => {
     expect(screen.getByText("Guest Visitor")).toBeInTheDocument();
   });
 
-  it("renders trigger button with user email name when authenticated", async () => {
+  it("renders trigger button with user email or full_name when authenticated", async () => {
     renderMenu({ user: { id: "u1", email: "saurabh@test.com" } });
     await vi.waitFor(() => {
-      expect(screen.getByText("saurabh")).toBeInTheDocument();
+      expect(screen.getByText("saurabh@test.com")).toBeInTheDocument();
+    });
+  });
+
+  it("renders full_name when present in user metadata", async () => {
+    renderMenu({ user: { id: "u1", email: "admin@littora.app", user_metadata: { full_name: "Admin" } } });
+    await vi.waitFor(() => {
+      expect(screen.getByText("Admin")).toBeInTheDocument();
     });
   });
 

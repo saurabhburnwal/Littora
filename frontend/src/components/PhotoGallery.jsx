@@ -142,7 +142,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
                 <div className="admin-card-user" style={{ marginBottom: "0.5rem", fontSize: "0.85rem" }}>
                   <User size={14} style={{ display: "inline", marginRight: "4px" }} />
                   Uploaded by: <strong title={modalItem.user_email || modalItem.user_id}>
-                    {modalItem.user_name || (modalItem.user_email ? modalItem.user_email.split("@")[0] : (modalItem.user_id?.slice(0, 12) + "…"))}
+                    {modalItem.user_name || modalItem.user_email || (modalItem.user_id?.slice(0, 12) + "…")}
                   </strong>
                 </div>
               )}

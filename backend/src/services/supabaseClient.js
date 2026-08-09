@@ -127,6 +127,7 @@ export async function listAllAnalysesAdmin() {
 
   // Collect unique user IDs and fetch their emails/names from Auth in parallel
   const uniqueUserIds = [...new Set(data.map((r) => r.user_id).filter(Boolean))];
+  const adminEmail = (process.env.VITE_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "admin@littora.app").toLowerCase();
   const emailMap = {};
   const nameMap = {};
 
@@ -135,8 +136,12 @@ export async function listAllAnalysesAdmin() {
       try {
         const { data: { user }, error: ue } = await supabase.auth.admin.getUserById(uid);
         if (!ue && user) {
-          emailMap[uid] = user.email ?? null;
-          nameMap[uid]  = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? null;
+          const userEmail = user.email ?? null;
+          const rawName = user.user_metadata?.full_name?.trim();
+          const isAppAdmin = userEmail?.toLowerCase() === adminEmail;
+
+          emailMap[uid] = userEmail;
+          nameMap[uid]  = rawName || (isAppAdmin ? "Admin" : userEmail);
         }
       } catch (_) {
         // non-fatal — leave email/name as null
