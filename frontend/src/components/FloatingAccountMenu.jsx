@@ -61,13 +61,12 @@ export default function FloatingAccountMenu() {
           gap: "0.55rem",
           padding: "0.45rem 0.85rem",
           borderRadius: "30px",
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+          background: "var(--surface-elevated, #ffffff)",
+          border: "1px solid var(--border-strong, #bca88e)",
+          boxShadow: "0 6px 22px rgba(0,0,0,0.18)",
           cursor: "pointer",
           transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-          color: "var(--ink)",
-          backdropFilter: "blur(12px)",
+          color: "var(--text-primary, #0f172a)",
         }}
       >
         <div style={{
@@ -81,7 +80,7 @@ export default function FloatingAccountMenu() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontWeight: 700,
+          fontWeight: 800,
           fontSize: "0.85rem",
           boxShadow: user ? "0 2px 8px rgba(14, 140, 134, 0.4)" : "none",
         }}>
@@ -89,12 +88,13 @@ export default function FloatingAccountMenu() {
         </div>
 
         <span style={{
-          fontSize: "0.85rem",
-          fontWeight: 700,
+          fontSize: "0.88rem",
+          fontWeight: 800,
           maxWidth: "135px",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
+          color: "var(--text-primary, #0f172a)",
           letterSpacing: "-0.01em"
         }}>
           {displayName}
@@ -103,26 +103,26 @@ export default function FloatingAccountMenu() {
         <ChevronDown
           size={14}
           style={{
-            opacity: 0.65,
+            color: "var(--text-primary, #0f172a)",
+            opacity: 0.85,
             transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
           }}
         />
       </button>
 
-      {/* Redesigned Glassmorphic Popover Card */}
+      {/* Redesigned Popover Card with High Contrast */}
       {isOpen && (
         <div className="account-dropdown-card" style={{
           position: "absolute",
           top: "calc(100% + 10px)",
           right: 0,
-          width: "270px",
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
+          width: "275px",
+          background: "var(--surface-elevated, #ffffff)",
+          border: "1px solid var(--border-strong, #bca88e)",
           borderRadius: "16px",
-          boxShadow: "0 18px 42px -8px rgba(0, 0, 0, 0.28)",
-          padding: "0.9rem",
-          backdropFilter: "blur(20px)",
+          boxShadow: "0 20px 48px -8px rgba(0, 0, 0, 0.32)",
+          padding: "0.95rem",
           animation: "fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)",
           zIndex: 1001,
         }}>
@@ -153,9 +153,9 @@ export default function FloatingAccountMenu() {
 
               <div style={{ overflow: "hidden", flex: 1 }}>
                 <div style={{
-                  fontWeight: 700,
-                  fontSize: "0.92rem",
-                  color: "var(--ink)",
+                  fontWeight: 800,
+                  fontSize: "0.95rem",
+                  color: "var(--text-primary, #0f172a)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap"
@@ -163,12 +163,13 @@ export default function FloatingAccountMenu() {
                   {displayName}
                 </div>
                 <div style={{
-                  fontSize: "0.76rem",
-                  color: "var(--muted)",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  color: "var(--text-secondary, #475569)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  marginTop: "1px"
+                  marginTop: "2px"
                 }}>
                   {user ? user.email : "Guest Visitor"}
                 </div>
@@ -182,54 +183,54 @@ export default function FloatingAccountMenu() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.35rem",
-                  padding: "0.25rem 0.65rem",
+                  padding: "0.28rem 0.7rem",
                   borderRadius: "20px",
-                  background: "rgba(245, 158, 11, 0.14)",
-                  color: "#d97706",
-                  border: "1px solid rgba(245, 158, 11, 0.3)",
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
+                  background: "var(--amber-light, #FEF3C7)",
+                  color: "#92400E",
+                  border: "1px solid #F59E0B",
+                  fontSize: "0.73rem",
+                  fontWeight: 800,
                   letterSpacing: "0.02em"
                 }}>
-                  <Shield size={11} /> Administrator
+                  <Shield size={12} style={{ color: "#B45309" }} /> Administrator
                 </span>
               ) : user ? (
                 <span style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.35rem",
-                  padding: "0.25rem 0.65rem",
+                  padding: "0.28rem 0.7rem",
                   borderRadius: "20px",
-                  background: "rgba(14, 140, 134, 0.12)",
-                  color: "var(--teal)",
-                  border: "1px solid rgba(14, 140, 134, 0.25)",
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
+                  background: "var(--primary-light, #D6F2EF)",
+                  color: "#095E5A",
+                  border: "1px solid #0E8C86",
+                  fontSize: "0.73rem",
+                  fontWeight: 800,
                   letterSpacing: "0.02em"
                 }}>
-                  <User size={11} /> Account Member
+                  <User size={12} style={{ color: "#0E8C86" }} /> Account Member
                 </span>
               ) : (
                 <span style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.35rem",
-                  padding: "0.25rem 0.65rem",
+                  padding: "0.28rem 0.7rem",
                   borderRadius: "20px",
-                  background: "rgba(148, 163, 184, 0.12)",
-                  color: "var(--muted)",
-                  border: "1px solid rgba(148, 163, 184, 0.25)",
-                  fontSize: "0.72rem",
-                  fontWeight: 600
+                  background: "#F1F5F9",
+                  color: "#475569",
+                  border: "1px solid #CBD5E1",
+                  fontSize: "0.73rem",
+                  fontWeight: 700
                 }}>
-                  <User size={11} /> Preview Guest
+                  <User size={12} /> Preview Guest
                 </span>
               )}
             </div>
           </div>
 
           {/* Quick Action Navigation Links */}
-          <div style={{ padding: "0.5rem 0", display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+          <div style={{ padding: "0.5rem 0", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
             <Link
               to="/settings"
               onClick={() => setIsOpen(false)}
@@ -237,20 +238,20 @@ export default function FloatingAccountMenu() {
                 display: "flex",
                 alignItems: "center",
                 gap: "0.75rem",
-                padding: "0.6rem 0.75rem",
+                padding: "0.65rem 0.75rem",
                 borderRadius: "10px",
-                color: "var(--ink)",
-                fontSize: "0.85rem",
-                fontWeight: 600,
+                color: "var(--text-primary, #0f172a)",
+                fontSize: "0.88rem",
+                fontWeight: 700,
                 textDecoration: "none",
                 transition: "all 0.15s ease",
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--border-lt)"}
+              onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
-              <Settings size={16} style={{ opacity: 0.75 }} />
+              <Settings size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
               <span>Account Settings</span>
-              <ChevronRight size={14} style={{ marginLeft: "auto", opacity: 0.4 }} />
+              <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
             </Link>
 
             <Link
@@ -260,20 +261,20 @@ export default function FloatingAccountMenu() {
                 display: "flex",
                 alignItems: "center",
                 gap: "0.75rem",
-                padding: "0.6rem 0.75rem",
+                padding: "0.65rem 0.75rem",
                 borderRadius: "10px",
-                color: "var(--ink)",
-                fontSize: "0.85rem",
-                fontWeight: 600,
+                color: "var(--text-primary, #0f172a)",
+                fontSize: "0.88rem",
+                fontWeight: 700,
                 textDecoration: "none",
                 transition: "all 0.15s ease",
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--border-lt)"}
+              onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
-              <Clock size={16} style={{ opacity: 0.75 }} />
+              <Clock size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
               <span>Detection History</span>
-              <ChevronRight size={14} style={{ marginLeft: "auto", opacity: 0.4 }} />
+              <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
             </Link>
 
             <Link
@@ -283,25 +284,25 @@ export default function FloatingAccountMenu() {
                 display: "flex",
                 alignItems: "center",
                 gap: "0.75rem",
-                padding: "0.6rem 0.75rem",
+                padding: "0.65rem 0.75rem",
                 borderRadius: "10px",
-                color: "var(--ink)",
-                fontSize: "0.85rem",
-                fontWeight: 600,
+                color: "var(--text-primary, #0f172a)",
+                fontSize: "0.88rem",
+                fontWeight: 700,
                 textDecoration: "none",
                 transition: "all 0.15s ease",
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--border-lt)"}
+              onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
-              <BarChart3 size={16} style={{ opacity: 0.75 }} />
+              <BarChart3 size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
               <span>Analytics & Trends</span>
-              <ChevronRight size={14} style={{ marginLeft: "auto", opacity: 0.4 }} />
+              <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
             </Link>
           </div>
 
           {/* Footer Auth Action */}
-          <div style={{ borderTop: "1px solid var(--border-lt)", paddingTop: "0.6rem" }}>
+          <div style={{ borderTop: "1px solid var(--border-lt)", paddingTop: "0.65rem" }}>
             {user ? (
               <button
                 type="button"
@@ -315,26 +316,28 @@ export default function FloatingAccountMenu() {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "0.55rem",
-                  padding: "0.6rem 0.8rem",
+                  padding: "0.65rem 0.8rem",
                   borderRadius: "10px",
-                  color: "#f43f5e",
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  background: "rgba(244, 63, 94, 0.1)",
-                  border: "1px solid rgba(244, 63, 94, 0.25)",
+                  color: "#9F1239",
+                  fontSize: "0.88rem",
+                  fontWeight: 800,
+                  background: "#FEF2F2",
+                  border: "1px solid #FECDD3",
                   cursor: "pointer",
                   transition: "all 0.18s ease"
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#f43f5e";
+                  e.currentTarget.style.background = "#E11D48";
                   e.currentTarget.style.color = "#ffffff";
+                  e.currentTarget.style.borderColor = "#BE123C";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(244, 63, 94, 0.1)";
-                  e.currentTarget.style.color = "#f43f5e";
+                  e.currentTarget.style.background = "#FEF2F2";
+                  e.currentTarget.style.color = "#9F1239";
+                  e.currentTarget.style.borderColor = "#FECDD3";
                 }}
               >
-                <LogOut size={15} /> Sign Out
+                <LogOut size={16} /> Sign Out
               </button>
             ) : (
               <button
