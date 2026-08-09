@@ -6,8 +6,9 @@ The **ai-service** component is a stateless microservice responsible for real-ti
 
 ## Responsibilities
 
-- **Object Detection**: Classifies waste items into core categories (`bottle`, `can`, `bag`, `wrapper`, `glass`, `foam`, `metal`, `other`).
-- **Bounding Box Output**: Returns normalized bounding boxes (`x_min`, `y_min`, `x_max`, `y_max`) and detection confidence scores.
+- **Multi-Model Inference & Dynamic Fallback**: Supports YOLOv11 Medium (`yolov11m`), YOLOv26 Small (`yolov26s`), and YOLOv8 Medium (`yolov8m`) with thread-safe lazy model caching and automated fallback mechanisms.
+- **FastAPI Lifespan Warm-Up**: Pre-warms active default models on service startup to eliminate cold-start latency.
+- **Pydantic Validation**: Strictly typed request/response schemas for `/detect`, `/models`, and `/health` endpoints.
 - **Pollution Scoring**: Calculates a normalized pollution score (0–100) and severity classification (`Low`, `Moderate`, `High`, `Severe`) based on waste density and category weights (`severity.py`).
 - **Stateless Execution**: Operates purely in-memory; returns JSON inference results without direct database or storage dependencies.
 

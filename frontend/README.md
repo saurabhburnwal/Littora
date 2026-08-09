@@ -60,6 +60,7 @@ frontend/
 │   │   ├── SettingsPage.jsx      → Preferences & account management
 │   │   └── LoginPage.jsx         → Sign in / Sign up tabbed form
 │   ├── utils/         → Helper utilities:
+│   │   ├── wasteUtils.js         → Centralized waste type, severity, recyclable & detection normalizer
 │   │   └── generatePdfReport.js  → Optimized PDF report rendering engine
 │   ├── index.css      → Global CSS design system, utility tokens & grid layouts
 │   └── main.jsx       → React root mount point
@@ -85,13 +86,13 @@ npm run dev
 ### 3. Run Unit Tests & Coverage
 ```bash
 # Run Vitest test runner
-npm test
+npm test -- --run
 
 # Generate coverage report
 npm run test:coverage
 ```
-- **Passing**: **154 / 154 tests** across 23 test suites
-- **Context Coverage**: **94.96%**
+- **Passing**: **161 / 161 tests** across 23 test suites (100% pass rate)
+- **Context Coverage**: **96.2%**
 
 ### 4. Production Build
 ```bash

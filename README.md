@@ -54,11 +54,14 @@
         (Uploads Image & Persists)              (Forward Image for Inference)
                                  │             │
                                  ▼             ▼
-  ┌─────────────────────────────────┐       ┌─────────────────────────────────┐
-  │ Supabase (Postgres + Storage)   │       │ Python FastAPI + YOLOv8n        │
-  │ • Storage Bucket: beach-images  │       │ Port: 8000                      │
-  │ • Tables: analyses, detections  │       │ • Returns detection JSON & bbox │
-  └─────────────────────────────────┘       └─────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────┐       ┌─────────────────────────────────┐
+  │ Supabase (Postgres + Storage)                          │       │ Python FastAPI + YOLO Inference │
+  │ • Storage Bucket: beach-images                         │       │ Port: 8000                      │
+  │ • Normalized 4NF Schema:                               │       │ • Multi-model support:          │
+  │   - analyses, detections, locations, waste_types       │       │   (yolov11m, yolov26s, yolov8m) │
+  │   - ai_models, system_settings                         │       │ • Returns detection JSON & bbox │
+  │ • Consolidated View: public.vw_analysis_details        │       └─────────────────────────────────┘
+  └────────────────────────────────────────────────────────┘
 ```
 
 ---

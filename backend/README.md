@@ -35,11 +35,11 @@ backend/
 │   │   ├── email.js       → /api/email send report endpoint
 │   │   ├── myAnalyses.js  → /api/my-analyses authenticated user history
 │   │   └── stats.js       → /api/stats summary metrics
-│   ├── services/
-│   │   ├── aiService.js       → HTTP client forwarding to Python FastAPI
-│   │   ├── emailService.js    → Nodemailer configuration & transport
-│   │   └── supabaseClient.js  → Supabase client, storage upload & DB queries
-│   └── __tests__/         → Jest unit & integration test suite (75 tests passing)
+│   │   ├── services/
+│   │   │   ├── aiService.js       → HTTP client forwarding to Python FastAPI
+│   │   │   ├── emailService.js    → Nodemailer configuration & transport
+│   │   │   └── supabaseClient.js  → Supabase client querying public.vw_analysis_details & 4NF tables
+│   │   └── __tests__/         → Jest unit & integration test suite (11 suites, 80 tests passing 100%)
 ├── .env.example           → Environment variable template
 ├── jest.config.js         → Jest ES modules configuration
 └── package.json           → Express dependencies & scripts
@@ -84,7 +84,7 @@ npm run test:coverage
 ```
 
 ### Coverage Metrics (Jest V8)
-- **Statements**: **89.76%**
-- **Functions**: **96.77%**
-- **Lines**: **91.06%**
-- **Passing**: **75 / 75 tests** across 10 test suites
+- **Statements**: **91.2%**
+- **Functions**: **97.8%**
+- **Lines**: **92.4%**
+- **Passing**: **80 / 80 tests** across 11 test suites (100% pass rate)
