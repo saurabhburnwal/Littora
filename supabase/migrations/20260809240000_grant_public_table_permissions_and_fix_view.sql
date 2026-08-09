@@ -1,4 +1,4 @@
--- Migration: Grant Table & View Permissions for public.vw_analysis_details Security Invoker View
+-- Migration: Grant Table & View Permissions and Re-create public.vw_analysis_details View
 
 -- 1. Grant schema usage and table privileges to API roles
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
@@ -10,30 +10,35 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.waste_types TO anon, authenticate
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.ai_models TO anon, authenticated, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.system_settings TO anon, authenticated, service_role;
 
--- 2. Drop existing view if present so column schema can be updated cleanly without SQLSTATE 42P16 error
+-- 2. Drop existing view if present so PostgreSQL does not throw SQLSTATE 42P16 column drop error
 DROP VIEW IF EXISTS public.vw_analysis_details CASCADE;
 
--- 3. Create public.vw_analysis_details view with security_invoker = true
+-- 3. Create public.vw_analysis_details view with security_invoker = true and exact 16-column schema
 CREATE VIEW public.vw_analysis_details
 WITH (security_invoker = true) AS
-SELECT
+SELECT 
   a.id,
+  a.image_url,
+  COALESCE(a.total_waste, 0) AS total_waste,
   a.pollution_score,
   a.severity,
   a.created_at,
   a.user_id,
   a.model_used,
-  a.image_url,
+  m.name AS model_name,
+  m.architecture AS model_architecture,
+  m.params AS model_params,
   a.location_id,
   COALESCE(a.location_label, l.location_label) AS location_label,
   COALESCE(a.latitude, l.latitude) AS latitude,
   COALESCE(a.longitude, l.longitude) AS longitude,
-  m.name AS model_name,
-  COALESCE(a.total_waste, 0) AS total_waste,
-  (
-    SELECT jsonb_object_agg(d.waste_type, d.count)
-    FROM public.detections d
-    WHERE d.analysis_id = a.id
+  COALESCE(
+    (
+      SELECT jsonb_object_agg(d.waste_type, d.count)
+      FROM public.detections d
+      WHERE d.analysis_id = a.id
+    ),
+    '{}'::jsonb
   ) AS detections_map
 FROM public.analyses a
 LEFT JOIN public.locations l ON a.location_id = l.id
