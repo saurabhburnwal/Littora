@@ -4,6 +4,7 @@ import {
   PieChart, Pie, Cell, Legend
 } from "recharts";
 import { useStats } from "../context/StatsContext.jsx";
+import { formatWasteType } from "../utils/wasteUtils.js";
 
 const PIE_COLORS = ["#2f6f5e", "#c97b3d", "#a13d3d", "#3d6ea1", "#7c3d8a", "#f0b060"];
 
@@ -23,17 +24,11 @@ export default function AnalyticsPage() {
 
     return entries
       .sort((a, b) => b[1] - a[1])
-      .map(([type, count]) => {
-        const formattedName = type
-          .replace(/_/g, " ")
-          .replace(/\b\w/g, (l) => l.toUpperCase());
-
-        return {
-          name: formattedName,
-          count: count,
-          pct: `${((count / total) * 100).toFixed(1)}%`
-        };
-      });
+      .map(([type, count]) => ({
+        name: formatWasteType(type),
+        count: count,
+        pct: `${((count / total) * 100).toFixed(1)}%`
+      }));
   }, [stats.aggregateDetections]);
 
   const beachData = useMemo(() => {
@@ -45,12 +40,10 @@ export default function AnalyticsPage() {
 
     const entries = Object.entries(locMap).map(([beach, detections]) => ({ beach, detections }));
     if (entries.length === 0) {
-      return [
-        { beach: "Zone A", detections: stats.totalAnalyses || 0 }
-      ];
+      return [];
     }
     return entries.slice(0, 5);
-  }, [stats.locations, stats.totalAnalyses]);
+  }, [stats.locations]);
 
   return (
     <div className="page-container">

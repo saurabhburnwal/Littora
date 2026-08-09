@@ -4,25 +4,7 @@ import ResultPanel from "./ResultPanel.jsx";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { SettingsContext } from "../context/SettingsContext.jsx";
 import AuthRequiredModal from "./AuthRequiredModal.jsx";
-
-function toResultShape(item) {
-  if (!item) return { detections: {}, total_waste: 0, pollution_score: 0, severity: "Low" };
-  const detections = {};
-  if (Array.isArray(item.detections)) {
-    for (const d of item.detections) {
-      detections[d.waste_type || d.type] = d.count;
-    }
-  } else if (item.detections && typeof item.detections === "object") {
-    Object.assign(detections, item.detections);
-  }
-  return {
-    detections,
-    total_waste: item.total_waste || 0,
-    pollution_score: item.pollution_score || 0,
-    severity: item.severity || "Low",
-    boxes: item.boxes || [],
-  };
-}
+import { toResultShape, formatWasteType } from "../utils/wasteUtils.js";
 
 /**
  * HistoryTable — sortable + paginated table of analyses.
@@ -182,7 +164,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
               </td>
               <td>
                 <span className={`waste-badge waste-${(row.topType || row.waste_type || 'unknown').toLowerCase()}`}>
-                  {row.topType || row.waste_type || 'Unknown'}
+                  {formatWasteType(row.topType || row.waste_type)}
                 </span>
               </td>
               <td>

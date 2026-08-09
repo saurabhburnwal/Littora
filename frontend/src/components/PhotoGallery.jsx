@@ -1,20 +1,7 @@
 import { useState } from "react";
-import { User, Trash2, Loader2 } from "lucide-react";
-import { X } from "lucide-react";
+import { User, Trash2, Loader2, X } from "lucide-react";
 import ResultPanel from "./ResultPanel.jsx";
-
-/**
- * Reshapes the detections array from /api/stats format
- * [{ waste_type: "bottle", count: 5 }]  →  { bottle: 5, can: 0, ... }
- * so it matches the shape ResultPanel expects.
- */
-function toResultShape(row) {
-  const detections = { bottle: 0, can: 0, bag: 0, wrapper: 0 };
-  for (const d of row.detections || []) {
-    if (d.waste_type in detections) detections[d.waste_type] = d.count;
-  }
-  return { ...row, detections };
-}
+import { toResultShape } from "../utils/wasteUtils.js";
 
 export default function PhotoGallery({ items, showUser = false, onDeleteRequest, deletingId }) {
   const [modalItem, setModalItem] = useState(null);

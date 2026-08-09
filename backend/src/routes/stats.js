@@ -18,8 +18,8 @@ router.get("/", async (req, res) => {
       const { data } = await supabase.auth.getUser(token);
       if (data?.user) {
         isGuest = false;
-        const adminEmail = process.env.ADMIN_EMAIL;
-        if (adminEmail && data.user.email === adminEmail) {
+        const adminEmail = (process.env.VITE_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "admin@littora.app").toLowerCase();
+        if (adminEmail && data.user.email?.toLowerCase() === adminEmail) {
           isAdminUser = true;
           userId = null; // Admin sees ALL user stats and all details
         } else {

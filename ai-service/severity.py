@@ -4,15 +4,15 @@ Pollution score & severity calculation.
 Kept in one place (here, inside the AI service) so Node never has to
 duplicate or guess at this logic — it just stores and forwards whatever
 this returns. Tune WEIGHTS and the severity thresholds based on real
-beach survey data once Member 1's literature review settles on a
-reference scale.
+beach survey data once literature review settles on a reference scale.
 """
+
+from typing import Mapping
 
 # Relative "pollution weight" per item — bags and wrappers break down
 # slower and entangle wildlife more than a single can, so they're
-# weighted higher per unit. Adjust once you have a literature-backed
-# reference (e.g. degradation time, marine-life hazard score).
-WEIGHTS = {
+# weighted higher per unit.
+WEIGHTS: dict[str, float] = {
     "bottle": 2.0,
     "can": 1.5,
     "bag": 3.0,
@@ -20,25 +20,36 @@ WEIGHTS = {
 }
 
 # (max_score_inclusive, label) — checked in order
-SEVERITY_THRESHOLDS = [
-    (10, "Low"),
-    (30, "Moderate"),
-    (60, "High"),
+SEVERITY_THRESHOLDS: list[tuple[float, str]] = [
+    (10.0, "Low"),
+    (30.0, "Moderate"),
+    (60.0, "High"),
     (float("inf"), "Severe"),
 ]
 
 
-def compute_score(detections: dict[str, int]) -> tuple[int, int, str]:
-    total_waste = sum(detections.values())
+def compute_score(detections: Mapping[str, int] | None = None) -> tuple[int, int, str]:
+    """
+    Computes total waste count, weighted pollution score, and severity level.
+
+    :param detections: Dict mapping waste category names to their detected counts.
+    :return: Tuple of (total_waste_count, pollution_score, severity_label)
+    """
+    if not detections:
+        return 0, 0, "Low"
+
+    total_waste = sum(max(0, count) for count in detections.values())
 
     raw_score = sum(
-        WEIGHTS.get(waste_type, 1.0) * count
+        WEIGHTS.get(waste_type.lower().strip(), 1.0) * max(0, count)
         for waste_type, count in detections.items()
     )
     pollution_score = round(raw_score)
 
     severity = next(
-        label for max_score, label in SEVERITY_THRESHOLDS if pollution_score <= max_score
+        (label for max_score, label in SEVERITY_THRESHOLDS if pollution_score <= max_score),
+        "Severe",
     )
 
     return total_waste, pollution_score, severity
+

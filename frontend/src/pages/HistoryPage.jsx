@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Search, ImageOff, Shield, AlertTriangle, Trash2, X, CheckCircle,
-  Loader2, RefreshCw, ImageIcon, TrendingUp, BarChart3, Users
+  RefreshCw, ImageIcon, TrendingUp, BarChart3, Users
 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";

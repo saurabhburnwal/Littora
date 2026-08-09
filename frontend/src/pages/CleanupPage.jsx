@@ -1,4 +1,4 @@
-import { Recycle, MapPin, Clock, AlertTriangle, Users, Waves } from "lucide-react";
+import { Clock, Users, Waves } from "lucide-react";
 
 const RECOMMENDATIONS = [
   {

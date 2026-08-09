@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaf
 import { Layers, Filter, MapPin, AlertCircle, Compass, Search, Calendar, X, Eye } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import ResultPanel from "./ResultPanel.jsx";
+import { normalizeSeverity, toResultShape } from "../utils/wasteUtils.js";
 import "leaflet/dist/leaflet.css";
 
 const SEVERITY_COLORS = {
@@ -39,14 +40,6 @@ const TILE_LAYERS = {
 const DEFAULT_CENTER = [20.5937, 78.9629];
 const DEFAULT_ZOOM   = 4;
 
-function normalizeSeverity(sev) {
-  if (!sev) return "Low";
-  const s = String(sev).trim().toLowerCase();
-  if (s === "severe") return "Severe";
-  if (s === "high") return "High";
-  if (s === "moderate") return "Moderate";
-  return "Low";
-}
 
 /**
  * Helper component that auto-fits the camera bounds to active filtered locations
@@ -174,18 +167,6 @@ export default function PollutionMap({ locations = [] }) {
   };
 
   const isFiltered = filterSeverity !== "All" || searchQuery.trim() !== "" || timeframe !== "All";
-
-  const toResultShape = (loc) => ({
-    total_waste: loc.total_waste || 0,
-    pollution_score: loc.pollution_score || 0,
-    severity: normalizeSeverity(loc.severity),
-    location_label: loc.location_label,
-    latitude: loc.latitude,
-    longitude: loc.longitude,
-    detections: loc.detections || {},
-    image_url: loc.image_url,
-    created_at: loc.created_at,
-  });
 
   return (
     <div className="map-card">

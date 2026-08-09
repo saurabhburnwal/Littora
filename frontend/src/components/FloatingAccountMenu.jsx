@@ -178,7 +178,7 @@ export default function FloatingAccountMenu() {
 
             {/* Role Badge */}
             <div style={{ marginTop: "0.65rem" }}>
-              {user && isAdmin ? (
+              {user && isAdminUser ? (
                 <span style={{
                   display: "inline-flex",
                   alignItems: "center",

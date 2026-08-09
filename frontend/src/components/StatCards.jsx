@@ -4,7 +4,6 @@ export default function StatCards({
   totalAnalyses     = 0,
   totalWasteAllTime = 0,
   avgScore          = 0,
-  severityCounts    = {},
 }) {
   const avgWastePerScan = totalAnalyses > 0 ? (totalWasteAllTime / totalAnalyses).toFixed(1) : "0.0";
 

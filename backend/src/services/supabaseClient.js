@@ -95,35 +95,47 @@ export async function saveAnalysis({
  * Returns past analyses for a specific user (user-scoped gallery).
  * Includes detection sub-rows for each analysis.
  */
+/**
+ * Helper to ensure consistent structure for analysis rows retrieved from public.vw_analysis_details.
+ * If row has detections_map (JSONB object), populates detections array for backward compatibility.
+ */
+function formatAnalysisRow(row) {
+  if (!row) return row;
+  if (row.detections_map && !row.detections) {
+    const detections = Object.entries(row.detections_map).map(([waste_type, count]) => ({
+      waste_type,
+      count: Number(count),
+    }));
+    return { ...row, detections };
+  }
+  return row;
+}
+
+/**
+ * Returns past analyses for a specific user (user-scoped gallery).
+ * Includes detection details via consolidated database view public.vw_analysis_details.
+ */
 export async function listAnalysesByUser(userId, { limit = 100, offset = 0 } = {}) {
   const { data, error } = await supabase
-    .from("analyses")
-    .select(
-      `id, image_url, created_at, total_waste, pollution_score, severity,
-       latitude, longitude, location_label, user_id,
-       detections ( waste_type, count )`
-    )
+    .from("vw_analysis_details")
+    .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return data;
+  return data ? data.map(formatAnalysisRow) : [];
 }
 
 /**
  * Returns ALL analyses (all users) for the admin dashboard.
- * Most recent first. Enriches each row with the uploader's email
+ * Most recent first. Queries public.vw_analysis_details and enriches each row with the uploader's email
  * by batch-fetching user records from Supabase Auth admin API.
  */
 export async function listAllAnalysesAdmin() {
   const { data, error } = await supabase
-    .from("analyses")
-    .select(
-      `id, image_url, created_at, total_waste, pollution_score, severity,
-       latitude, longitude, location_label, user_id,
-       detections ( waste_type, count )`
-    )
+    .from("vw_analysis_details")
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -152,11 +164,14 @@ export async function listAllAnalysesAdmin() {
     })
   );
 
-  return data.map((row) => ({
-    ...row,
-    user_email: row.user_id ? (emailMap[row.user_id] ?? null) : null,
-    user_name:  row.user_id ? (nameMap[row.user_id] ?? null) : null,
-  }));
+  return data.map((row) => {
+    const formatted = formatAnalysisRow(row);
+    return {
+      ...formatted,
+      user_email: row.user_id ? (emailMap[row.user_id] ?? null) : null,
+      user_name:  row.user_id ? (nameMap[row.user_id] ?? null) : null,
+    };
+  });
 }
 
 /**
@@ -227,19 +242,17 @@ export async function deleteAnalysis(id) {
 
 /**
  * Returns past analyses, most recent first, for the history view.
- * Now includes location fields (backward compatible — all nullable).
+ * Queries consolidated view public.vw_analysis_details.
  */
 export async function listAnalyses({ limit = 50, offset = 0 } = {}) {
   const { data, error } = await supabase
-    .from("analyses")
-    .select(
-      "id, image_url, created_at, total_waste, pollution_score, severity, latitude, longitude, location_label"
-    )
+    .from("vw_analysis_details")
+    .select("*")
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return data;
+  return data ? data.map(formatAnalysisRow) : [];
 }
 
 /**
@@ -250,16 +263,12 @@ export async function listAnalyses({ limit = 50, offset = 0 } = {}) {
  * - geolocated entries for the pollution map
  * - full history list for trend charts and the history table
  *
- * Aggregation is done in JS after a single DB query — no extra dependencies needed.
+ * Queries consolidated view public.vw_analysis_details.
  */
 export async function getStats(userId = null) {
   let query = supabase
-    .from("analyses")
-    .select(
-      `id, image_url, created_at, total_waste, pollution_score, severity,
-       latitude, longitude, location_label, user_id,
-       detections ( waste_type, count )`
-    )
+    .from("vw_analysis_details")
+    .select("*")
     .order("created_at", { ascending: true }); // chronological — reversed below for table
 
   if (userId) {
@@ -293,10 +302,18 @@ export async function getStats(userId = null) {
   for (const row of data) {
     const normSev = formatSev(row.severity);
     severityCounts[normSev]++;
-    for (const d of row.detections || []) {
-      const type = (d.waste_type || "other").toLowerCase();
-      const count = Number(d.count || 1);
-      aggregateDetections[type] = (aggregateDetections[type] || 0) + count;
+
+    if (row.detections_map && typeof row.detections_map === "object") {
+      for (const [wasteType, count] of Object.entries(row.detections_map)) {
+        const type = (wasteType || "other").toLowerCase();
+        aggregateDetections[type] = (aggregateDetections[type] || 0) + Number(count || 1);
+      }
+    } else if (Array.isArray(row.detections)) {
+      for (const d of row.detections) {
+        const type = (d.waste_type || "other").toLowerCase();
+        const count = Number(d.count || 1);
+        aggregateDetections[type] = (aggregateDetections[type] || 0) + count;
+      }
     }
   }
 
@@ -304,12 +321,18 @@ export async function getStats(userId = null) {
     .filter((r) => r.latitude != null && r.longitude != null)
     .map((r) => {
       const detMap = {};
-      (r.detections || []).forEach((d) => {
-        if (d && d.waste_type) {
-          const type = d.waste_type.toLowerCase();
-          detMap[type] = (detMap[type] || 0) + Number(d.count || 1);
-        }
-      });
+      if (r.detections_map && typeof r.detections_map === "object") {
+        Object.entries(r.detections_map).forEach(([type, count]) => {
+          detMap[type.toLowerCase()] = Number(count || 1);
+        });
+      } else if (Array.isArray(r.detections)) {
+        r.detections.forEach((d) => {
+          if (d && d.waste_type) {
+            const type = d.waste_type.toLowerCase();
+            detMap[type] = (detMap[type] || 0) + Number(d.count || 1);
+          }
+        });
+      }
 
       return {
         id:              r.id,
@@ -326,7 +349,7 @@ export async function getStats(userId = null) {
     });
 
   // Reverse to newest-first for the history table
-  const history = [...data].reverse();
+  const history = data.map(formatAnalysisRow).reverse();
 
   // Fetch waste types catalog directly from Postgres
   const wasteTypesCatalog = await getWasteTypesCatalog();

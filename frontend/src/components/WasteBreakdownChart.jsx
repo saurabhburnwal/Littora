@@ -1,6 +1,7 @@
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
+import { formatWasteType } from "../utils/wasteUtils.js";
 
 const COLORS = {
   Bottle:          "#0077B6",
@@ -19,7 +20,7 @@ export default function WasteBreakdownChart({ aggregateDetections }) {
   const chartData = Object.entries(aggregateDetections || {})
     .filter(([_, count]) => count > 0)
     .map(([type, count]) => ({
-      type: type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      type: formatWasteType(type),
       count,
     }));
 
