@@ -33,8 +33,9 @@ CREATE INDEX IF NOT EXISTS idx_locations_coords ON public.locations(latitude, lo
 CREATE INDEX IF NOT EXISTS idx_waste_types_category ON public.waste_types(category);
 CREATE INDEX IF NOT EXISTS idx_waste_types_recyclable ON public.waste_types(is_recyclable);
 
--- 3. Normalized Database View for Complete Analysis Details
-CREATE OR REPLACE VIEW public.vw_analysis_details AS
+-- 3. Normalized Database View for Complete Analysis Details (WITH security_invoker = true to enforce RLS)
+CREATE OR REPLACE VIEW public.vw_analysis_details
+WITH (security_invoker = true) AS
 SELECT 
   a.id,
   a.image_url,
