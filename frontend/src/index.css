@@ -1856,61 +1856,124 @@ button {
   color: var(--text-color);
 }
 
-/* Custom Map Popups */
+/* Custom Map Popups — High Contrast & Responsive Theme Styling */
 .custom-map-popup .leaflet-popup-content-wrapper {
-  padding: 0;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  padding: 0 !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background: var(--card-bg, #ffffff) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+}
+
+.custom-map-popup .leaflet-popup-tip {
+  background: var(--card-bg, #ffffff) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.custom-map-popup .leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0.9rem 1rem !important;
+  font-family: inherit !important;
+  line-height: 1.4 !important;
+  color: var(--ink) !important;
+}
+
+.custom-map-popup .leaflet-popup-close-button {
+  color: var(--muted) !important;
+  font-size: 1.1rem !important;
+  padding: 6px 8px 0 0 !important;
+  transition: color 0.2s ease !important;
+}
+
+.custom-map-popup .leaflet-popup-close-button:hover {
+  color: var(--ink) !important;
 }
 
 .map-popup-card {
-  padding: 10px;
-  max-width: 220px;
+  max-width: 250px;
   font-family: inherit;
+  color: var(--ink) !important;
 }
 
 .map-popup-image {
   width: 100%;
-  height: 110px;
-  border-radius: 6px;
+  height: 120px;
+  border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--border-lt);
 }
 
 .map-popup-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .map-popup-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.map-popup-header strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink) !important;
+  line-height: 1.25;
 }
 
 .map-popup-date {
-  font-size: 0.7rem;
-  color: #64748b;
-  margin-bottom: 8px;
+  font-size: 0.73rem;
+  color: var(--muted) !important;
+  margin-bottom: 0.6rem;
+  font-weight: 500;
 }
 
 .map-popup-stats {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.75rem;
-  background: #f8fafc;
-  padding: 6px;
-  border-radius: 6px;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  background: var(--bg-card) !important;
+  color: var(--ink) !important;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-lt) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-[data-theme="dark"] .map-popup-stats {
-  background: #1e293b;
-  color: #f1f5f9;
+.map-popup-stat-pill {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ink) !important;
+}
+
+.map-popup-stat-pill span {
+  color: var(--muted) !important;
+}
+
+.map-popup-stat-pill strong {
+  color: var(--ink) !important;
+  font-weight: 700;
+}
+
+.map-detail-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(14, 140, 134, 0.35);
+}
+
+/* Floating Account Menu Button — High Contrast Text */
+.floating-account-btn span {
+  color: var(--ink) !important;
+  font-weight: 700 !important;
 }
 
 .map-container {

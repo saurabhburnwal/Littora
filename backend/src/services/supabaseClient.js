@@ -275,35 +275,58 @@ export async function getStats(userId = null) {
       )
     : 0;
 
+  const formatSev = (s) => {
+    if (!s) return "Low";
+    const str = String(s).toLowerCase();
+    if (str === "severe") return "Severe";
+    if (str === "high") return "High";
+    if (str === "moderate") return "Moderate";
+    return "Low";
+  };
+
   const severityCounts = { Low: 0, Moderate: 0, High: 0, Severe: 0 };
-  const aggregateDetections = { bottle: 0, can: 0, bag: 0, wrapper: 0 };
+  const aggregateDetections = {};
 
   for (const row of data) {
-    if (row.severity && row.severity in severityCounts) {
-      severityCounts[row.severity]++;
-    }
+    const normSev = formatSev(row.severity);
+    severityCounts[normSev]++;
     for (const d of row.detections || []) {
-      if (d.waste_type in aggregateDetections) {
-        aggregateDetections[d.waste_type] += d.count;
-      }
+      const type = (d.waste_type || "other").toLowerCase();
+      const count = Number(d.count || 1);
+      aggregateDetections[type] = (aggregateDetections[type] || 0) + count;
     }
   }
 
   const locations = data
     .filter((r) => r.latitude != null && r.longitude != null)
-    .map((r) => ({
-      id:              r.id,
-      latitude:        r.latitude,
-      longitude:       r.longitude,
-      location_label:  r.location_label,
-      pollution_score: r.pollution_score,
-      severity:        r.severity,
-      created_at:      r.created_at,
-      total_waste:     r.total_waste,
-    }));
+    .map((r) => {
+      const detMap = {};
+      (r.detections || []).forEach((d) => {
+        if (d && d.waste_type) {
+          const type = d.waste_type.toLowerCase();
+          detMap[type] = (detMap[type] || 0) + Number(d.count || 1);
+        }
+      });
+
+      return {
+        id:              r.id,
+        latitude:        r.latitude,
+        longitude:       r.longitude,
+        location_label:  r.location_label,
+        pollution_score: r.pollution_score,
+        severity:        formatSev(r.severity),
+        created_at:      r.created_at,
+        total_waste:     r.total_waste,
+        image_url:       r.image_url,
+        detections:      detMap,
+      };
+    });
 
   // Reverse to newest-first for the history table
   const history = [...data].reverse();
+
+  // Fetch waste types catalog directly from Postgres
+  const wasteTypesCatalog = await getWasteTypesCatalog();
 
   return {
     totalAnalyses,
@@ -313,7 +336,36 @@ export async function getStats(userId = null) {
     aggregateDetections,
     locations,
     history,
+    wasteTypesCatalog,
   };
+}
+
+/**
+ * Fetches waste type definitions & recyclability metadata directly from public.waste_types in Postgres.
+ */
+export async function getWasteTypesCatalog() {
+  const { data, error } = await supabase
+    .from("waste_types")
+    .select("id, name, category, is_recyclable, color_hex")
+    .order("category", { ascending: true });
+
+  if (error || !data) return [];
+  return data;
+}
+
+/**
+ * Fetches available AI models from public.ai_models in Postgres.
+ */
+export async function getAvailableAiModels() {
+  const { data, error } = await supabase
+    .from("ai_models")
+    .select("id, name, tag, architecture, params, description, badge, is_active")
+    .order("created_at", { ascending: true });
+
+  if (error || !data || data.length === 0) {
+    return AVAILABLE_MODELS;
+  }
+  return data;
 }
 
 export const AVAILABLE_MODELS = [
@@ -349,7 +401,7 @@ export const AVAILABLE_MODELS = [
 let cachedActiveModel = "yolov11m";
 
 /**
- * Returns the currently active AI model ID configured by the Admin.
+ * Returns the currently active AI model ID configured by the Admin from Postgres.
  */
 export async function getActiveSystemModel() {
   try {
@@ -369,23 +421,26 @@ export async function getActiveSystemModel() {
 }
 
 /**
- * Sets the system-wide active AI model ID (Admin only).
+ * Sets the system-wide active AI model ID in Postgres (Admin only).
  */
 export async function setActiveSystemModel(modelId) {
-  const isValid = AVAILABLE_MODELS.some((m) => m.id === modelId);
+  const models = await getAvailableAiModels();
+  const isValid = models.some((m) => m.id === modelId);
   if (!isValid) {
     throw new Error(`Invalid model ID: ${modelId}`);
   }
 
   cachedActiveModel = modelId;
 
-  try {
-    await supabase
-      .from("system_settings")
-      .upsert({ key: "active_ai_model", value: modelId }, { onConflict: "key" });
-  } catch (err) {
-    console.warn("Could not persist active model to system_settings:", err.message);
-  }
+  const { error: settingsError } = await supabase
+    .from("system_settings")
+    .upsert({ key: "active_ai_model", value: modelId, updated_at: new Date().toISOString() }, { onConflict: "key" });
+
+  if (settingsError) throw settingsError;
+
+  // Sync active status in public.ai_models table
+  await supabase.from("ai_models").update({ is_active: false }).neq("id", "");
+  await supabase.from("ai_models").update({ is_active: true }).eq("id", modelId);
 
   return modelId;
 }

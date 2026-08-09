@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.js";
 import {
-  AVAILABLE_MODELS,
+  getAvailableAiModels,
   getActiveSystemModel,
   setActiveSystemModel,
 } from "../services/supabaseClient.js";
@@ -10,19 +10,20 @@ const router = Router();
 
 /**
  * GET /api/model
- * Returns active model ID, active model details, and available models list.
+ * Returns active model ID, active model details, and available models list directly from Postgres database.
  * Accessible to all users (Admin, Member, Guest).
  */
 router.get("/", async (req, res) => {
   try {
+    const availableModels = await getAvailableAiModels();
     const activeModelId = await getActiveSystemModel();
     const activeModelDetails =
-      AVAILABLE_MODELS.find((m) => m.id === activeModelId) || AVAILABLE_MODELS[0];
+      availableModels.find((m) => m.id === activeModelId) || availableModels[0];
 
     res.json({
       activeModel: activeModelId,
       activeModelDetails,
-      availableModels: AVAILABLE_MODELS,
+      availableModels,
     });
   } catch (err) {
     res.status(500).json({ error: "Could not fetch model info", details: err.message });
@@ -31,7 +32,7 @@ router.get("/", async (req, res) => {
 
 /**
  * POST /api/model
- * Sets system-wide active model.
+ * Sets system-wide active model in Postgres.
  * Admin only (protected by requireAuth and requireAdmin).
  */
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
@@ -42,8 +43,9 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 
   try {
     const updatedId = await setActiveSystemModel(modelId);
+    const availableModels = await getAvailableAiModels();
     const updatedDetails =
-      AVAILABLE_MODELS.find((m) => m.id === updatedId) || AVAILABLE_MODELS[0];
+      availableModels.find((m) => m.id === updatedId) || availableModels[0];
 
     res.json({
       message: "Active AI model updated system-wide successfully",

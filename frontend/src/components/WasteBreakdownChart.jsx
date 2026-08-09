@@ -16,12 +16,12 @@ const COLORS = {
 };
 
 export default function WasteBreakdownChart({ aggregateDetections }) {
-  const chartData = Object.entries(aggregateDetections || {}).map(
-    ([type, count]) => ({
-      type:  type.charAt(0).toUpperCase() + type.slice(1),
+  const chartData = Object.entries(aggregateDetections || {})
+    .filter(([_, count]) => count > 0)
+    .map(([type, count]) => ({
+      type: type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
       count,
-    })
-  );
+    }));
 
   const total = chartData.reduce((s, d) => s + d.count, 0);
 

@@ -21,6 +21,7 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
   listAnalyses:          mockListAnalyses,
   getStats:              mockGetStats,
   AVAILABLE_MODELS:      [],
+  getAvailableAiModels:  jest.fn().mockResolvedValue([]),
   getActiveSystemModel:  jest.fn().mockResolvedValue("yolov8m"),
   setActiveSystemModel:  jest.fn(),
 }));

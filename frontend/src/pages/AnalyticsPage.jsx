@@ -12,17 +12,28 @@ export default function AnalyticsPage() {
 
   const wasteComposition = useMemo(() => {
     const aggregate = stats.aggregateDetections || {};
-    const total = Object.values(aggregate).reduce((s, v) => s + v, 0) || 1;
-    
-    return [
-      { name: "Plastic Bottles", count: aggregate.bottle || 0 },
-      { name: "Plastic Bags",    count: aggregate.bag || 0 },
-      { name: "Metal Cans",      count: aggregate.can || 0 },
-      { name: "Food Wrappers",   count: aggregate.wrapper || 0 },
-    ].map(w => ({
-      ...w,
-      pct: `${((w.count / total) * 100).toFixed(1)}%`
-    }));
+    const entries = Object.entries(aggregate).filter(([_, count]) => count > 0);
+    const total = entries.reduce((s, [_, v]) => s + v, 0) || 1;
+
+    if (entries.length === 0) {
+      return [
+        { name: "No Active Detections", count: 0, pct: "0.0%" }
+      ];
+    }
+
+    return entries
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => {
+        const formattedName = type
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+
+        return {
+          name: formattedName,
+          count: count,
+          pct: `${((count / total) * 100).toFixed(1)}%`
+        };
+      });
   }, [stats.aggregateDetections]);
 
   const beachData = useMemo(() => {

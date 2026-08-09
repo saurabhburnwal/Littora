@@ -5,7 +5,9 @@ import {
 } from "recharts";
 import { useTheme } from "../context/ThemeContext.jsx";
 
-const RECYCLABLE_TYPES = new Set(["bottle", "can"]);
+const RECYCLABLE_TYPES = new Set([
+  "bottle", "can", "plastic_bottle", "glass_bottle", "metal_can", "aluminum_can", "cardboard", "paper", "glass"
+]);
 
 const PIE_COLORS = {
   earth: {
@@ -21,17 +23,44 @@ const PIE_COLORS = {
 export default function ResultPanel({ result }) {
   const { theme } = useTheme();
   const activePalette = theme === "dark" ? PIE_COLORS.dark : PIE_COLORS.earth;
-  const { detections = {}, total_waste = 0, pollution_score = 0, severity = "Low" } = result || {};
+  const { total_waste = 0, pollution_score = 0, severity = "Low" } = result || {};
 
-  const barData = Object.entries(detections).map(([type, count]) => ({
-    type: type.charAt(0).toUpperCase() + type.slice(1),
-    count,
-  }));
+  const rawDetections = result?.detections || {};
+  const normalizedDetections = {};
+
+  if (Array.isArray(rawDetections)) {
+    rawDetections.forEach((d) => {
+      if (d && d.waste_type) {
+        const k = String(d.waste_type).toLowerCase();
+        normalizedDetections[k] = (normalizedDetections[k] || 0) + Number(d.count || 1);
+      }
+    });
+  } else if (typeof rawDetections === "object" && rawDetections !== null) {
+    Object.entries(rawDetections).forEach(([key, value]) => {
+      if (value && typeof value === "object" && value.waste_type) {
+        const k = String(value.waste_type).toLowerCase();
+        normalizedDetections[k] = (normalizedDetections[k] || 0) + Number(value.count || 1);
+      } else {
+        const k = String(key).toLowerCase();
+        normalizedDetections[k] = (normalizedDetections[k] || 0) + Number(value || 0);
+      }
+    });
+  }
+
+  const barData = Object.entries(normalizedDetections).map(([type, count]) => {
+    const formattedType = type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    return { type: formattedType, count };
+  });
 
   let recyclable = 0;
   let nonRecyclable = 0;
-  for (const [type, count] of Object.entries(detections)) {
-    if (RECYCLABLE_TYPES.has(type.toLowerCase())) recyclable += count;
+  const wasteCatalog = result?.wasteTypesCatalog || [];
+  const dbRecyclableSet = wasteCatalog.length > 0
+    ? new Set(wasteCatalog.filter((w) => w.is_recyclable).map((w) => w.id.toLowerCase()))
+    : RECYCLABLE_TYPES;
+
+  for (const [type, count] of Object.entries(normalizedDetections)) {
+    if (dbRecyclableSet.has(type)) recyclable += count;
     else nonRecyclable += count;
   }
 

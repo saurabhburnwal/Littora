@@ -15,6 +15,11 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
     { id: "yolov11m", name: "YOLOv11 Medium", tag: "Precision" },
     { id: "yolov26s", name: "YOLOv26 Small", tag: "Fast" },
   ],
+  getAvailableAiModels: jest.fn().mockResolvedValue([
+    { id: "yolov8m", name: "YOLOv8 Medium", tag: "Baseline" },
+    { id: "yolov11m", name: "YOLOv11 Medium", tag: "Precision" },
+    { id: "yolov26s", name: "YOLOv26 Small", tag: "Fast" },
+  ]),
   getActiveSystemModel: jest.fn().mockResolvedValue("yolov8m"),
   setActiveSystemModel: jest.fn().mockImplementation(async (id) => {
     if (!["yolov8m", "yolov11m", "yolov26s"].includes(id)) {
