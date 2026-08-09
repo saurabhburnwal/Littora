@@ -54,7 +54,9 @@ export async function saveAnalysis({
   longitude,
   locationLabel,
   userId,
+  modelUsed,
 }) {
+  const activeModelId = modelUsed || (await getActiveSystemModel());
   const { data: analysis, error: analysisError } = await supabase
     .from("analyses")
     .insert({
@@ -66,6 +68,7 @@ export async function saveAnalysis({
       longitude:       longitude      ?? null,
       location_label:  locationLabel  ?? null,
       user_id:         userId         ?? null,
+      model_used:      activeModelId  ?? 'yolov11m',
     })
     .select()
     .single();

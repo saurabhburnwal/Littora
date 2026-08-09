@@ -272,11 +272,11 @@ export default function PollutionMap({ locations = [] }) {
                   <span>{sev}</span>
                   <span style={{
                     fontSize: "0.68rem",
-                    padding: "0.1rem 0.4rem",
+                    padding: "0.1rem 0.45rem",
                     borderRadius: "10px",
-                    background: filterSeverity === sev ? "rgba(255,255,255,0.25)" : "var(--border-lt)",
-                    color: filterSeverity === sev ? "#fff" : "var(--muted)",
-                    fontWeight: 700
+                    background: filterSeverity === sev ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.08)",
+                    color: filterSeverity === sev ? "#fff" : "inherit",
+                    fontWeight: 800
                   }}>
                     {count}
                   </span>

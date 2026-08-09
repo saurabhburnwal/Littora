@@ -1793,25 +1793,37 @@ button {
 .map-filter-label,
 .map-tile-label {
   font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--muted);
+  font-weight: 700;
+  color: var(--text-secondary, #475569);
   display: flex;
   align-items: center;
   gap: 0.25rem;
   margin-right: 0.2rem;
 }
 
+[data-theme="dark"] .map-filter-label,
+[data-theme="dark"] .map-tile-label {
+  color: #cbd5e1;
+}
+
 .map-filter-chip,
 .map-tile-btn {
-  background: var(--bg-secondary, #f1f5f9);
-  color: var(--text-color, #334155);
-  border: 1px solid var(--border-color, #cbd5e1);
-  padding: 0.25rem 0.65rem;
+  background: var(--bg-secondary, #f1e8d8);
+  color: var(--text-primary, #2c2a27);
+  border: 1px solid var(--border, #d7cbb8);
+  padding: 0.28rem 0.7rem;
   border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .map-filter-chip,
+[data-theme="dark"] .map-tile-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .map-filter-chip:hover,
@@ -1820,11 +1832,27 @@ button {
   color: var(--teal, #0d9488);
 }
 
+[data-theme="dark"] .map-filter-chip:hover,
+[data-theme="dark"] .map-tile-btn:hover {
+  background: rgba(14, 140, 134, 0.3);
+  border-color: #2dd4bf;
+  color: #5eead4;
+}
+
 .map-filter-chip.active,
 .map-tile-btn.active {
   background: var(--teal, #0d9488);
-  color: #ffffff;
+  color: #ffffff !important;
   border-color: var(--teal, #0d9488);
+  box-shadow: 0 2px 10px rgba(13, 148, 136, 0.4);
+}
+
+[data-theme="dark"] .map-filter-chip.active,
+[data-theme="dark"] .map-tile-btn.active {
+  background: #0d9488;
+  color: #ffffff !important;
+  border-color: #2dd4bf;
+  box-shadow: 0 2px 12px rgba(45, 212, 191, 0.35);
 }
 
 .map-floating-stats {
