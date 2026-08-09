@@ -10,8 +10,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.waste_types TO anon, authenticate
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.ai_models TO anon, authenticated, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.system_settings TO anon, authenticated, service_role;
 
--- 2. Re-create public.vw_analysis_details view with security_invoker = true
-CREATE OR REPLACE VIEW public.vw_analysis_details
+-- 2. Drop existing view if present so column schema can be updated cleanly without SQLSTATE 42P16 error
+DROP VIEW IF EXISTS public.vw_analysis_details CASCADE;
+
+-- 3. Create public.vw_analysis_details view with security_invoker = true
+CREATE VIEW public.vw_analysis_details
 WITH (security_invoker = true) AS
 SELECT
   a.id,
@@ -36,8 +39,8 @@ FROM public.analyses a
 LEFT JOIN public.locations l ON a.location_id = l.id
 LEFT JOIN public.ai_models m ON a.model_used = m.id;
 
--- 3. Grant SELECT on public.vw_analysis_details to API roles
+-- 4. Grant SELECT on public.vw_analysis_details to API roles
 GRANT SELECT ON public.vw_analysis_details TO anon, authenticated, service_role;
 
--- 4. Set default privileges for future tables
+-- 5. Set default privileges for future tables
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated, service_role;
