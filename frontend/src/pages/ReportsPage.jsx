@@ -4,6 +4,7 @@ import axios from "axios";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { generatePdfReport } from "../utils/generatePdfReport.js";
+import { formatWasteType } from "../utils/wasteUtils.js";
 import AuthRequiredModal from "../components/AuthRequiredModal.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -34,6 +35,11 @@ export default function ReportsPage() {
       year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit"
     });
 
+    const wasteEntries = Object.entries(stats.aggregateDetections || {}).filter(([_, count]) => count > 0);
+    const wasteSummary = wasteEntries.length > 0
+      ? wasteEntries.map(([type, count]) => `- ${formatWasteType(type)}: ${count.toLocaleString()}`).join("\n")
+      : "- No waste items cataloged.";
+
     return `=====================================================
 LITTORA - AI BEACH WASTE DETECTION SYSTEM
 REPORT TYPE: ${reportTitle.toUpperCase()}
@@ -58,10 +64,7 @@ DATE: ${timestamp}
 
 3. WASTE TYPE AGGREGATE COUNTS
 -----------------------------------------------------
-- Plastic Bottles: ${stats.aggregateDetections?.bottle || 0}
-- Metal Cans:       ${stats.aggregateDetections?.can || 0}
-- Plastic Bags:     ${stats.aggregateDetections?.bag || 0}
-- Food Wrappers:   ${stats.aggregateDetections?.wrapper || 0}
+${wasteSummary}
 
 4. ACTION RECOMMENDATIONS
 -----------------------------------------------------

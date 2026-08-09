@@ -8,7 +8,17 @@ import { jest } from "@jest/globals";
 import request from "supertest";
 
 const mockListAnalyses = jest.fn();
-const mockGetStats     = jest.fn();
+const mockGetStats     = jest.fn().mockResolvedValue({
+  totalAnalyses: 0,
+  totalWasteAllTime: 0,
+  avgScore: 0,
+  severityCounts: { Low: 0, Moderate: 0, High: 0, Severe: 0 },
+  aggregateDetections: { bottle: 0, can: 0, bag: 0, wrapper: 0 },
+  locations: [],
+  history: [],
+  wasteTypesCatalog: [],
+  locationsCatalog: [],
+});
 
 jest.unstable_mockModule("../services/supabaseClient.js", () => ({
   supabase:              { auth: { getUser: jest.fn(), admin: { getUserById: jest.fn() } } },
@@ -20,10 +30,13 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
   deleteAnalysis:        jest.fn(),
   listAnalyses:          mockListAnalyses,
   getStats:              mockGetStats,
-  AVAILABLE_MODELS:      [],
   getAvailableAiModels:  jest.fn().mockResolvedValue([]),
   getActiveSystemModel:  jest.fn().mockResolvedValue("yolov8m"),
   setActiveSystemModel:  jest.fn(),
+  getWasteTypesCatalog:  jest.fn().mockResolvedValue([
+    { id: "bottle" }, { id: "can" }, { id: "bag" }, { id: "wrapper" }
+  ]),
+  getLocationsCatalog:   jest.fn().mockResolvedValue([]),
 }));
 
 const { default: app } = await import("../index.js");
@@ -87,6 +100,8 @@ describe("GET /api/stats", () => {
       aggregateDetections: { bottle: 0, can: 0, bag: 0, wrapper: 0 },
       locations: [],
       history: [],
+      wasteTypesCatalog: [],
+      locationsCatalog: [],
       isGuest: true,
       isAdmin: false,
     });

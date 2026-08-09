@@ -44,8 +44,14 @@ describe("UploadForm component", () => {
 
   it("submits preset beach coordinates on form submission", () => {
     const onUpload = vi.fn();
-    const { container } = render(<UploadForm onUpload={onUpload} loading={false} result={null} />);
+    const mockLocations = [
+      { id: "marina", location_label: "Marina Beach, Chennai", latitude: 13.0499, longitude: 80.2824 },
+    ];
+    const { container } = render(<UploadForm onUpload={onUpload} loading={false} result={null} locations={mockLocations} />);
     const file = new File(["dummy content"], "beach.jpg", { type: "image/jpeg" });
+
+    const select = container.querySelector("select");
+    fireEvent.change(select, { target: { value: "marina" } });
 
     const input = container.querySelector("input[type='file']");
     fireEvent.change(input, { target: { files: [file] } });

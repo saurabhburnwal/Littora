@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { createPortal } from "react-dom";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
 import { Layers, Filter, MapPin, AlertCircle, Compass, Search, Calendar, X, Eye } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
+import { StatsContext } from "../context/StatsContext.jsx";
 import ResultPanel from "./ResultPanel.jsx";
 import { normalizeSeverity, toResultShape } from "../utils/wasteUtils.js";
 import "leaflet/dist/leaflet.css";
@@ -63,7 +64,9 @@ function AutoFitBounds({ locations }) {
   return null;
 }
 
-export default function PollutionMap({ locations = [] }) {
+export default function PollutionMap({ locations: locationsProp }) {
+  const statsCtx = useContext(StatsContext);
+  const locations = locationsProp !== undefined ? locationsProp : (statsCtx?.stats?.locations || []);
   const { theme } = useTheme();
   const isDark = theme === "dark";
 

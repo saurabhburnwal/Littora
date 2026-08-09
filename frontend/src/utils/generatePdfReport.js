@@ -36,10 +36,16 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
   const highCount = stats.severityCounts?.High || 0;
   const severeCount = stats.severityCounts?.Severe || 0;
 
-  const bottleCount = stats.aggregateDetections?.bottle || 0;
-  const canCount = stats.aggregateDetections?.can || 0;
-  const bagCount = stats.aggregateDetections?.bag || 0;
-  const wrapperCount = stats.aggregateDetections?.wrapper || 0;
+  const wasteEntries = Object.entries(stats.aggregateDetections || {}).filter(([_, count]) => count > 0);
+  const formatWasteName = (t) => String(t || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const wasteCategoryHtml = wasteEntries.length > 0
+    ? wasteEntries.map(([type, count]) => `
+        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+          <span>📦 ${formatWasteName(type)}</span>
+          <strong>${count.toLocaleString()}</strong>
+        </div>
+      `).join("")
+    : `<div style="grid-column: span 2; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; text-align: center; color: #64748b;">No waste items recorded.</div>`;
 
   // Temporary off-screen container for rendering styled HTML template
   const container = document.createElement("div");
@@ -156,22 +162,7 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
           3. Waste Category Counts
         </h3>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-          <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
-            <span>🍼 Plastic Bottles</span>
-            <strong>${bottleCount}</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
-            <span>🥫 Metal Cans</span>
-            <strong>${canCount}</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
-            <span>🛍️ Plastic Bags</span>
-            <strong>${bagCount}</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
-            <span>🍫 Food Wrappers</span>
-            <strong>${wrapperCount}</strong>
-          </div>
+          ${wasteCategoryHtml}
         </div>
       </div>
 

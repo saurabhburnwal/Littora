@@ -10,11 +10,6 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
       getUser: mockGetUser,
     },
   },
-  AVAILABLE_MODELS: [
-    { id: "yolov8m", name: "YOLOv8 Medium", tag: "Baseline" },
-    { id: "yolov11m", name: "YOLOv11 Medium", tag: "Precision" },
-    { id: "yolov26s", name: "YOLOv26 Small", tag: "Fast" },
-  ],
   getAvailableAiModels: jest.fn().mockResolvedValue([
     { id: "yolov8m", name: "YOLOv8 Medium", tag: "Baseline" },
     { id: "yolov11m", name: "YOLOv11 Medium", tag: "Precision" },
@@ -27,6 +22,8 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
     }
     return id;
   }),
+  getWasteTypesCatalog: jest.fn().mockResolvedValue([]),
+  getLocationsCatalog:  jest.fn().mockResolvedValue([]),
 }));
 
 const { default: modelRouter } = await import("../routes/model.js");

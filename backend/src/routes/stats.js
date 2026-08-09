@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getStats, supabase } from "../services/supabaseClient.js";
+import { getStats, getWasteTypesCatalog, supabase } from "../services/supabaseClient.js";
 
 const router = Router();
 
@@ -28,27 +28,44 @@ router.get("/", async (req, res) => {
       }
     }
 
-    const stats = await getStats(userId);
+    // 1. Fetch global platform stats (public locations, global totals, public history preview)
+    const globalStats = await getStats(null);
 
     if (isGuest) {
-      // Guests see 0 stats, no locations, and no history records
+      // Guests see global locations map and community totals
       return res.json({
-        totalAnalyses: 0,
-        totalWasteAllTime: 0,
-        avgScore: 0,
-        severityCounts: { Low: 0, Moderate: 0, High: 0, Severe: 0 },
-        aggregateDetections: { bottle: 0, can: 0, bag: 0, wrapper: 0 },
-        locations: [],
-        history: [],
-        isGuest: true,
-        isAdmin: false,
+        totalAnalyses:       globalStats.totalAnalyses,
+        totalWasteAllTime:   globalStats.totalWasteAllTime,
+        avgScore:            globalStats.avgScore,
+        severityCounts:      globalStats.severityCounts,
+        aggregateDetections: globalStats.aggregateDetections,
+        locations:           globalStats.locations,
+        history:             globalStats.history,
+        wasteTypesCatalog:   globalStats.wasteTypesCatalog,
+        locationsCatalog:    globalStats.locationsCatalog,
+        isGuest:             true,
+        isAdmin:             false,
       });
     }
 
-    res.json({
-      ...stats,
-      isGuest: false,
-      isAdmin: isAdminUser,
+    if (isAdminUser) {
+      // Admin sees ALL user stats and all details
+      return res.json({
+        ...globalStats,
+        isGuest: false,
+        isAdmin: true,
+      });
+    }
+
+    // Regular user sees their personal totals + global locations map & catalogs
+    const userStats = await getStats(userId);
+    return res.json({
+      ...userStats,
+      locations:         globalStats.locations, // Provide global map locations for rich map rendering
+      locationsCatalog:  globalStats.locationsCatalog,
+      wasteTypesCatalog: globalStats.wasteTypesCatalog,
+      isGuest:           false,
+      isAdmin:           false,
     });
   } catch (err) {
     console.error("Stats failed:", err.message);

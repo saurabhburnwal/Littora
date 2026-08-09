@@ -68,7 +68,7 @@ export async function saveAnalysis({
       longitude:       longitude      ?? null,
       location_label:  locationLabel  ?? null,
       user_id:         userId         ?? null,
-      model_used:      activeModelId  ?? 'yolov11m',
+      model_used:      activeModelId  || null,
     })
     .select()
     .single();
@@ -266,18 +266,38 @@ export async function listAnalyses({ limit = 50, offset = 0 } = {}) {
  * Queries consolidated view public.vw_analysis_details.
  */
 export async function getStats(userId = null) {
-  let query = supabase
+  let data = [];
+
+  // 1. Try querying public.vw_analysis_details view
+  let viewQuery = supabase
     .from("vw_analysis_details")
     .select("*")
     .order("created_at", { ascending: true }); // chronological — reversed below for table
 
   if (userId) {
-    query = query.eq("user_id", userId);
+    viewQuery = viewQuery.eq("user_id", userId);
   }
 
-  const { data, error } = await query;
+  const { data: viewData, error: viewError } = await viewQuery;
 
-  if (error) throw error;
+  if (!viewError && viewData) {
+    data = viewData;
+  } else {
+    // 2. Fallback query directly on public.analyses with detections join if view grants are pending
+    let fallbackQuery = supabase
+      .from("analyses")
+      .select("*, detections(*)")
+      .order("created_at", { ascending: true });
+
+    if (userId) fallbackQuery = fallbackQuery.eq("user_id", userId);
+
+    const { data: fbData, error: fbError } = await fallbackQuery;
+    if (fbError || !fbData) {
+      console.error("getStats query error:", fbError?.message || viewError?.message);
+      throw (fbError || viewError);
+    }
+    data = fbData;
+  }
 
   const totalAnalyses = data.length;
   const totalWasteAllTime = data.reduce((s, r) => s + (r.total_waste || 0), 0);
@@ -334,15 +354,25 @@ export async function getStats(userId = null) {
         });
       }
 
+      const labelParts = (r.location_label || "").split(",");
+      const beachName  = labelParts[0]?.trim() || "Coastal Site";
+      const cityName   = labelParts[1]?.trim() || "";
+
       return {
         id:              r.id,
         latitude:        r.latitude,
         longitude:       r.longitude,
         location_label:  r.location_label,
-        pollution_score: r.pollution_score,
+        locationLabel:   r.location_label,
+        beach:           beachName,
+        city:            cityName,
+        country:         "India",
+        pollution_score: Number(r.pollution_score || 0),
+        pollutionScore:  Number(r.pollution_score || 0),
         severity:        formatSev(r.severity),
         created_at:      r.created_at,
-        total_waste:     r.total_waste,
+        total_waste:     Number(r.total_waste || 0),
+        totalWaste:      Number(r.total_waste || 0),
         image_url:       r.image_url,
         detections:      detMap,
       };
@@ -351,8 +381,31 @@ export async function getStats(userId = null) {
   // Reverse to newest-first for the history table
   const history = data.map(formatAnalysisRow).reverse();
 
-  // Fetch waste types catalog directly from Postgres
+  // Fetch waste types catalog and locations catalog directly from Postgres
   const wasteTypesCatalog = await getWasteTypesCatalog();
+  const locationsCatalog  = await getLocationsCatalog();
+
+  // If user has no scan locations yet, populate map locations from locationsCatalog so map and cleanup page render beach hotspots
+  const displayLocations = locations.length > 0 ? locations : locationsCatalog.map((loc) => {
+    const labelParts = (loc.location_label || "").split(",");
+    return {
+      id:              loc.id,
+      latitude:        loc.latitude,
+      longitude:       loc.longitude,
+      location_label:  loc.location_label,
+      locationLabel:   loc.location_label,
+      beach:           labelParts[0]?.trim() || "Coastal Site",
+      city:            labelParts[1]?.trim() || "",
+      country:         "India",
+      pollution_score: 15,
+      pollutionScore:  15,
+      severity:        "Low",
+      created_at:      loc.created_at,
+      total_waste:     0,
+      totalWaste:      0,
+      detections:      {},
+    };
+  });
 
   return {
     totalAnalyses,
@@ -360,9 +413,10 @@ export async function getStats(userId = null) {
     avgScore,
     severityCounts,
     aggregateDetections,
-    locations,
+    locations: displayLocations,
     history,
     wasteTypesCatalog,
+    locationsCatalog,
   };
 }
 
@@ -370,64 +424,55 @@ export async function getStats(userId = null) {
  * Fetches waste type definitions & recyclability metadata directly from public.waste_types in Postgres.
  */
 export async function getWasteTypesCatalog() {
-  const { data, error } = await supabase
-    .from("waste_types")
-    .select("id, name, category, is_recyclable, color_hex")
-    .order("category", { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from("waste_types")
+      .select("id, name, category, is_recyclable, color_hex")
+      .order("category", { ascending: true });
 
-  if (error || !data) return [];
-  return data;
+    if (error || !data) return [];
+    return data;
+  } catch (_) {
+    return [];
+  }
 }
 
 /**
- * Fetches available AI models from public.ai_models in Postgres.
+ * Fetches locations catalog directly from public.locations in Postgres.
+ */
+export async function getLocationsCatalog() {
+  try {
+    const { data, error } = await supabase
+      .from("locations")
+      .select("id, location_label, latitude, longitude, created_at")
+      .order("created_at", { ascending: true });
+
+    if (error || !data) return [];
+    return data;
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
+ * Fetches available AI models directly from public.ai_models in Postgres.
  */
 export async function getAvailableAiModels() {
-  const { data, error } = await supabase
-    .from("ai_models")
-    .select("id, name, tag, architecture, params, description, badge, is_active")
-    .order("created_at", { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from("ai_models")
+      .select("id, name, tag, architecture, params, description, badge, is_active")
+      .order("created_at", { ascending: true });
 
-  if (error || !data || data.length === 0) {
-    return AVAILABLE_MODELS;
+    if (error || !data) return [];
+    return data;
+  } catch (_) {
+    return [];
   }
-  return data;
 }
 
-export const AVAILABLE_MODELS = [
-  {
-    id: "yolov8m",
-    name: "YOLOv8 Medium",
-    tag: "Standard Baseline",
-    architecture: "YOLOv8m",
-    params: "25.9M",
-    description: "Balanced speed & precision for general coastal debris detection.",
-    badge: "Default"
-  },
-  {
-    id: "yolov11m",
-    name: "YOLOv11 Medium",
-    tag: "Enhanced Accuracy",
-    architecture: "YOLOv11m",
-    params: "20.1M",
-    description: "Enhanced feature extraction & attention mechanisms for complex or occluded waste.",
-    badge: "High Precision"
-  },
-  {
-    id: "yolov26s",
-    name: "YOLOv26 Small",
-    tag: "Ultra-Fast Edge",
-    architecture: "YOLOv26s",
-    params: "9.6M",
-    description: "Lightweight, low-latency inference optimized for real-time mobile & drone feeds.",
-    badge: "Fastest"
-  }
-];
-
-let cachedActiveModel = "yolov11m";
-
 /**
- * Returns the currently active AI model ID configured by the Admin from Postgres.
+ * Returns the currently active AI model ID configured by the Admin directly from Postgres.
  */
 export async function getActiveSystemModel() {
   try {
@@ -438,12 +483,24 @@ export async function getActiveSystemModel() {
       .single();
 
     if (!error && data?.value) {
-      cachedActiveModel = data.value;
+      return data.value;
     }
-  } catch (_) {
-    // Fall back to in-memory model cache
-  }
-  return cachedActiveModel;
+  } catch (_) {}
+
+  try {
+    const { data: activeModel, error: modelError } = await supabase
+      .from("ai_models")
+      .select("id")
+      .eq("is_active", true)
+      .limit(1)
+      .single();
+
+    if (!modelError && activeModel?.id) {
+      return activeModel.id;
+    }
+  } catch (_) {}
+
+  return null;
 }
 
 /**
@@ -455,8 +512,6 @@ export async function setActiveSystemModel(modelId) {
   if (!isValid) {
     throw new Error(`Invalid model ID: ${modelId}`);
   }
-
-  cachedActiveModel = modelId;
 
   const { error: settingsError } = await supabase
     .from("system_settings")

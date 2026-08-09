@@ -7,10 +7,12 @@ const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000";
  * Forwards an image buffer to the Python AI service and returns its
  * detection result. Relay activeModel parameter to FastAPI.
  */
-export async function runDetection(buffer, originalName, mimeType, modelName = "yolov8m") {
+export async function runDetection(buffer, originalName, mimeType, modelName) {
   const form = new FormData();
   form.append("file", buffer, { filename: originalName, contentType: mimeType });
-  form.append("model_name", modelName);
+  if (modelName) {
+    form.append("model_name", modelName);
+  }
 
   const response = await axios.post(`${AI_SERVICE_URL}/detect`, form, {
     headers: form.getHeaders(),

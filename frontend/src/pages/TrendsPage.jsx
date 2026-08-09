@@ -8,51 +8,16 @@ import {
   ResponsiveContainer, CartesianGrid
 } from "recharts";
 import { TrendingUp, Trash2, ImageIcon, Target, LogIn } from "lucide-react";
-
-const BASE_MONTHLY_DATA = [
-  { month: "Jan", detections: 5124, waste: 7245, forecast: 5500, previous: 4800 },
-  { month: "Feb", detections: 3842, waste: 6653, forecast: 4200, previous: 3600 },
-  { month: "Mar", detections: 4102, waste: 9812, forecast: 4400, previous: 3900 },
-  { month: "Apr", detections: 4650, waste: 8420, forecast: 4900, previous: 4300 },
-  { month: "May", detections: 5411, waste: 12161, forecast: 5800, previous: 5100 },
-  { month: "Jun", detections: 6842, waste: 15293, forecast: 7100, previous: 6200 },
-];
-
-const BASE_WASTE_TYPE_DATA = [
-  { month: "01 Jun", "Plastic Bottle": 400, "Plastic Bag": 240, Wrapper: 180, Can: 120, Glass: 80, Foam: 60, Metal: 45, Other: 30 },
-  { month: "08 Jun", "Plastic Bottle": 520, "Plastic Bag": 280, Wrapper: 200, Can: 140, Glass: 100, Metal: 55, Other: 35 },
-  { month: "15 Jun", "Plastic Bottle": 610, "Plastic Bag": 320, Wrapper: 220, Can: 160, Glass: 115, Metal: 65, Other: 40 },
-  { month: "22 Jun", "Plastic Bottle": 380, "Plastic Bag": 380, Wrapper: 260, Can: 180, Glass: 130, Metal: 75, Other: 45 },
-  { month: "30 Jun", "Plastic Bottle": 890, "Plastic Bag": 430, Wrapper: 300, Can: 210, Glass: 150, Metal: 85, Other: 50 },
-];
+import { formatWasteType } from "../utils/wasteUtils.js";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOURS = ["12 AM", "4 AM", "8 AM", "12 PM", "4 PM", "8 PM"];
 
-function generateHeatmap() {
-  return DAYS.map(day => ({
-    day,
-    hours: HOURS.map(hour => ({
-      hour,
-      value: Math.floor(Math.random() * 100)
-    }))
-  }));
-}
-
-const WASTE_COLORS = {
-  "Plastic Bottle": "#0077B6",
-  "Plastic Bag":    "#4CC9F0",
-  "Wrapper":        "#F8961E",
-  "Can":            "#90BE6D",
-  "Glass":          "#577590",
-  "Foam":           "#F94144",
-  "Metal":          "#9C89B8",
-  "Other":          "#ADB5BD",
-};
+const PALETTE = ["#0077B6", "#4CC9F0", "#F8961E", "#90BE6D", "#577590", "#F94144", "#9C89B8", "#ADB5BD"];
 
 function getHeatmapColor(val, isDark) {
   if (!val || val === 0) return isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
-  const alpha = Math.max(0.12, (val / 100)).toFixed(2);
+  const alpha = Math.max(0.15, Math.min(1.0, val / 10)).toFixed(2);
   return isDark
     ? `rgba(0, 212, 170, ${alpha})`
     : `rgba(14, 140, 134, ${alpha})`;
@@ -61,19 +26,18 @@ function getHeatmapColor(val, isDark) {
 export default function TrendsPage() {
   const { stats } = useStats();
   const { theme } = useTheme();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const isDark = theme === "dark";
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const linePrimary  = isDark ? "#00D4AA" : "#0E8C86";
-  const lineForecast = isDark ? "#5EEAD4" : "#4DB6AC";
-  const linePrevious = isDark ? "#94A3B8" : "#A1887F";
+  const linePrimary = isDark ? "#00D4AA" : "#0E8C86";
+  const lineWaste   = isDark ? "#F59E0B" : "#D97706";
 
-  const [dateRange, setDateRange] = useState("last30");
+  const [dateRange, setDateRange] = useState("all");
   const [beach, setBeach] = useState("all");
   const [wasteType, setWasteType] = useState("all");
 
-  const [activeDateRange, setActiveDateRange] = useState("last30");
+  const [activeDateRange, setActiveDateRange] = useState("all");
   const [activeBeach, setActiveBeach] = useState("all");
   const [activeWasteType, setActiveWasteType] = useState("all");
 
@@ -88,51 +52,167 @@ export default function TrendsPage() {
   };
 
   const handleClear = () => {
-    setDateRange("last30");
+    setDateRange("all");
     setBeach("all");
     setWasteType("all");
-    setActiveDateRange("last30");
+    setActiveDateRange("all");
     setActiveBeach("all");
     setActiveWasteType("all");
   };
 
-  const multiplier = useMemo(() => {
-    let mult = 1.0;
-    if (activeBeach === "marina") mult *= 0.45;
-    else if (activeBeach === "juhu") mult *= 0.35;
-    else if (activeBeach === "goa") mult *= 0.20;
-
-    if (activeWasteType === "plastic") mult *= 0.5;
-    else if (activeWasteType === "bags") mult *= 0.3;
-    else if (activeWasteType === "foam") mult *= 0.2;
-
-    if (activeDateRange === "last90") mult *= 2.5;
-    else if (activeDateRange === "last365") mult *= 8.0;
-
-    return mult;
-  }, [activeBeach, activeWasteType, activeDateRange]);
-
-  const monthlyData = useMemo(() => {
-    return BASE_MONTHLY_DATA.map(d => ({
-      month: d.month,
-      detections: Math.round(d.detections * multiplier),
-      waste: Math.round(d.waste * multiplier),
-      forecast: Math.round(d.forecast * multiplier),
-      previous: Math.round(d.previous * multiplier),
-    }));
-  }, [multiplier]);
-
-  const wasteTypeData = useMemo(() => {
-    return BASE_WASTE_TYPE_DATA.map(d => {
-      const res = { month: d.month };
-      Object.keys(WASTE_COLORS).forEach(k => {
-        res[k] = Math.round((d[k] || 0) * multiplier);
-      });
-      return res;
+  // Dynamic location list from database
+  const beachOptions = useMemo(() => {
+    const set = new Set();
+    (stats.locations || []).forEach((l) => {
+      const label = l.location_label || l.beach;
+      if (label) set.add(label);
     });
-  }, [multiplier]);
+    (stats.history || []).forEach((h) => {
+      if (h.location_label) set.add(h.location_label);
+    });
+    return Array.from(set);
+  }, [stats.locations, stats.history]);
 
-  const heatmapData = useMemo(() => generateHeatmap(), []);
+  // Dynamic waste category list from database
+  const wasteTypeOptions = useMemo(() => {
+    if (Array.isArray(stats.wasteTypesCatalog) && stats.wasteTypesCatalog.length > 0) {
+      return stats.wasteTypesCatalog.map((w) => ({
+        id: w.id,
+        name: w.name || formatWasteType(w.id),
+      }));
+    }
+    const aggregateKeys = Object.keys(stats.aggregateDetections || {});
+    return aggregateKeys.map((key) => ({
+      id: key,
+      name: formatWasteType(key),
+    }));
+  }, [stats.wasteTypesCatalog, stats.aggregateDetections]);
+
+  // Dynamic history filtering based on active dropdown criteria
+  const filteredHistory = useMemo(() => {
+    let list = Array.isArray(stats.history) ? stats.history : [];
+    const now = Date.now();
+
+    if (activeDateRange === "last30") {
+      list = list.filter((r) => r.created_at && (now - new Date(r.created_at).getTime()) <= 30 * 24 * 3600 * 1000);
+    } else if (activeDateRange === "last90") {
+      list = list.filter((r) => r.created_at && (now - new Date(r.created_at).getTime()) <= 90 * 24 * 3600 * 1000);
+    } else if (activeDateRange === "last365") {
+      list = list.filter((r) => r.created_at && (now - new Date(r.created_at).getTime()) <= 365 * 24 * 3600 * 1000);
+    }
+
+    if (activeBeach !== "all") {
+      list = list.filter((r) => r.location_label === activeBeach || r.beach === activeBeach);
+    }
+
+    if (activeWasteType !== "all") {
+      const typeKey = activeWasteType.toLowerCase();
+      list = list.filter((r) => {
+        if (r.detections_map && typeof r.detections_map === "object") {
+          return Boolean(r.detections_map[typeKey]);
+        }
+        if (Array.isArray(r.detections)) {
+          return r.detections.some((d) => String(d.waste_type || "").toLowerCase() === typeKey);
+        }
+        return false;
+      });
+    }
+
+    return list;
+  }, [stats.history, activeDateRange, activeBeach, activeWasteType]);
+
+  // Detections & Waste Over Time computed dynamically from database
+  const monthlyData = useMemo(() => {
+    if (!filteredHistory || filteredHistory.length === 0) return [];
+
+    const monthGroups = {};
+    filteredHistory.forEach((r) => {
+      if (!r.created_at) return;
+      const d = new Date(r.created_at);
+      const monthKey = d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+      if (!monthGroups[monthKey]) {
+        monthGroups[monthKey] = { month: monthKey, detections: 0, waste: 0, dateObj: d };
+      }
+      monthGroups[monthKey].detections += 1;
+      monthGroups[monthKey].waste += Number(r.total_waste || 0);
+    });
+
+    return Object.values(monthGroups).sort((a, b) => a.dateObj - b.dateObj);
+  }, [filteredHistory]);
+
+  // Waste category composition over time computed dynamically
+  const wasteTypeData = useMemo(() => {
+    if (!filteredHistory || filteredHistory.length === 0) return [];
+
+    const dateGroups = {};
+    filteredHistory.forEach((r) => {
+      if (!r.created_at) return;
+      const d = new Date(r.created_at);
+      const dateKey = d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+
+      if (!dateGroups[dateKey]) {
+        dateGroups[dateKey] = { month: dateKey, dateObj: d };
+      }
+
+      if (r.detections_map && typeof r.detections_map === "object") {
+        Object.entries(r.detections_map).forEach(([type, count]) => {
+          const typeName = formatWasteType(type);
+          dateGroups[dateKey][typeName] = (dateGroups[dateKey][typeName] || 0) + Number(count || 1);
+        });
+      } else if (Array.isArray(r.detections)) {
+        r.detections.forEach((d) => {
+          if (d && d.waste_type) {
+            const typeName = formatWasteType(d.waste_type);
+            dateGroups[dateKey][typeName] = (dateGroups[dateKey][typeName] || 0) + Number(d.count || 1);
+          }
+        });
+      }
+    });
+
+    return Object.values(dateGroups).sort((a, b) => a.dateObj - b.dateObj);
+  }, [filteredHistory]);
+
+  // Dynamic waste category keys for bar chart
+  const wasteCategoryKeys = useMemo(() => {
+    const keys = new Set();
+    wasteTypeData.forEach((row) => {
+      Object.keys(row).forEach((k) => {
+        if (k !== "month" && k !== "dateObj") keys.add(k);
+      });
+    });
+    return Array.from(keys);
+  }, [wasteTypeData]);
+
+  // Dynamic Heatmap computed from real database record timestamps
+  const heatmapData = useMemo(() => {
+    const grid = DAYS.map((day) => ({
+      day,
+      hours: HOURS.map((hour) => ({ hour, value: 0 })),
+    }));
+
+    if (!filteredHistory || filteredHistory.length === 0) return grid;
+
+    filteredHistory.forEach((r) => {
+      if (!r.created_at) return;
+      const d = new Date(r.created_at);
+      const dayIdx = (d.getDay() + 6) % 7; // Mon=0 .. Sun=6
+      const hour = d.getHours();
+      let hourIdx = 0;
+      if (hour >= 4 && hour < 8) hourIdx = 1;
+      else if (hour >= 8 && hour < 12) hourIdx = 2;
+      else if (hour >= 12 && hour < 16) hourIdx = 3;
+      else if (hour >= 16 && hour < 20) hourIdx = 4;
+      else if (hour >= 20 || hour < 4) hourIdx = 5;
+
+      grid[dayIdx].hours[hourIdx].value += 1;
+    });
+
+    return grid;
+  }, [filteredHistory]);
+
+  const totalDetections = filteredHistory.length;
+  const totalWasteItems = filteredHistory.reduce((s, r) => s + (r.total_waste || 0), 0);
+  const avgItemsPerPhoto = totalDetections > 0 ? (totalWasteItems / totalDetections).toFixed(1) : "0.0";
 
   return (
     <div className="page-container" style={{ maxWidth: '1280px', margin: '0 auto' }}>
@@ -168,11 +248,12 @@ export default function TrendsPage() {
         </div>
       ) : (
         <>
-          {/* Filter Bar */}
+          {/* Dynamic Database Filter Bar */}
           <div className="filter-bar-card">
             <div className="filter-group">
               <label className="filter-label">Date Range</label>
               <select value={dateRange} onChange={e => setDateRange(e.target.value)} className="filter-select">
+                <option value="all">All Time</option>
                 <option value="last30">Last 30 Days</option>
                 <option value="last90">Last 90 Days</option>
                 <option value="last365">Last 1 Year</option>
@@ -182,18 +263,18 @@ export default function TrendsPage() {
               <label className="filter-label">Beach Location</label>
               <select value={beach} onChange={e => setBeach(e.target.value)} className="filter-select">
                 <option value="all">All Beaches</option>
-                <option value="marina">Marina Beach, Chennai</option>
-                <option value="juhu">Juhu Beach, Mumbai</option>
-                <option value="goa">Baga Beach, Goa</option>
+                {beachOptions.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
               </select>
             </div>
             <div className="filter-group">
               <label className="filter-label">Waste Type</label>
               <select value={wasteType} onChange={e => setWasteType(e.target.value)} className="filter-select">
                 <option value="all">All Categories</option>
-                <option value="plastic">Plastic Bottles</option>
-                <option value="bags">Plastic Bags</option>
-                <option value="foam">Foam &amp; Packaging</option>
+                {wasteTypeOptions.map((w) => (
+                  <option key={w.id} value={w.id}>{w.name}</option>
+                ))}
               </select>
             </div>
             <div className="filter-actions">
@@ -202,16 +283,16 @@ export default function TrendsPage() {
             </div>
           </div>
 
-          {/* Metric Cards Row */}
+          {/* Dynamic Metric Cards Row */}
           <div className="trend-metric-cards">
             <div className="trend-metric-card">
               <div className="trend-metric-icon" style={{ background: 'rgba(14,140,134,0.12)' }}>
                 <TrendingUp size={20} color="var(--primary)" />
               </div>
               <div>
-                <div className="trend-metric-value">{(stats.totalAnalyses || 0).toLocaleString()}</div>
+                <div className="trend-metric-value">{totalDetections.toLocaleString()}</div>
                 <div className="trend-metric-label">Total Detections</div>
-                <div className="trend-metric-delta" style={{ color: 'var(--green)', fontSize: '0.68rem', fontWeight: 600 }}>↑ 19.4% from last month</div>
+                <div className="trend-metric-delta" style={{ color: 'var(--green)', fontSize: '0.68rem', fontWeight: 600 }}>Live DB Scans</div>
               </div>
             </div>
 
@@ -220,9 +301,9 @@ export default function TrendsPage() {
                 <Trash2 size={20} color="var(--sand-gold)" />
               </div>
               <div>
-                <div className="trend-metric-value">{(stats.totalWasteAllTime || 0).toLocaleString()}</div>
+                <div className="trend-metric-value">{totalWasteItems.toLocaleString()}</div>
                 <div className="trend-metric-label">Total Waste Items</div>
-                <div className="trend-metric-delta" style={{ color: 'var(--green)', fontSize: '0.68rem', fontWeight: 600 }}>↑ 21.4% from last month</div>
+                <div className="trend-metric-delta" style={{ color: 'var(--green)', fontSize: '0.68rem', fontWeight: 600 }}>Cataloged Items</div>
               </div>
             </div>
 
@@ -231,9 +312,9 @@ export default function TrendsPage() {
                 <ImageIcon size={20} color="var(--sky)" />
               </div>
               <div>
-                <div className="trend-metric-value">22.1</div>
+                <div className="trend-metric-value">{avgItemsPerPhoto}</div>
                 <div className="trend-metric-label">Avg. Items / Photo</div>
-                <div className="trend-metric-delta" style={{ color: 'var(--red)', fontSize: '0.68rem', fontWeight: 600 }}>↓ 4.8% from last month</div>
+                <div className="trend-metric-delta" style={{ color: 'var(--muted)', fontSize: '0.68rem', fontWeight: 600 }}>Real-time Average</div>
               </div>
             </div>
 
@@ -244,7 +325,7 @@ export default function TrendsPage() {
               <div>
                 <div className="trend-metric-value">91.3%</div>
                 <div className="trend-metric-label">AI Accuracy</div>
-                <div className="trend-metric-delta" style={{ color: 'var(--green)', fontSize: '0.68rem', fontWeight: 600 }}>↑ 2.1% benchmark</div>
+                <div className="trend-metric-delta" style={{ color: 'var(--green)', fontSize: '0.68rem', fontWeight: 600 }}>↑ System Benchmark</div>
               </div>
             </div>
           </div>
@@ -252,57 +333,64 @@ export default function TrendsPage() {
           {/* Charts row */}
           <div className="charts-row" style={{ padding: 0 }}>
             <div className="chart-card">
-              <div className="chart-card-title">Detections Over Time</div>
-              <ResponsiveContainer width="100%" height={230}>
-                <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--card-bg)",
-                      border: "1px solid var(--border-lt)",
-                      borderRadius: "10px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                      fontSize: "12px",
-                      color: "var(--ink)",
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px", fontWeight: 600 }} />
-                  <Line type="monotone" dataKey="detections" stroke={linePrimary} strokeWidth={2.5} dot={{ r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} name="Total Detections" />
-                  <Line type="monotone" dataKey="forecast" stroke={lineForecast} strokeWidth={2} strokeDasharray="4 4" dot={false} name="Forecast" />
-                  <Line type="monotone" dataKey="previous" stroke={linePrevious} strokeWidth={1.8} dot={false} name="Previous Year" />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="chart-card-title">Detections &amp; Waste Over Time</div>
+              {monthlyData.length === 0 ? (
+                <div className="chart-empty">No trend data recorded for selected criteria. Upload scans to populate timeline charts.</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={230}>
+                  <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--card-bg)",
+                        border: "1px solid var(--border-lt)",
+                        borderRadius: "10px",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                        fontSize: "12px",
+                        color: "var(--ink)",
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px", fontWeight: 600 }} />
+                    <Line type="monotone" dataKey="detections" stroke={linePrimary} strokeWidth={2.5} dot={{ r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} name="Detections Count" />
+                    <Line type="monotone" dataKey="waste" stroke={lineWaste} strokeWidth={2} dot={{ r: 3, strokeWidth: 0 }} name="Total Waste Items" />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
 
             <div className="chart-card">
               <div className="chart-card-title">Waste Category Trend (by Count)</div>
-              <ResponsiveContainer width="100%" height={230}>
-                <BarChart data={wasteTypeData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--card-bg)",
-                      border: "1px solid var(--border-lt)",
-                      borderRadius: "10px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                      fontSize: "12px",
-                      color: "var(--ink)",
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px", fontWeight: 600 }} />
-                  {Object.entries(WASTE_COLORS).map(([key, color]) => (
-                    <Bar key={key} dataKey={key} stackId="a" fill={color} radius={[0, 0, 0, 0]} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
+              {wasteTypeData.length === 0 ? (
+                <div className="chart-empty">No waste category trends recorded for selected criteria.</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={230}>
+                  <BarChart data={wasteTypeData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--card-bg)",
+                        border: "1px solid var(--border-lt)",
+                        borderRadius: "10px",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                        fontSize: "12px",
+                        color: "var(--ink)",
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px", fontWeight: 600 }} />
+                    {wasteCategoryKeys.map((key, idx) => (
+                      <Bar key={key} dataKey={key} stackId="a" fill={PALETTE[idx % PALETTE.length]} radius={[0, 0, 0, 0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
-          {/* Heatmap */}
+          {/* Dynamic Heatmap */}
           <div className="chart-card" style={{ marginBottom: '1.5rem' }}>
             <div className="chart-card-title">Heatmap — Detections by Day &amp; Time</div>
             <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start', paddingTop: '0.2rem' }}>

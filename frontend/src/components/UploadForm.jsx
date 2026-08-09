@@ -1,12 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check } from "lucide-react";
-
-const BEACH_PRESETS = {
-  marina: { label: "Marina Beach, Chennai", latitude: 13.0499, longitude: 80.2824, locationLabel: "Marina Beach, Chennai" },
-  puri:   { label: "Puri Beach, Odisha", latitude: 19.7983, longitude: 85.8249, locationLabel: "Puri Beach, Odisha" },
-  udupi:  { label: "Malpe Beach, Udupi", latitude: 13.3489, longitude: 74.7037, locationLabel: "Malpe Beach, Udupi" },
-  auto:   { label: "Device GPS (Auto-detect)", latitude: null, longitude: null, locationLabel: null },
-};
+import { StatsContext } from "../context/StatsContext.jsx";
 
 const BBOX_COLORS = {
   bottle:  "#00D4AA",
@@ -28,11 +22,15 @@ export default function UploadForm({
   onUpdateModel,
   isAdmin,
   updatingModel,
+  locations: locationsProp,
 }) {
+  const statsCtx = useContext(StatsContext);
+  const dbLocations = locationsProp || statsCtx?.stats?.locations || [];
+
   const [file,          setFile]          = useState(null);
   const [previewUrl,    setPreviewUrl]    = useState(null);
   const [dragging,      setDragging]      = useState(false);
-  const [selectedBeach, setSelectedBeach] = useState("marina");
+  const [selectedBeach, setSelectedBeach] = useState("auto");
   // idle | fetching | granted | denied
   const [locStatus,     setLocStatus]     = useState("idle");
 
@@ -68,13 +66,15 @@ export default function UploadForm({
     if (!file) return;
 
     if (selectedBeach !== "auto") {
-      const preset = BEACH_PRESETS[selectedBeach];
-      onUpload(file, {
-        latitude:      preset.latitude,
-        longitude:     preset.longitude,
-        locationLabel: preset.locationLabel,
-      });
-      return;
+      const preset = dbLocations.find((l, idx) => (l.id ? String(l.id) === selectedBeach : `loc_${idx}` === selectedBeach));
+      if (preset) {
+        onUpload(file, {
+          latitude:      preset.latitude ?? null,
+          longitude:     preset.longitude ?? null,
+          locationLabel: preset.location_label || preset.locationLabel || preset.beach || null,
+        });
+        return;
+      }
     }
 
     if (!navigator.geolocation) {
@@ -268,11 +268,16 @@ export default function UploadForm({
           className="settings-select"
           style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "8px" }}
         >
-          {Object.entries(BEACH_PRESETS).map(([key, item]) => (
-            <option key={key} value={key}>
-              {item.label}
-            </option>
-          ))}
+          <option value="auto">Device GPS (Auto-detect)</option>
+          {dbLocations.map((item, idx) => {
+            const key = item.id ? String(item.id) : `loc_${idx}`;
+            const label = item.location_label || item.locationLabel || item.beach || (item.latitude != null && item.longitude != null ? `${item.latitude}, ${item.longitude}` : `Location #${idx + 1}`);
+            return (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            );
+          })}
         </select>
       </div>
 
