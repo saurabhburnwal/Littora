@@ -41,8 +41,13 @@ export async function uploadImage(buffer, originalName, mimeType) {
 
 /**
  * Inserts an analysis row + one detections row per waste type.
- * Accepts optional latitude, longitude, locationLabel, and userId fields.
- * Returns the inserted analysis row (with all generated/defaulted columns).
+ *
+ * 5NF: Location facts (latitude, longitude, location_label) live exclusively in
+ * public.locations. If coordinates are provided, we upsert into locations first
+ * to get a location_id, then insert analyses with only location_id — no raw
+ * coordinate columns on analyses.
+ *
+ * Returns the enriched row from public.vw_analysis_details (includes location JOIN).
  */
 export async function saveAnalysis({
   imageUrl,
@@ -57,6 +62,27 @@ export async function saveAnalysis({
   modelUsed,
 }) {
   const activeModelId = modelUsed || (await getActiveSystemModel());
+
+  // 1. Resolve location_id — upsert into locations if coordinates are provided
+  let locationId = null;
+  if (latitude != null && longitude != null) {
+    const label = locationLabel?.trim() ||
+      `${Number(latitude).toFixed(4)}, ${Number(longitude).toFixed(4)}`;
+
+    const { data: locData, error: locError } = await supabase
+      .from("locations")
+      .upsert(
+        { location_label: label, latitude, longitude },
+        { onConflict: "latitude,longitude" }
+      )
+      .select("id")
+      .single();
+
+    if (locError) throw locError;
+    locationId = locData.id;
+  }
+
+  // 2. Insert analysis row — only location_id, no raw coordinate columns (5NF)
   const { data: analysis, error: analysisError } = await supabase
     .from("analyses")
     .insert({
@@ -64,17 +90,16 @@ export async function saveAnalysis({
       total_waste:     totalWaste,
       pollution_score: pollutionScore,
       severity,
-      latitude:        latitude       ?? null,
-      longitude:       longitude      ?? null,
-      location_label:  locationLabel  ?? null,
-      user_id:         userId         ?? null,
-      model_used:      activeModelId  || null,
+      user_id:         userId      ?? null,
+      model_used:      activeModelId || null,
+      location_id:     locationId,
     })
     .select()
     .single();
 
   if (analysisError) throw analysisError;
 
+  // 3. Insert child detections rows
   const detectionRows = Object.entries(detections).map(([wasteType, count]) => ({
     analysis_id: analysis.id,
     waste_type:  wasteType,
@@ -88,7 +113,14 @@ export async function saveAnalysis({
     if (detectionsError) throw detectionsError;
   }
 
-  return analysis;
+  // 4. Return enriched row from vw_analysis_details (includes location JOIN)
+  const { data: enriched } = await supabase
+    .from("vw_analysis_details")
+    .select("*")
+    .eq("id", analysis.id)
+    .single();
+
+  return enriched || analysis;
 }
 
 /**
@@ -266,9 +298,9 @@ export async function listAnalyses({ limit = 50, offset = 0 } = {}) {
  * Queries consolidated view public.vw_analysis_details.
  */
 export async function getStats(userId = null) {
-  let data = [];
-
-  // 1. Try querying public.vw_analysis_details view
+  // Query public.vw_analysis_details — the single source of truth after 5NF conversion.
+  // Location data (latitude, longitude, location_label) is joined from public.locations;
+  // raw coordinate columns no longer exist on public.analyses.
   let viewQuery = supabase
     .from("vw_analysis_details")
     .select("*")
@@ -278,25 +310,11 @@ export async function getStats(userId = null) {
     viewQuery = viewQuery.eq("user_id", userId);
   }
 
-  const { data: viewData, error: viewError } = await viewQuery;
+  const { data, error: viewError } = await viewQuery;
 
-  if (!viewError && viewData) {
-    data = viewData;
-  } else {
-    // 2. Fallback query directly on public.analyses with detections join if view grants are pending
-    let fallbackQuery = supabase
-      .from("analyses")
-      .select("*, detections(*)")
-      .order("created_at", { ascending: true });
-
-    if (userId) fallbackQuery = fallbackQuery.eq("user_id", userId);
-
-    const { data: fbData, error: fbError } = await fallbackQuery;
-    if (fbError || !fbData) {
-      console.error("getStats query error:", fbError?.message || viewError?.message);
-      throw (fbError || viewError);
-    }
-    data = fbData;
+  if (viewError || !data) {
+    console.error("getStats query error:", viewError?.message);
+    throw viewError;
   }
 
   const totalAnalyses = data.length;

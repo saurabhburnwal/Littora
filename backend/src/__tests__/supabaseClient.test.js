@@ -53,15 +53,30 @@ describe("uploadImage", () => {
 describe("saveAnalysis", () => {
   it("saves analysis row and child detections rows successfully", async () => {
     const fakeAnalysis = { id: "a-100", total_waste: 5 };
+    const fakeEnriched = { id: "a-100", total_waste: 5, latitude: 18.9, longitude: 72.8, location_label: "Girgaon Beach" };
+
+    const mockLocationUpsert = {
+      select: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: { id: "loc-1" }, error: null }),
+    };
     const mockInsertAnalysis = {
       select: jest.fn().mockReturnThis(),
       single: jest.fn().mockResolvedValue({ data: fakeAnalysis, error: null }),
     };
     const mockInsertDetections = jest.fn().mockResolvedValue({ error: null });
+    const mockViewFetch = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: fakeEnriched, error: null }),
+    };
 
     mockFrom.mockImplementation((table) => {
-      if (table === "analyses") return { insert: () => mockInsertAnalysis };
-      if (table === "detections") return { insert: mockInsertDetections };
+      if (table === "locations")           return { upsert: () => mockLocationUpsert };
+      if (table === "analyses")            return { insert: () => mockInsertAnalysis };
+      if (table === "detections")          return { insert: mockInsertDetections };
+      if (table === "vw_analysis_details") return mockViewFetch;
+      if (table === "system_settings")     return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      if (table === "ai_models")           return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
     });
 
     const res = await saveAnalysis({
@@ -76,7 +91,7 @@ describe("saveAnalysis", () => {
       userId: "u-123",
     });
 
-    expect(res).toEqual(fakeAnalysis);
+    expect(res).toEqual(fakeEnriched);
     expect(mockInsertDetections).toHaveBeenCalledWith([
       { analysis_id: "a-100", waste_type: "bottle", count: 3 },
       { analysis_id: "a-100", waste_type: "can", count: 2 },
@@ -84,12 +99,21 @@ describe("saveAnalysis", () => {
   });
 
   it("throws when analysis insert returns an error", async () => {
+    const mockLocationUpsert = {
+      select: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: { id: "loc-1" }, error: null }),
+    };
     const mockInsertAnalysis = {
       select: jest.fn().mockReturnThis(),
       single: jest.fn().mockResolvedValue({ data: null, error: new Error("DB Constraint Fail") }),
     };
 
-    mockFrom.mockReturnValue({ insert: () => mockInsertAnalysis });
+    mockFrom.mockImplementation((table) => {
+      if (table === "locations")       return { upsert: () => mockLocationUpsert };
+      if (table === "analyses")        return { insert: () => mockInsertAnalysis };
+      if (table === "system_settings") return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      if (table === "ai_models")       return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
+    });
 
     await expect(saveAnalysis({
       imageUrl: "https://example.com/a.jpg",
@@ -97,11 +121,18 @@ describe("saveAnalysis", () => {
       pollutionScore: 10,
       severity: "Low",
       detections: {},
+      latitude: 18.9,
+      longitude: 72.8,
+      locationLabel: "Girgaon Beach",
     })).rejects.toThrow("DB Constraint Fail");
   });
 
   it("throws when detections insert returns an error", async () => {
     const fakeAnalysis = { id: "a-101", total_waste: 1 };
+    const mockLocationUpsert = {
+      select: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: { id: "loc-2" }, error: null }),
+    };
     const mockInsertAnalysis = {
       select: jest.fn().mockReturnThis(),
       single: jest.fn().mockResolvedValue({ data: fakeAnalysis, error: null }),
@@ -109,8 +140,11 @@ describe("saveAnalysis", () => {
     const mockInsertDetections = jest.fn().mockResolvedValue({ error: new Error("Detections FK error") });
 
     mockFrom.mockImplementation((table) => {
-      if (table === "analyses") return { insert: () => mockInsertAnalysis };
-      if (table === "detections") return { insert: mockInsertDetections };
+      if (table === "locations")       return { upsert: () => mockLocationUpsert };
+      if (table === "analyses")        return { insert: () => mockInsertAnalysis };
+      if (table === "detections")      return { insert: mockInsertDetections };
+      if (table === "system_settings") return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      if (table === "ai_models")       return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
     });
 
     await expect(saveAnalysis({
@@ -119,6 +153,9 @@ describe("saveAnalysis", () => {
       pollutionScore: 10,
       severity: "Low",
       detections: { bottle: 1 },
+      latitude: 18.9,
+      longitude: 72.8,
+      locationLabel: "Girgaon Beach",
     })).rejects.toThrow("Detections FK error");
   });
 });
@@ -282,21 +319,23 @@ describe("deleteAnalysis & deleteAnalysisForUser", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe("getStats — JS aggregation logic", () => {
   it("calculates totals and severity counts correctly", async () => {
+    // Rows now come from vw_analysis_details which JOINs locations.
+    // detections_map is a JSONB object; raw arrays are also handled for backward compat.
     const rows = [
       {
         id: "1", total_waste: 5, pollution_score: 30, severity: "Low",
         latitude: null, longitude: null, location_label: null,
-        detections: [{ waste_type: "bottle", count: 3 }, { waste_type: "can", count: 2 }],
+        detections_map: { bottle: 3, can: 2 },
       },
       {
         id: "2", total_waste: 10, pollution_score: 70, severity: "High",
         latitude: 19.076, longitude: 72.877, location_label: "Juhu",
-        detections: [{ waste_type: "bag", count: 5 }, { waste_type: "wrapper", count: 5 }],
+        detections_map: { bag: 5, wrapper: 5 },
       },
       {
         id: "3", total_waste: 0, pollution_score: 0, severity: "Low",
         latitude: null, longitude: null, location_label: null,
-        detections: [],
+        detections_map: {},
       },
     ];
 
