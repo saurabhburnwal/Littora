@@ -9,11 +9,18 @@
 -- while the same data also existed on analyses directly.
 
 -- ============================================================
--- STEP 1: Backfill — ensure every analyses row with coordinates
+-- STEP 1: Drop the view FIRST — it references a.latitude / a.longitude /
+-- a.location_label via COALESCE. PostgreSQL raises SQLSTATE 2BP01 if we
+-- attempt to DROP COLUMN while any view depends on that column.
+-- ============================================================
+DROP VIEW IF EXISTS public.vw_analysis_details CASCADE;
+
+-- ============================================================
+-- STEP 2: Backfill — ensure every analyses row with coordinates
 -- has a corresponding location_id before we drop the raw columns.
 -- ============================================================
 
--- 1a. Upsert any unique lat/lng pairs that are not yet in locations
+-- 2a. Upsert any unique lat/lng pairs not yet in locations
 INSERT INTO public.locations (location_label, latitude, longitude)
 SELECT DISTINCT
   COALESCE(NULLIF(TRIM(location_label), ''), ROUND(latitude::numeric, 4)::text || ', ' || ROUND(longitude::numeric, 4)::text),
@@ -29,7 +36,7 @@ ON CONFLICT (latitude, longitude) DO UPDATE SET
     public.locations.location_label
   );
 
--- 1b. Backfill location_id on any remaining analyses rows
+-- 2b. Backfill location_id on any remaining analyses rows
 UPDATE public.analyses a
 SET location_id = l.id
 FROM public.locations l
@@ -38,20 +45,18 @@ WHERE a.latitude = l.latitude
   AND a.location_id IS NULL;
 
 -- ============================================================
--- STEP 2: Drop redundant columns from public.analyses
--- These facts now belong solely to public.locations.
+-- STEP 3: Drop redundant columns from public.analyses
+-- View was dropped in Step 1, so no dependent objects remain.
 -- ============================================================
 ALTER TABLE public.analyses DROP COLUMN IF EXISTS latitude;
 ALTER TABLE public.analyses DROP COLUMN IF EXISTS longitude;
 ALTER TABLE public.analyses DROP COLUMN IF EXISTS location_label;
 
 -- ============================================================
--- STEP 3: Drop and recreate public.vw_analysis_details view
--- The previous view used COALESCE(a.latitude, l.latitude) etc.
--- After dropping those columns, only l.latitude/longitude/location_label remain.
+-- STEP 4: Recreate public.vw_analysis_details without the
+-- COALESCE on deleted columns — reads lat/lng/label from
+-- public.locations via location_id JOIN only.
 -- ============================================================
-DROP VIEW IF EXISTS public.vw_analysis_details CASCADE;
-
 CREATE VIEW public.vw_analysis_details
 WITH (security_invoker = true) AS
 SELECT
@@ -83,6 +88,6 @@ LEFT JOIN public.locations l  ON a.location_id = l.id
 LEFT JOIN public.ai_models  m ON a.model_used  = m.id;
 
 -- ============================================================
--- STEP 4: Re-grant permissions on updated view
+-- STEP 5: Re-grant permissions on updated view
 -- ============================================================
 GRANT SELECT ON public.vw_analysis_details TO anon, authenticated, service_role;
