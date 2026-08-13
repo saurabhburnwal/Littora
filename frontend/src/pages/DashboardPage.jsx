@@ -5,6 +5,7 @@ import { useAuth }  from "../context/AuthContext.jsx";
 import StatCards          from "../components/StatCards.jsx";
 import TrendChart         from "../components/TrendChart.jsx";
 import WasteBreakdownChart from "../components/WasteBreakdownChart.jsx";
+import GuestLockScreen    from "../components/GuestLockScreen.jsx";
 import dashboardBg        from "../assets/dashboard_bg.png";
 
 export default function DashboardPage() {
@@ -126,17 +127,26 @@ export default function DashboardPage() {
           <h2>{sectionTitle}</h2>
         </div>
 
-        <StatCards
-          totalAnalyses={stats.totalAnalyses}
-          totalWasteAllTime={stats.totalWasteAllTime}
-          avgScore={stats.avgScore}
-          severityCounts={stats.severityCounts}
-        />
+        {!user ? (
+          <GuestLockScreen
+            title="Analytics Are Private to Signed-In Users"
+            message="Sign in or create an account to view personal detection stats, trend charts, and waste breakdowns."
+          />
+        ) : (
+          <>
+            <StatCards
+              totalAnalyses={stats.totalAnalyses}
+              totalWasteAllTime={stats.totalWasteAllTime}
+              avgScore={stats.avgScore}
+              severityCounts={stats.severityCounts}
+            />
 
-        <div className="charts-row">
-          <TrendChart history={stats.history} />
-          <WasteBreakdownChart aggregateDetections={stats.aggregateDetections} />
-        </div>
+            <div className="charts-row">
+              <TrendChart history={stats.history} />
+              <WasteBreakdownChart aggregateDetections={stats.aggregateDetections} />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

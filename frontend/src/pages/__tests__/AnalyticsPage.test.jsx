@@ -43,7 +43,10 @@ describe("AnalyticsPage component", () => {
   it("renders Analytics heading and summary stats", async () => {
     renderAnalytics();
     await vi.waitFor(() => {
-      expect(screen.getByRole("heading", { name: /analytics/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 1, name: /analytics/i })).toBeInTheDocument();
     });
+    // Guest users see the lock screen instead of charts
+    expect(screen.getByRole("heading", { level: 3, name: /analytics are private/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in to access/i })).toBeInTheDocument();
   });
 });

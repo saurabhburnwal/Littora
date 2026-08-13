@@ -61,18 +61,18 @@ describe("ReportsPage component", () => {
     await vi.waitFor(() => {
       expect(screen.getByRole("heading", { name: /^reports$/i })).toBeInTheDocument();
     });
-    expect(screen.getByText("Monthly Report")).toBeInTheDocument();
-    expect(screen.getByText("Daily Report")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /download pdf report/i })).toBeInTheDocument();
+    // Guest users see the lock screen — not report cards
+    expect(screen.getByRole("heading", { name: /reports require a signed-in account/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in to access/i })).toBeInTheDocument();
   });
 
-  it("opens AuthRequiredModal when unauthenticated guest clicks Download PDF Report", async () => {
+  it("shows lock screen for unauthenticated guest instead of report actions", async () => {
     renderReports({ user: null });
-    await vi.waitFor(() => screen.getByRole("button", { name: /download pdf report/i }));
-
-    fireEvent.click(screen.getByRole("button", { name: /download pdf report/i }));
-    expect(screen.getByText("Sign In Required")).toBeInTheDocument();
-    expect(screen.getByText(/export or email PDF reports/i)).toBeInTheDocument();
+    await vi.waitFor(() =>
+      expect(screen.getByRole("heading", { name: /reports require a signed-in account/i })).toBeInTheDocument()
+    );
+    // Download button should NOT be visible to guests
+    expect(screen.queryByRole("button", { name: /download pdf report/i })).not.toBeInTheDocument();
   });
 
   it("triggers generatePdfReport when logged-in user clicks Download PDF Report", async () => {

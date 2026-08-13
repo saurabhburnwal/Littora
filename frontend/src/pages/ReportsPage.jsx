@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { generatePdfReport } from "../utils/generatePdfReport.js";
 import { formatWasteType } from "../utils/wasteUtils.js";
 import AuthRequiredModal from "../components/AuthRequiredModal.jsx";
+import GuestLockScreen  from "../components/GuestLockScreen.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -125,68 +126,77 @@ End of Report - Littora Coastal Monitoring Systems
         <p>Generate, download, and email detailed reports on waste detection.</p>
       </div>
 
-      <div className="cards-grid-2" style={{ marginBottom: '1.5rem' }}>
-        {REPORT_TYPES.map(r => (
-          <div
-            key={r.id}
-            className={`report-card${selected === r.id ? ' selected' : ''}`}
-            onClick={() => setSelected(r.id)}
-          >
-            <div className="report-icon">{r.icon}</div>
-            <div>
-              <div className="report-card-title">{r.title}</div>
-              <div className="report-card-desc">{r.desc}</div>
-            </div>
+      {!user ? (
+        <GuestLockScreen
+          title="Reports Require a Signed-In Account"
+          message="Sign in to generate, download, and email detailed beach waste detection reports."
+        />
+      ) : (
+        <>
+          <div className="cards-grid-2" style={{ marginBottom: '1.5rem' }}>
+            {REPORT_TYPES.map(r => (
+              <div
+                key={r.id}
+                className={`report-card${selected === r.id ? ' selected' : ''}`}
+                onClick={() => setSelected(r.id)}
+              >
+                <div className="report-icon">{r.icon}</div>
+                <div>
+                  <div className="report-card-title">{r.title}</div>
+                  <div className="report-card-desc">{r.desc}</div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <div className="full-card">
-        <div className="full-card-title" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-          Report Preview
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button
-              className="export-btn"
-              onClick={handleEmailReport}
-              disabled={emailing}
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "var(--teal)", color: "#fff" }}
-            >
-              {emailing ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Mail size={14} />}
-              Email to Me
-            </button>
-            <button
-              className="export-btn"
-              onClick={handleDownloadReport}
-              disabled={downloading}
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
-            >
-              {downloading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={14} />}
-              Download PDF Report
-            </button>
+          <div className="full-card">
+            <div className="full-card-title" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
+              Report Preview
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  className="export-btn"
+                  onClick={handleEmailReport}
+                  disabled={emailing}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "var(--teal)", color: "#fff" }}
+                >
+                  {emailing ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Mail size={14} />}
+                  Email to Me
+                </button>
+                <button
+                  className="export-btn"
+                  onClick={handleDownloadReport}
+                  disabled={downloading}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+                >
+                  {downloading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={14} />}
+                  Download PDF Report
+                </button>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>{(stats.totalAnalyses || 0).toLocaleString()}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Detections</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>{(stats.totalWasteAllTime || 0).toLocaleString()}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Waste Items</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>{stats.locations?.length || 0}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Beaches Monitored</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>91.3%</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Model Accuracy</div>
+              </div>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
+              Click <strong>Download Report</strong> or <strong>Email to Me</strong> to receive the detailed {selected} summary report.
+            </p>
           </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>{(stats.totalAnalyses || 0).toLocaleString()}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Detections</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>{(stats.totalWasteAllTime || 0).toLocaleString()}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Waste Items</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>{stats.locations?.length || 0}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Beaches Monitored</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>91.3%</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Model Accuracy</div>
-          </div>
-        </div>
-        <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
-          Click <strong>Download Report</strong> or <strong>Email to Me</strong> to receive the detailed {selected} summary report.
-        </p>
-      </div>
+        </>
+      )}
 
       {/* ── Toast ── */}
       {toast && (

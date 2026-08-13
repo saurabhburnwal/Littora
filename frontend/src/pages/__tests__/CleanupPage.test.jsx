@@ -43,7 +43,10 @@ describe("CleanupPage component", () => {
   it("renders Cleanup Recommendations title and feature cards", async () => {
     renderCleanup();
     await vi.waitFor(() => {
-      expect(screen.getByRole("heading", { name: /cleanup recommendations/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 1, name: /cleanup recommendations/i })).toBeInTheDocument();
     });
+    // Guest users see the lock screen instead of recommendations
+    expect(screen.getByRole("heading", { level: 3, name: /cleanup recommendations are private/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in to access/i })).toBeInTheDocument();
   });
 });

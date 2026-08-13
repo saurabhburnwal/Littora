@@ -4,11 +4,14 @@ import {
   PieChart, Pie, Cell, Legend
 } from "recharts";
 import { useStats } from "../context/StatsContext.jsx";
+import { useAuth }  from "../context/AuthContext.jsx";
 import { formatWasteType } from "../utils/wasteUtils.js";
+import GuestLockScreen from "../components/GuestLockScreen.jsx";
 
 const PIE_COLORS = ["#2f6f5e", "#c97b3d", "#a13d3d", "#3d6ea1", "#7c3d8a", "#f0b060"];
 
 export default function AnalyticsPage() {
+  const { user } = useAuth();
   const { stats } = useStats();
 
   const wasteComposition = useMemo(() => {
@@ -50,111 +53,120 @@ export default function AnalyticsPage() {
         <p>Deep-dive into waste detection patterns and beach pollution data.</p>
       </div>
 
-      <div className="charts-row" style={{ padding: 0 }}>
-        <div className="chart-card">
-          <div className="chart-card-title">Top Locations by Detections</div>
-          {beachData.length === 0 ? (
-            <div className="chart-empty">No location detections recorded in database.</div>
-          ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={beachData} layout="vertical" margin={{ top: 10, right: 15, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
-                <YAxis dataKey="beach" type="category" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} width={95} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--card-bg)",
-                    border: "1px solid var(--border-lt)",
-                    borderRadius: "10px",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                    fontSize: "12px",
-                    color: "var(--ink)",
-                  }}
-                />
-                <Bar dataKey="detections" fill="var(--teal)" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+      {!user ? (
+        <GuestLockScreen
+          title="Analytics Are Private to Signed-In Users"
+          message="Sign in to view waste composition charts, top locations, and detection count breakdowns."
+        />
+      ) : (
+        <>
+          <div className="charts-row" style={{ padding: 0 }}>
+            <div className="chart-card">
+              <div className="chart-card-title">Top Locations by Detections</div>
+              {beachData.length === 0 ? (
+                <div className="chart-empty">No location detections recorded in database.</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={beachData} layout="vertical" margin={{ top: 10, right: 15, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="4 4" stroke="var(--border-lt)" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                    <YAxis dataKey="beach" type="category" tick={{ fontSize: 10, fill: "var(--muted)", fontWeight: 600 }} width={95} axisLine={{ stroke: "var(--border-lt)" }} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--card-bg)",
+                        border: "1px solid var(--border-lt)",
+                        borderRadius: "10px",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                        fontSize: "12px",
+                        color: "var(--ink)",
+                      }}
+                    />
+                    <Bar dataKey="detections" fill="var(--teal)" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
 
-        <div className="chart-card">
-          <div className="chart-card-title">Waste Composition</div>
-          {wasteComposition.length === 0 ? (
-            <div className="chart-empty">No waste composition data found in database.</div>
-          ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie
-                  data={wasteComposition}
-                  dataKey="count"
-                  nameKey="name"
-                  outerRadius={90}
-                  innerRadius={55}
-                  paddingAngle={3}
-                >
-                  {wasteComposition.map((entry, index) => (
-                    <Cell key={entry.name} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--card-bg)",
-                    border: "1px solid var(--border-lt)",
-                    borderRadius: "10px",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                    fontSize: "12px",
-                    color: "var(--ink)",
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: "11px", fontWeight: 600, paddingTop: "6px" }} />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
-
-      <div className="full-card" style={{ border: "1px solid var(--border-lt)", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
-        <div className="full-card-title" style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", marginBottom: "1rem" }}>
-          Top Waste Types &amp; Breakdown
-        </div>
-        {wasteComposition.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)", fontSize: "0.85rem" }}>
-            No waste items recorded in database. Upload a scan to populate analytics.
+            <div className="chart-card">
+              <div className="chart-card-title">Waste Composition</div>
+              {wasteComposition.length === 0 ? (
+                <div className="chart-empty">No waste composition data found in database.</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={wasteComposition}
+                      dataKey="count"
+                      nameKey="name"
+                      outerRadius={90}
+                      innerRadius={55}
+                      paddingAngle={3}
+                    >
+                      {wasteComposition.map((entry, index) => (
+                        <Cell key={entry.name} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--card-bg)",
+                        border: "1px solid var(--border-lt)",
+                        borderRadius: "10px",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                        fontSize: "12px",
+                        color: "var(--ink)",
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: "11px", fontWeight: 600, paddingTop: "6px" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>Waste Type</th>
-                <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>Count</th>
-                <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>Percentage</th>
-                <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {wasteComposition.map(w => (
-                <tr key={w.name}>
-                  <td style={{ fontWeight: 600, color: "var(--ink)" }}>{w.name}</td>
-                  <td style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{w.count.toLocaleString()}</td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <div style={{
-                        height: '6px', borderRadius: '3px',
-                        width: `${Math.min(parseFloat(w.pct) || 5, 100)}%`,
-                        background: 'var(--teal)',
-                        minWidth: '6px',
-                        maxWidth: '120px'
-                      }} />
-                      <span style={{ fontSize: '0.78rem', color: 'var(--muted)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{w.pct}</span>
-                    </div>
-                  </td>
-                  <td style={{ color: 'var(--green)', fontWeight: 600, fontSize: '0.78rem' }}>Active Tracking</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+
+          <div className="full-card" style={{ border: "1px solid var(--border-lt)", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+            <div className="full-card-title" style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", marginBottom: "1rem" }}>
+              Top Waste Types &amp; Breakdown
+            </div>
+            {wasteComposition.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "2rem", color: "var(--muted)", fontSize: "0.85rem" }}>
+                No waste items recorded in database. Upload a scan to populate analytics.
+              </div>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>Waste Type</th>
+                    <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>Count</th>
+                    <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>Percentage</th>
+                    <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {wasteComposition.map(w => (
+                    <tr key={w.name}>
+                      <td style={{ fontWeight: 600, color: "var(--ink)" }}>{w.name}</td>
+                      <td style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{w.count.toLocaleString()}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <div style={{
+                            height: '6px', borderRadius: '3px',
+                            width: `${Math.min(parseFloat(w.pct) || 5, 100)}%`,
+                            background: 'var(--teal)',
+                            minWidth: '6px',
+                            maxWidth: '120px'
+                          }} />
+                          <span style={{ fontSize: '0.78rem', color: 'var(--muted)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{w.pct}</span>
+                        </div>
+                      </td>
+                      <td style={{ color: 'var(--green)', fontWeight: 600, fontSize: '0.78rem' }}>Active Tracking</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

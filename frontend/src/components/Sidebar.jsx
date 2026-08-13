@@ -1,7 +1,7 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, ScanLine, TrendingUp, MapPin, BarChart3,
-  Clock, FileText, Recycle, Database, Settings, PanelLeftClose, PanelLeftOpen
+  Clock, FileText, Recycle, Database, Settings, PanelLeftClose, PanelLeftOpen, Lock
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
@@ -10,21 +10,24 @@ import navbarEarth from "../assets/navbar_image_earth.jpg";
 import navbarDark from "../assets/navbar_image_dark.jpg";
 
 const NAV_ITEMS = [
-  { to: "/",          label: "Dashboard",             icon: LayoutDashboard, end: true },
-  { to: "/detect",    label: "Detect Waste",           icon: ScanLine,        end: false },
-  { to: "/trends",    label: "Historical Trends",      icon: TrendingUp,      end: false },
-  { to: "/map",       label: "Beach Map",              icon: MapPin,          end: false },
-  { to: "/analytics", label: "Analytics",              icon: BarChart3,       end: false },
-  { to: "/history",   label: "Detection History",      icon: Clock,           end: false },
-  { to: "/reports",   label: "Reports",                icon: FileText,        end: false },
-  { to: "/cleanup",   label: "Cleanup Recommendations",icon: Recycle,         end: false },
-  { to: "/dataset",   label: "Dataset Explorer",       icon: Database,        end: false },
-  { to: "/settings",  label: "Settings",               icon: Settings,        end: false },
+  { to: "/",          label: "Dashboard",              icon: LayoutDashboard, end: true,  guestLocked: false },
+  { to: "/detect",    label: "Detect Waste",           icon: ScanLine,        end: false, guestLocked: false },
+  { to: "/trends",    label: "Historical Trends",      icon: TrendingUp,      end: false, guestLocked: true  },
+  { to: "/map",       label: "Beach Map",              icon: MapPin,          end: false, guestLocked: false },
+  { to: "/analytics", label: "Analytics",              icon: BarChart3,       end: false, guestLocked: true  },
+  { to: "/history",   label: "Detection History",      icon: Clock,           end: false, guestLocked: true  },
+  { to: "/reports",   label: "Reports",                icon: FileText,        end: false, guestLocked: true  },
+  { to: "/cleanup",   label: "Cleanup Recommendations",icon: Recycle,         end: false, guestLocked: true  },
+  { to: "/dataset",   label: "Dataset Explorer",       icon: Database,        end: false, guestLocked: false },
+  { to: "/settings",  label: "Settings",               icon: Settings,        end: false, guestLocked: false },
 ];
 
 export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggleCollapse }) {
   const { theme } = useTheme();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const navbarImage = theme === "dark" ? navbarDark : navbarEarth;
+  const isGuest = !user;
 
   return (
     <>
@@ -79,19 +82,49 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
 
         {/* Navigation List */}
         <nav className="sidebar-nav" aria-label="Sections">
-          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              title={isCollapsed ? label : undefined}
-              className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
-              onClick={onClose}
-            >
-              <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
-              {!isCollapsed && <span>{label}</span>}
-            </NavLink>
-          ))}
+          {NAV_ITEMS.map(({ to, label, icon: Icon, end, guestLocked }) => {
+            // Locked nav item for guests — renders as a dimmed non-navigable div
+            if (isGuest && guestLocked) {
+              return (
+                <div
+                  key={to}
+                  className="nav-item"
+                  title={isCollapsed ? `${label} (Sign in required)` : "Sign in required"}
+                  onClick={() => navigate("/login")}
+                  style={{
+                    opacity: 0.42,
+                    cursor: "pointer",
+                    position: "relative",
+                  }}
+                  role="button"
+                  aria-label={`${label} — sign in required`}
+                >
+                  <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+                  {!isCollapsed && (
+                    <>
+                      <span style={{ flex: 1 }}>{label}</span>
+                      <Lock size={12} strokeWidth={2} style={{ opacity: 0.7, flexShrink: 0 }} />
+                    </>
+                  )}
+                </div>
+              );
+            }
+
+            // Normal navigable link
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                title={isCollapsed ? label : undefined}
+                className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
+                onClick={onClose}
+              >
+                <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+                {!isCollapsed && <span>{label}</span>}
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* Bottom Navbar Image Illustration */}
