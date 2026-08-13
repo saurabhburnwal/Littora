@@ -59,7 +59,7 @@ describe("PhotoGallery — rendering", () => {
   it("shows user chip when showUser=true and user_email is present", () => {
     render(<PhotoGallery items={mockItems} showUser={true} />);
     // Should show email username (before @)
-    expect(screen.getByText("uploader")).toBeInTheDocument();
+    expect(screen.getByText("uploader@test.com")).toBeInTheDocument();
   });
 
   it("does not show user chip when showUser=false", () => {
@@ -117,7 +117,7 @@ describe("PhotoGallery — modal", () => {
     render(<PhotoGallery items={mockItems} showUser={true} />);
     fireEvent.click(screen.getAllByRole("button", { name: /analysis from/i })[1]);
     expect(screen.getByText(/uploaded by/i)).toBeInTheDocument();
-    expect(screen.getAllByText("uploader").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("uploader@test.com").length).toBeGreaterThan(0);
   });
 
   it("shows full user_name in modal when present", () => {

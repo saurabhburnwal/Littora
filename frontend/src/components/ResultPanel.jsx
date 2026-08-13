@@ -83,7 +83,7 @@ export default function ResultPanel({ result }) {
                 itemStyle={{ color: "var(--ink)" }}
                 labelStyle={{ color: "var(--ink)" }}
               />
-              <Bar dataKey="count" fill="var(--teal)" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={250} animationEasing="ease-out" />
+              <Bar dataKey="count" fill="var(--teal)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -103,9 +103,7 @@ export default function ResultPanel({ result }) {
                 paddingAngle={4}
                 stroke="var(--card-bg)"
                 strokeWidth={2}
-                isAnimationActive={true}
-                animationDuration={250}
-                animationEasing="ease-out"
+                isAnimationActive={false}
               >
                 {pieData.map((entry) => (
                   <Cell key={entry.name} fill={activePalette[entry.name] || "#0d9488"} />

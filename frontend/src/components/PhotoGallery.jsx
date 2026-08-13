@@ -82,11 +82,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
               {showUser && (
                 <div className="gallery-user-chip" title={row.user_name ? `${row.user_name} (${row.user_email || ""})` : (row.user_email || row.user_id || "Anonymous")}>
                   <User size={10} />
-                  {row.user_name || (row.user_email
-                    ? row.user_email.split("@")[0]
-                    : row.user_id
-                      ? row.user_id.slice(0, 8) + "…"
-                      : "Anon")}
+                  {row.user_name || row.user_email || (row.user_id ? row.user_id.slice(0, 8) + "…" : "Anon")}
                 </div>
               )}
             </div>
