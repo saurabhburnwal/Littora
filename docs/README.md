@@ -17,7 +17,7 @@ Browser (React 18 SPA)
        │
        ▼ (HTTP / JSON / Bearer JWT)
 Node.js / Express API Server (Port 4000)
-       ├──▶ Python FastAPI + YOLOv8 (Port 8000) [Inference]
+       ├──▶ Python FastAPI + YOLOv11m (Port 8000) [Inference]
        └──▶ Supabase PostgreSQL & Storage [Persistence & Auth]
 ```
 

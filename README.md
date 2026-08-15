@@ -1,12 +1,12 @@
 # LITTORA — AI Beach Waste Detection & Coastal Pollution Monitoring Platform
 
-**Littora** is an end-to-end AI-powered web application that detects, classifies, and analyzes beach and coastal waste items (*plastics, bottles, cans, bags, foam, glass, metal*) using **YOLOv8** object detection. It scores pollution severity, tracks environmental trends over time, visualizes beach pollution heatmaps, and provides automated cleanup recommendations.
+**Littora** is an end-to-end AI-powered web application that detects, classifies, and analyzes beach and coastal waste items (*plastics, bottles, cans, bags, foam, glass, metal*) using **YOLOv11m** (with multi-model support for YOLOv11m, YOLOv26s, and YOLOv8m) object detection. It scores pollution severity, tracks environmental trends over time, visualizes beach pollution heatmaps, and provides automated cleanup recommendations.
 
 ---
 
 ## Key Features
 
-- **Smart AI Detection**: Real-time object detection powered by YOLOv8n with bounding boxes, confidence scoring, waste classification, and pollution severity calculation (Low, Moderate, High, Severe).
+- **Smart AI Detection**: Real-time object detection powered by **YOLOv11m** (Ultralytics) with bounding boxes, confidence scoring, waste classification, and pollution severity calculation (Low, Moderate, High, Severe).
 - **Dual Theme Design System**:
   - **Earth Theme**: Warm coastal dune aesthetic (`#f7f2e8` sand tones with custom watercolor botany artwork).
   - **Dark Theme**: High-contrast dark dashboard (`#0a0f1e` deep navy with `#00d4aa` cyan accents, custom glowing cyber-botanical artwork, and high-contrast typography).
@@ -33,7 +33,7 @@
   - **Historical Trends**: Detections over time, waste breakdown stacked charts, day/time pollution heatmaps.
   - **Interactive Beach Map**: Geolocation tracking of pollution hot spots with interactive markers and coastal beach presets (*Marina Beach, Puri Beach, Malpe Beach*).
   - **Cleanup Recommendations**: Automated priority-based cleanup suggestions based on severity.
-  - **Dataset Explorer**: Sourcing notes and breakdown of merged YOLOv8 datasets.
+  - **Dataset Explorer**: Sourcing notes and breakdown of merged coastal YOLO training datasets.
 
 ---
 
@@ -99,7 +99,7 @@ Littora/
 | Member | Role | Key Technologies |
 |---|---|---|
 | **Member 1** | Data & Research Lead | Roboflow, OpenCV, LabelImg, Dataset Annotation & Merging |
-| **Member 2** | AI/ML Engineer | PyTorch, YOLOv8n (Ultralytics), FastAPI, Python |
+| **Member 2** | AI/ML Engineer | PyTorch, YOLOv11m (Ultralytics), FastAPI, Python |
 | **Member 3** | Full Stack Engineer | React 18, Vite, Node.js, Express, Supabase (Auth, Postgres, Storage), Recharts, jsPDF |
 
 ---

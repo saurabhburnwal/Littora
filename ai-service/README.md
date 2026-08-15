@@ -1,6 +1,6 @@
-# Littora AI Service — Python FastAPI + YOLOv8 Inference
+# Littora AI Service — Python FastAPI + YOLOv11m Inference
 
-The **ai-service** component is a stateless microservice responsible for real-time computer vision inference on uploaded coastal images. It uses custom-trained YOLO models (YOLOv8 Medium, YOLOv11 Medium, YOLOv26 Small) to detect, classify, and score beach litter.
+The **ai-service** component is a stateless microservice responsible for real-time computer vision inference on uploaded coastal images. It uses custom-trained YOLO models (YOLOv11 Medium default, YOLOv26 Small, YOLOv8 Medium) to detect, classify, and score beach litter.
 
 ---
 
@@ -20,7 +20,7 @@ The **ai-service** component is a stateless microservice responsible for real-ti
 ai-service/
 ├── main.py            → FastAPI application & /detect endpoint
 ├── severity.py        → Pollution scoring algorithm & severity calculator
-├── models/            → YOLOv8 model weights directory
+├── models/            → YOLO model weights directory
 │   ├── yolov11m.pt    → Trained YOLOv11 Medium weights
 │   └── yolov26s.pt    → Trained YOLOv26 Small weights
 ├── requirements.txt   → PyTorch, Ultralytics, FastAPI, OpenCV, Uvicorn dependencies
