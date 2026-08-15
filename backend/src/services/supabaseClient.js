@@ -172,29 +172,42 @@ export async function listAllAnalysesAdmin() {
 
   if (error) throw error;
 
-  // Collect unique user IDs and fetch their emails/names from Auth in parallel
-  const uniqueUserIds = [...new Set(data.map((r) => r.user_id).filter(Boolean))];
   const adminEmail = (process.env.VITE_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "admin@littora.app").toLowerCase();
   const emailMap = {};
   const nameMap = {};
 
-  await Promise.all(
-    uniqueUserIds.map(async (uid) => {
-      try {
-        const { data: { user }, error: ue } = await supabase.auth.admin.getUserById(uid);
-        if (!ue && user) {
-          const userEmail = user.email ?? null;
-          const rawName = user.user_metadata?.full_name?.trim();
+  try {
+    if (typeof supabase.auth.admin?.listUsers === "function") {
+      const { data: userData, error: listError } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      if (!listError && userData?.users) {
+        for (const u of userData.users) {
+          const userEmail = u.email ?? null;
+          const rawName = u.user_metadata?.full_name?.trim();
           const isAppAdmin = userEmail?.toLowerCase() === adminEmail;
-
-          emailMap[uid] = userEmail;
-          nameMap[uid]  = rawName || (isAppAdmin ? "Admin" : userEmail);
+          emailMap[u.id] = userEmail;
+          nameMap[u.id] = rawName || (isAppAdmin ? "Admin" : userEmail);
         }
-      } catch (_) {
-        // non-fatal — leave email/name as null
       }
-    })
-  );
+    } else if (typeof supabase.auth.admin?.getUserById === "function") {
+      const uniqueUserIds = [...new Set(data.map((r) => r.user_id).filter(Boolean))];
+      await Promise.all(
+        uniqueUserIds.map(async (uid) => {
+          try {
+            const { data: { user }, error: ue } = await supabase.auth.admin.getUserById(uid);
+            if (!ue && user) {
+              const userEmail = user.email ?? null;
+              const rawName = user.user_metadata?.full_name?.trim();
+              const isAppAdmin = userEmail?.toLowerCase() === adminEmail;
+              emailMap[uid] = userEmail;
+              nameMap[uid] = rawName || (isAppAdmin ? "Admin" : userEmail);
+            }
+          } catch (_) {}
+        })
+      );
+    }
+  } catch (_) {
+    // non-fatal — leave email/name as null
+  }
 
   return data.map((row) => {
     const formatted = formatAnalysisRow(row);
@@ -399,9 +412,11 @@ export async function getStats(userId = null) {
   // Reverse to newest-first for the history table
   const history = data.map(formatAnalysisRow).reverse();
 
-  // Fetch waste types catalog and locations catalog directly from Postgres
-  const wasteTypesCatalog = await getWasteTypesCatalog();
-  const locationsCatalog  = await getLocationsCatalog();
+  // Fetch waste types catalog and locations catalog directly from Postgres concurrently
+  const [wasteTypesCatalog, locationsCatalog] = await Promise.all([
+    getWasteTypesCatalog(),
+    getLocationsCatalog(),
+  ]);
 
   // If user has no scan locations yet, populate map locations from locationsCatalog so map and cleanup page render beach hotspots
   const displayLocations = locations.length > 0 ? locations : locationsCatalog.map((loc) => {

@@ -13,12 +13,12 @@ Node.js / Express API
       │  • persists analysis + detections to Postgres
       │  • shapes/returns combined response to React
       ▼
-Python AI Service (FastAPI + YOLOv8m)
-      │  • runs detection
+Python AI Service (FastAPI + YOLO Multi-Model Inference)
+      │  • runs detection (YOLOv11m, YOLOv26s, YOLOv8m)
       │  • computes total_waste, pollution_score, severity
       │  • returns structured JSON only — no DB or storage access
       ▼
-Supabase (PostgreSQL + Storage)
+Supabase (PostgreSQL 5NF Schema + Storage + public.vw_analysis_details view)
       ▼
 Dashboard & Analytics (Recharts)
 ```

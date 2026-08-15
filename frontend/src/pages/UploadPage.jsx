@@ -7,6 +7,8 @@ import UploadForm  from "../components/UploadForm.jsx";
 import ResultPanel from "../components/ResultPanel.jsx";
 import AuthRequiredModal from "../components/AuthRequiredModal.jsx";
 
+import { DEFAULT_AI_MODELS } from "../utils/wasteUtils.js";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || "admin@littora.app";
 
@@ -21,12 +23,8 @@ export default function UploadPage() {
   // Model state
   const [modelInfo, setModelInfo] = useState({
     activeModel: "yolov8m",
-    activeModelDetails: { name: "YOLOv8 Medium", tag: "Standard Baseline", description: "Balanced speed & precision for general coastal debris detection.", badge: "Default" },
-    availableModels: [
-      { id: "yolov8m", name: "YOLOv8 Medium", tag: "Standard Baseline", params: "25.9M", description: "Balanced speed & precision for general coastal debris detection.", badge: "Default" },
-      { id: "yolov11m", name: "YOLOv11 Medium", tag: "Enhanced Accuracy", params: "20.1M", description: "Enhanced feature extraction & attention mechanisms for complex or occluded waste.", badge: "High Precision" },
-      { id: "yolov26s", name: "YOLOv26 Small", tag: "Ultra-Fast Edge", params: "9.6M", description: "Lightweight, low-latency inference optimized for real-time mobile & drone feeds.", badge: "Fastest" },
-    ],
+    activeModelDetails: DEFAULT_AI_MODELS[0],
+    availableModels: DEFAULT_AI_MODELS,
   });
   const [updatingModel, setUpdatingModel] = useState(false);
 

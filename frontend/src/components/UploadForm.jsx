@@ -2,6 +2,8 @@ import { useState, useContext } from "react";
 import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check } from "lucide-react";
 import { StatsContext } from "../context/StatsContext.jsx";
 
+import { DEFAULT_AI_MODELS } from "../utils/wasteUtils.js";
+
 const BBOX_COLORS = {
   bottle:  "#00D4AA",
   can:     "#F59E0B",
@@ -34,14 +36,10 @@ export default function UploadForm({
   // idle | fetching | granted | denied
   const [locStatus,     setLocStatus]     = useState("idle");
 
-  const { activeModel, activeModelDetails, availableModels = [] } = modelInfo || {
+  const { activeModel, activeModelDetails, availableModels = DEFAULT_AI_MODELS } = modelInfo || {
     activeModel: "yolov8m",
-    activeModelDetails: { name: "YOLOv8 Medium", tag: "Standard Baseline", description: "Balanced speed & precision for general coastal debris detection.", badge: "Default" },
-    availableModels: [
-      { id: "yolov8m", name: "YOLOv8 Medium", tag: "Standard Baseline", params: "25.9M", description: "Balanced speed & precision for general coastal debris detection.", badge: "Default" },
-      { id: "yolov11m", name: "YOLOv11 Medium", tag: "Enhanced Accuracy", params: "20.1M", description: "Enhanced feature extraction & attention mechanisms for complex or occluded waste.", badge: "High Precision" },
-      { id: "yolov26s", name: "YOLOv26 Small", tag: "Ultra-Fast Edge", params: "9.6M", description: "Lightweight, low-latency inference optimized for real-time mobile & drone feeds.", badge: "Fastest" },
-    ],
+    activeModelDetails: DEFAULT_AI_MODELS[0],
+    availableModels: DEFAULT_AI_MODELS,
   };
 
   function applyFile(selected) {

@@ -143,6 +143,11 @@ async def lifespan(app: FastAPI):
         logger.warning(f"Initial model warm-up failed: {e}")
     yield
     _loaded_models.clear()
+    if torch.cuda.is_available():
+        try:
+            torch.cuda.empty_cache()
+        except Exception:
+            pass
     logger.info("AI Service shut down cleanly.")
 
 

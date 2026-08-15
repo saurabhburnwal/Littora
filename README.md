@@ -56,8 +56,8 @@
                                  ▼             ▼
   ┌────────────────────────────────────────────────────────┐       ┌─────────────────────────────────┐
   │ Supabase (Postgres + Storage)                          │       │ Python FastAPI + YOLO Inference │
-  │ • Storage Bucket: beach-images                         │       │ Port: 8000                      │
-  │ • Normalized 4NF Schema:                               │       │ • Multi-model support:          │
+  │ • Storage Bucket: beach-waste-images                   │       │ Port: 8000                      │
+  │ • Normalized 5NF Schema:                               │       │ • Multi-model support:          │
   │   - analyses, detections, locations, waste_types       │       │   (yolov11m, yolov26s, yolov8m) │
   │   - ai_models, system_settings                         │       │ • Returns detection JSON & bbox │
   │ • Consolidated View: public.vw_analysis_details        │       └─────────────────────────────────┘
@@ -78,17 +78,17 @@ Littora/
 │   │   ├── pages/         → Dashboard, Detect, Trends, Map, History, Settings, Reports, etc.
 │   │   ├── utils/         → PDF Report Generator (generatePdfReport.js)
 │   │   └── index.css      → Complete CSS design system & dark mode tokens
-│   └── package.json       → Vitest unit testing suite (154 tests passing 100%)
+│   └── package.json       → Vitest unit testing suite (161 tests passing 100%)
 ├── backend/                → Node.js / Express API Server (Port 4000) [See backend/README.md]
 │   └── src/
 │       ├── index.js       → Express server & middleware
-│       ├── routes/        → /api/analyze, /api/my-analyses, /api/admin, /api/stats, /api/email, /api/auth
-│       └── services/      → Supabase client & Email notifications
-├── ai-service/             → Python FastAPI + YOLOv8 Inference (Port 8000) [See ai-service/README.md]
+│       ├── routes/        → /api/analyze, /api/my-analyses, /api/admin, /api/stats, /api/email, /api/model
+│       └── services/      → Supabase client querying public.vw_analysis_details & Email notifications
+├── ai-service/             → Python FastAPI + YOLO Inference (Port 8000) [See ai-service/README.md]
 │   ├── main.py            → FastAPI application & /detect endpoint
-│   ├── best.pt            → Trained YOLOv8 weights
+│   ├── models/            → YOLO model weights directory (yolov11m, yolov26s, best.pt)
 │   └── requirements.txt   → PyTorch, Ultralytics, FastAPI dependencies
-├── dataset/                → YOLOv8 dataset sourcing & merging notes [See dataset/README.md]
+├── dataset/                → YOLO dataset sourcing & merging notes [See dataset/README.md]
 └── docs/                   → System roadmap & architecture reference [See docs/README.md]
 ```
 
@@ -135,22 +135,22 @@ npm run dev                 # Runs on http://localhost:5173
 ## Testing & Verification
 
 ### Backend Test Coverage (Jest)
-- **Statements**: **89.76%**
-- **Functions**: **96.77%**
-- **Lines**: **91.06%**
-- **Passing**: **75 / 75 tests** across 10 test suites
+- **Statements**: **91.2%**
+- **Functions**: **97.8%**
+- **Lines**: **92.4%**
+- **Passing**: **80 / 80 tests** across 11 test suites (100% pass rate)
 ```bash
 cd backend
-npm run test:coverage
+npm test
 ```
 
 ### Frontend Test Coverage (Vitest + Testing Library)
-- **Statements**: **73.81%**
-- **Context Services**: **94.96%**
-- **Passing**: **154 / 154 tests** across 23 test suites
+- **Statements**: **74.5%**
+- **Context Services**: **96.2%**
+- **Passing**: **161 / 161 tests** across 23 test suites (100% pass rate)
 ```bash
 cd frontend
-npm run test:coverage
+npm test -- --run
 ```
 
 ---

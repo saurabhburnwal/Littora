@@ -16,6 +16,13 @@ export const DEFAULT_RECYCLABLE_TYPES = new Set([
   "glass",
 ]);
 
+// Standard AI model configuration catalog defaults
+export const DEFAULT_AI_MODELS = [
+  { id: "yolov8m",  name: "YOLOv8 Medium",  tag: "Standard Baseline", params: "25.9M", description: "Balanced speed & precision for general coastal debris detection.", badge: "Default" },
+  { id: "yolov11m", name: "YOLOv11 Medium", tag: "Enhanced Accuracy", params: "20.1M", description: "Enhanced feature extraction & attention mechanisms for complex or occluded waste.", badge: "High Precision" },
+  { id: "yolov26s", name: "YOLOv26 Small",  tag: "Ultra-Fast Edge",    params: "9.6M",  description: "Lightweight, low-latency inference optimized for real-time mobile & drone feeds.", badge: "Fastest" },
+];
+
 /**
  * Normalizes severity string to standard capitalized Severity ("Low", "Moderate", "High", "Severe")
  */

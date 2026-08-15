@@ -2,12 +2,12 @@ import { useState, useMemo } from "react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useAuth }  from "../context/AuthContext.jsx";
-import AuthRequiredModal from "../components/AuthRequiredModal.jsx";
+import GuestLockScreen from "../components/GuestLockScreen.jsx";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
   ResponsiveContainer, CartesianGrid
 } from "recharts";
-import { TrendingUp, Trash2, ImageIcon, Target, LogIn } from "lucide-react";
+import { TrendingUp, Trash2, ImageIcon, Target } from "lucide-react";
 import { formatWasteType } from "../utils/wasteUtils.js";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -28,7 +28,6 @@ export default function TrendsPage() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const isDark = theme === "dark";
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const linePrimary = isDark ? "#00D4AA" : "#0E8C86";
   const lineWaste   = isDark ? "#F59E0B" : "#D97706";
@@ -42,10 +41,6 @@ export default function TrendsPage() {
   const [activeWasteType, setActiveWasteType] = useState("all");
 
   const handleApply = () => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
     setActiveDateRange(dateRange);
     setActiveBeach(beach);
     setActiveWasteType(wasteType);
@@ -222,30 +217,10 @@ export default function TrendsPage() {
       </div>
 
       {!user ? (
-        <div className="result-placeholder" style={{ marginTop: "2rem", padding: "3rem 1.5rem", textAlign: "center" }}>
-          <div style={{
-            width: "56px", height: "56px", borderRadius: "50%",
-            background: "rgba(47, 111, 94, 0.12)", color: "var(--teal)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 1rem"
-          }}>
-            <LogIn size={28} strokeWidth={1.8} />
-          </div>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 0.5rem", color: "var(--ink)" }}>
-            Historical Trends are Private to Signed-In Users
-          </h3>
-          <p style={{ maxWidth: "480px", margin: "0 auto 1.5rem", fontSize: "0.88rem", color: "var(--muted)" }}>
-            Guest visitors can preview the main dashboard and beach map. Please sign in or create an account to view trend analytics, seasonal pollution shifts, and waste category breakdowns.
-          </p>
-          <button
-            className="filter-btn-apply"
-            onClick={() => window.location.href = "/login"}
-            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.8rem" }}
-          >
-            <LogIn size={16} />
-            Sign In to Access Trends
-          </button>
-        </div>
+        <GuestLockScreen
+          title="Historical Trends Are Private to Signed-In Users"
+          message="Sign in to view trend analytics, seasonal pollution shifts, day/time heatmaps, and waste category breakdowns."
+        />
       ) : (
         <>
           {/* Dynamic Database Filter Bar */}
@@ -428,12 +403,6 @@ export default function TrendsPage() {
           </div>
         </>
       )}
-
-      <AuthRequiredModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        featureName="filter historical trend analytics"
-      />
     </div>
   );
 }

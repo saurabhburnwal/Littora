@@ -54,9 +54,9 @@ describe("TrendsPage component", () => {
   it("renders guest lock banner card when unauthenticated", async () => {
     renderTrends({ user: null });
     await vi.waitFor(() => {
-      expect(screen.getByText("Historical Trends are Private to Signed-In Users")).toBeInTheDocument();
+      expect(screen.getByText("Historical Trends Are Private to Signed-In Users")).toBeInTheDocument();
     });
-    expect(screen.getByText("Sign In to Access Trends")).toBeInTheDocument();
+    expect(screen.getByText("Sign In to Access")).toBeInTheDocument();
   });
 
   it("renders trend analytics charts and date range filters when logged in", async () => {
@@ -64,7 +64,7 @@ describe("TrendsPage component", () => {
     await vi.waitFor(() => {
       expect(screen.getByText("Total Detections")).toBeInTheDocument();
     });
-    expect(screen.queryByText("Historical Trends are Private to Signed-In Users")).not.toBeInTheDocument();
+    expect(screen.queryByText("Historical Trends Are Private to Signed-In Users")).not.toBeInTheDocument();
     expect(screen.getByText("Total Waste Items")).toBeInTheDocument();
   });
 });

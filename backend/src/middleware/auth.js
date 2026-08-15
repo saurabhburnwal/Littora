@@ -28,8 +28,8 @@ export async function requireAuth(req, res, next) {
  * Returns 403 for non-admin users.
  */
 export function requireAdmin(req, res, next) {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail || req.user?.email !== adminEmail) {
+  const adminEmail = (process.env.VITE_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "admin@littora.app").toLowerCase();
+  if (!req.user?.email || req.user.email.toLowerCase() !== adminEmail) {
     return res.status(403).json({ error: "Admin access required" });
   }
   next();

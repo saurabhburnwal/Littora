@@ -31,14 +31,14 @@ backend/
 │   │   ├── admin.js       → /api/admin endpoints (manage all user analyses)
 │   │   ├── analyses.js    → /api/analyses endpoints
 │   │   ├── analyze.js     → /api/analyze multipart upload & AI orchestration
-│   │   ├── auth.js        → /api/auth login & logout endpoints
 │   │   ├── email.js       → /api/email send report endpoint
+│   │   ├── model.js       → /api/model active AI model selection endpoint
 │   │   ├── myAnalyses.js  → /api/my-analyses authenticated user history
 │   │   └── stats.js       → /api/stats summary metrics
 │   │   ├── services/
 │   │   │   ├── aiService.js       → HTTP client forwarding to Python FastAPI
 │   │   │   ├── emailService.js    → Nodemailer configuration & transport
-│   │   │   └── supabaseClient.js  → Supabase client querying public.vw_analysis_details & 4NF tables
+│   │   │   └── supabaseClient.js  → Supabase client querying public.vw_analysis_details & 5NF tables
 │   │   └── __tests__/         → Jest unit & integration test suite (11 suites, 80 tests passing 100%)
 ├── .env.example           → Environment variable template
 ├── jest.config.js         → Jest ES modules configuration

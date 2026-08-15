@@ -7,6 +7,7 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
 import PhotoGallery from "../components/PhotoGallery.jsx";
 import HistoryTable from "../components/HistoryTable.jsx";
+import GuestLockScreen from "../components/GuestLockScreen.jsx";
 
 const API_BASE   = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 const SEVERITIES = ["All", "Low", "Moderate", "High", "Severe"];
@@ -213,29 +214,10 @@ export default function HistoryPage() {
 
       {/* Guest Lock Banner */}
       {!user && !loading && (
-        <div className="result-placeholder" style={{ marginTop: "2rem", padding: "3rem 1.5rem", textAlign: "center" }}>
-          <div style={{
-            width: "56px", height: "56px", borderRadius: "50%",
-            background: "rgba(47, 111, 94, 0.12)", color: "var(--teal)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 1rem"
-          }}>
-            <Shield size={28} strokeWidth={1.8} />
-          </div>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 0.5rem", color: "var(--ink)" }}>
-            History is Private to Signed-In Users
-          </h3>
-          <p style={{ maxWidth: "480px", margin: "0 auto 1.5rem", fontSize: "0.88rem", color: "var(--muted)" }}>
-            Guest visitors can preview the dashboard and beach map. Please sign in to record detections, view your private detection history, and export data.
-          </p>
-          <button
-            className="filter-btn-apply"
-            onClick={() => window.location.href = "/login"}
-            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.8rem" }}
-          >
-            Sign In to Access History
-          </button>
-        </div>
+        <GuestLockScreen
+          title="History Is Private to Signed-In Users"
+          message="Sign in to view your private detection history, access past uploaded beach scans, and export detection data."
+        />
       )}
 
       {/* Empty state */}
