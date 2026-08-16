@@ -3,6 +3,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import compression from "compression";
+import helmet from "helmet";
 
 import analyzeRouter    from "./routes/analyze.js";
 import analysesRouter   from "./routes/analyses.js";
@@ -14,6 +15,7 @@ import emailRouter      from "./routes/email.js";
 import modelRouter      from "./routes/model.js";
 
 const app = express();
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(compression());
 app.use(cors({ maxAge: 86400 }));
 app.use(express.json());

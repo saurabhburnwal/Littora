@@ -1,14 +1,23 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { supabase } from "../services/supabaseClient.js";
 
 const router = Router();
+
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // limit each IP to 30 login requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts. Please try again after 15 minutes." },
+});
 
 /**
  * POST /api/auth/login
  * Body: { email, password }
  * Returns: { access_token, refresh_token, user: { id, email } }
  */
-router.post("/login", async (req, res) => {
+router.post("/login", authLimiter, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: "Email and password are required" });
