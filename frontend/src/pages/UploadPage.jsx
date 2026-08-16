@@ -5,7 +5,6 @@ import { useStats } from "../context/StatsContext.jsx";
 import { useAuth }  from "../context/AuthContext.jsx";
 import UploadForm  from "../components/UploadForm.jsx";
 import ResultPanel from "../components/ResultPanel.jsx";
-import AuthRequiredModal from "../components/AuthRequiredModal.jsx";
 
 import { DEFAULT_AI_MODELS } from "../utils/wasteUtils.js";
 
@@ -18,7 +17,6 @@ export default function UploadPage() {
   const [result,  setResult]  = useState(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Model state
   const [modelInfo, setModelInfo] = useState({
@@ -70,11 +68,6 @@ export default function UploadPage() {
   }
 
   async function handleUpload(file, coords) {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -149,12 +142,6 @@ export default function UploadPage() {
           </div>
         </div>
       </div>
-
-      <AuthRequiredModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        featureName="run AI waste detection on beach photos"
-      />
     </div>
   );
 }

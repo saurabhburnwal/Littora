@@ -5,8 +5,6 @@ import { useSettings } from "../context/SettingsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { supabase } from "../lib/supabase.js";
 
-import AuthRequiredModal from "../components/AuthRequiredModal.jsx";
-
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 export default function SettingsPage() {
@@ -18,8 +16,6 @@ export default function SettingsPage() {
     notifications, setNotifications,
   } = useSettings();
   const { getToken, logout, user } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authFeature, setAuthFeature] = useState("access account settings");
 
   // --- Pending (unsaved) local state ---
   const [pendingTheme,       setPendingTheme]       = useState(theme);
@@ -429,12 +425,6 @@ export default function SettingsPage() {
           <span>{toast.message}</span>
         </div>
       )}
-
-      <AuthRequiredModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        featureName={authFeature}
-      />
     </div>
   );
 }

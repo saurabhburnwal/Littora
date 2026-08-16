@@ -1,9 +1,7 @@
 import { useState, useMemo, useEffect, useContext } from "react";
 import { Download, Eye, Trash2, Loader2, X, User } from "lucide-react";
 import ResultPanel from "./ResultPanel.jsx";
-import { AuthContext } from "../context/AuthContext.jsx";
 import { SettingsContext } from "../context/SettingsContext.jsx";
-import AuthRequiredModal from "./AuthRequiredModal.jsx";
 import { toResultShape, formatWasteType } from "../utils/wasteUtils.js";
 
 /**
@@ -49,17 +47,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
   const sortIcon = (field) =>
     sortField !== field ? " ↕" : sortDir === "asc" ? " ↑" : " ↓";
 
-  const authCtx = useContext(AuthContext);
-  const user = authCtx?.user;
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authFeature, setAuthFeature] = useState("export data");
-
   const handleExportCSV = () => {
-    if (authCtx !== null && !user) {
-      setAuthFeature("export analysis records");
-      setShowAuthModal(true);
-      return;
-    }
     // Convert sorted records to CSV download
     const headers = ["ID", "Date", "Location", "Top Waste Type", "Score", "Severity"];
     const rows = sorted.map(r => [
@@ -81,11 +69,6 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
   };
 
   const handleDeleteClick = (id) => {
-    if (authCtx !== null && !user) {
-      setAuthFeature("delete analysis records");
-      setShowAuthModal(true);
-      return;
-    }
     if (onDeleteRequest) onDeleteRequest(id);
   };
 
@@ -286,12 +269,6 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
           </div>
         </div>
       )}
-
-      <AuthRequiredModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        featureName={authFeature}
-      />
     </div>
   );
 }

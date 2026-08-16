@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, renderHook } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SettingsProvider, useSettings } from "../SettingsContext.jsx";
 
@@ -34,9 +34,9 @@ describe("SettingsContext", () => {
   });
 
   it("throws error when useSettings is used outside <SettingsProvider>", () => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => render(<TestConsumer />)).toThrow("useSettings must be used inside <SettingsProvider>");
-    consoleError.mockRestore();
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => renderHook(() => useSettings())).toThrow("useSettings must be used inside <SettingsProvider>");
+    spy.mockRestore();
   });
 
   it("provides default settings and formats dates using default format (DD MMM YYYY)", () => {

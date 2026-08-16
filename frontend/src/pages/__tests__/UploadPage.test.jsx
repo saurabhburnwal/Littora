@@ -92,18 +92,34 @@ describe("UploadPage component", () => {
     });
   });
 
-  it("opens AuthRequiredModal when unauthenticated guest attempts to upload file", async () => {
-    const { container } = renderUploadPage(); // guest
+  it("allows unauthenticated guest to upload and analyze beach photos", async () => {
+    const mockResult = {
+      total_waste: 2,
+      pollution_score: 20,
+      severity: "Low",
+      model_name: "YOLOv8 Medium",
+      detections: { bottle: 1, bag: 1 },
+      boxes: [],
+    };
+    axios.post.mockResolvedValueOnce({ data: mockResult });
+
+    const { container } = renderUploadPage({ user: null }); // guest
     await vi.waitFor(() => screen.getByRole("heading", { name: /detect waste/i }));
 
-    const file = new File(["dummy content"], "beach.png", { type: "image/png" });
+    const file = new File(["guest photo content"], "beach_guest.png", { type: "image/png" });
     const input = container.querySelector("input[type='file']");
     fireEvent.change(input, { target: { files: [file] } });
 
     fireEvent.click(screen.getByRole("button", { name: /analyze photo/i }));
 
-    expect(screen.getByText("Sign In Required")).toBeInTheDocument();
-    expect(screen.getByText(/run AI waste detection on beach photos/i)).toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining("/api/analyze"),
+        expect.any(FormData),
+        expect.objectContaining({ headers: expect.objectContaining({ "Content-Type": "multipart/form-data" }) })
+      );
+      expect(screen.getByText("Total waste")).toBeInTheDocument();
+    });
   });
 
   it("successfully posts image payload and renders ResultPanel when logged in", async () => {

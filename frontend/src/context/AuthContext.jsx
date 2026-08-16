@@ -80,7 +80,8 @@ export function AuthProvider({ children }) {
     return session?.access_token ?? null;
   }, []);
 
-  const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+  const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "admin@littora.app").toLowerCase();
+  const isAdmin = Boolean(user?.email && user.email.toLowerCase() === adminEmail);
 
   const value = useMemo(
     () => ({ user, loading, login, signUp, logout, isAdmin, getToken }),

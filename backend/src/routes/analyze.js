@@ -2,7 +2,12 @@ import { Router } from "express";
 import multer from "multer";
 
 import { runDetection } from "../services/aiService.js";
-import { uploadImage, saveAnalysis } from "../services/supabaseClient.js";
+import {
+  supabase,
+  uploadImage,
+  saveAnalysis,
+  getActiveSystemModel,
+} from "../services/supabaseClient.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -30,7 +35,6 @@ router.post("/", upload.single("image"), async (req, res) => {
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith("Bearer ")) {
       try {
-        const { supabase } = await import("../services/supabaseClient.js");
         const token = authHeader.slice(7);
         const { data } = await supabase.auth.getUser(token);
         userId = data?.user?.id ?? null;
@@ -40,7 +44,6 @@ router.post("/", upload.single("image"), async (req, res) => {
     }
 
     // 1. Fetch current active AI model configured by Admin
-    const { getActiveSystemModel } = await import("../services/supabaseClient.js");
     const activeModel = await getActiveSystemModel();
 
     // 2. Run inference using active model
