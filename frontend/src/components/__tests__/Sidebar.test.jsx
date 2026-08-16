@@ -47,23 +47,33 @@ describe("Sidebar component", () => {
     supabase.auth.signOut.mockResolvedValue({});
   });
 
-  it("renders all main navigation links", async () => {
+  it("renders all main navigation links with appropriate guest locks", async () => {
     renderSidebar();
     await vi.waitFor(() => {
       // Unlocked links render as NavLink (role="link")
       expect(screen.getByRole("link", { name: /dashboard/i })).toBeInTheDocument();
     });
     expect(screen.getByRole("link", { name: /detect waste/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /beach map/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /dataset/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /settings/i })).toBeInTheDocument();
 
     // Guest-locked items render as div buttons (not NavLink) for unauthenticated users
     expect(screen.getByRole("button", { name: /historical trends/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /beach map/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /analytics/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /detection history/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /reports/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /cleanup/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /dataset/i })).toBeInTheDocument();
+  });
+
+  it("renders all navigation items as unlocked links when user is authenticated", async () => {
+    renderSidebar({ user: { id: "u1", email: "user@test.com" } });
+    await vi.waitFor(() => {
+      expect(screen.getByRole("link", { name: /beach map/i })).toBeInTheDocument();
+    });
+    expect(screen.getByRole("link", { name: /dataset/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /historical trends/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /analytics/i })).toBeInTheDocument();
   });
 
   it("does NOT render Admin Dashboard link when user is not admin", async () => {

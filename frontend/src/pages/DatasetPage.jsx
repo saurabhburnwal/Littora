@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Download, Search, Filter, Database } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import GuestLockScreen from "../components/GuestLockScreen.jsx";
 
 export default function DatasetPage() {
   const { stats } = useStats();
@@ -10,6 +11,7 @@ export default function DatasetPage() {
   const [formatFilter, setFormatFilter] = useState("ALL");
 
   const datasets = useMemo(() => {
+    if (!user) return [];
     const userRecordsCount = stats.totalAnalyses || 0;
     const userWasteCount = stats.totalWasteAllTime || 0;
     const userEmail = user?.email || "user";
@@ -33,6 +35,24 @@ export default function DatasetPage() {
     const matchesFormat = formatFilter === "ALL" || d.format === formatFilter;
     return matchesSearch && matchesFormat;
   });
+
+  if (!user) {
+    return (
+      <div className="page-container">
+        <div className="page-heading">
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <Database size={22} style={{ color: "var(--teal)" }} />
+            <h1 style={{ margin: 0 }}>Dataset Explorer</h1>
+          </div>
+          <p>Browse and export datasets of coastal waste detections.</p>
+        </div>
+        <GuestLockScreen
+          title="Dataset Explorer Is Private to Signed-In Users"
+          message="Sign in or create an account to browse and export datasets of your coastal waste detections."
+        />
+      </div>
+    );
+  }
 
   const handleExport = (dataset) => {
     let content = "";

@@ -17,7 +17,22 @@ import { StatsProvider } from "../../context/StatsContext.jsx";
 import { SettingsProvider } from "../../context/SettingsContext.jsx";
 import DatasetPage from "../DatasetPage.jsx";
 
-function renderDataset() {
+function setupAuthMock(user = null) {
+  sessionStorage.clear();
+  localStorage.clear();
+  supabase.auth.getSession.mockReset();
+  supabase.auth.onAuthStateChange.mockReset();
+
+  const session = user ? { user } : null;
+  supabase.auth.getSession.mockResolvedValue({ data: { session } });
+  supabase.auth.onAuthStateChange.mockImplementation((cb) => {
+    cb(user ? "SIGNED_IN" : "SIGNED_OUT", session);
+    return { data: { subscription: { unsubscribe: vi.fn() } } };
+  });
+}
+
+function renderDataset(user = { id: "u1", email: "user@test.com" }) {
+  setupAuthMock(user);
   return render(
     <MemoryRouter>
       <SettingsProvider>
@@ -34,16 +49,23 @@ function renderDataset() {
 describe("DatasetPage component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    supabase.auth.getSession.mockResolvedValue({ data: { session: null } });
-    supabase.auth.onAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    });
   });
 
-  it("renders Dataset Explorer title and dataset overview cards", async () => {
+  it("renders guest lock banner card when unauthenticated", async () => {
+    renderDataset(null);
+    await vi.waitFor(() => {
+      expect(screen.getByText("Dataset Explorer Is Private to Signed-In Users")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Sign In to Access")).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("renders Dataset Explorer title and dataset overview cards when authenticated", async () => {
     renderDataset();
     await vi.waitFor(() => {
       expect(screen.getByRole("heading", { name: /dataset explorer/i })).toBeInTheDocument();
     });
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search datasets/i)).toBeInTheDocument();
   });
 });

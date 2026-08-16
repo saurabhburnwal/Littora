@@ -32,7 +32,22 @@ const mockLocations = [
   { id: "3", location_label: "Malpe Beach, Udupi", severity: "High", latitude: 13.3497, longitude: 74.7042, total_waste: 8, pollution_score: 75, created_at: new Date().toISOString() },
 ];
 
-function renderMapWithStats(statsOverride = { locations: mockLocations }) {
+function setupAuthMock(user = null) {
+  sessionStorage.clear();
+  localStorage.clear();
+  supabase.auth.getSession.mockReset();
+  supabase.auth.onAuthStateChange.mockReset();
+
+  const session = user ? { user } : null;
+  supabase.auth.getSession.mockResolvedValue({ data: { session } });
+  supabase.auth.onAuthStateChange.mockImplementation((cb) => {
+    cb(user ? "SIGNED_IN" : "SIGNED_OUT", session);
+    return { data: { subscription: { unsubscribe: vi.fn() } } };
+  });
+}
+
+function renderMapWithStats(statsOverride = { locations: mockLocations }, user = { id: "u1", email: "user@test.com" }) {
+  setupAuthMock(user);
   return render(
     <MemoryRouter>
       <SettingsProvider>
@@ -49,13 +64,18 @@ function renderMapWithStats(statsOverride = { locations: mockLocations }) {
 describe("MapPage component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    supabase.auth.getSession.mockResolvedValue({ data: { session: null } });
-    supabase.auth.onAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    });
   });
 
-  it("renders page title and interactive map container", async () => {
+  it("renders guest lock banner card when unauthenticated", async () => {
+    renderMapWithStats({ locations: mockLocations }, null);
+    await vi.waitFor(() => {
+      expect(screen.getByText("Beach Pollution Map Is Private to Signed-In Users")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Sign In to Access")).toBeInTheDocument();
+    expect(screen.queryByTestId("map-container")).not.toBeInTheDocument();
+  });
+
+  it("renders page title and interactive map container when authenticated", async () => {
     renderMapWithStats();
     await vi.waitFor(() => {
       expect(screen.getByRole("heading", { name: /pollution map/i })).toBeInTheDocument();
