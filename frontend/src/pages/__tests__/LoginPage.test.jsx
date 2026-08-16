@@ -287,4 +287,11 @@ describe("LoginPage — signup flow", () => {
 
     expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
   });
+
+  it("renders 'Continue as Guest' button and allows guest navigation", () => {
+    renderLogin();
+    const guestBtn = screen.getByRole("button", { name: /continue as guest/i });
+    expect(guestBtn).toBeInTheDocument();
+    fireEvent.click(guestBtn);
+  });
 });

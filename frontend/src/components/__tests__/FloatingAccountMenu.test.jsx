@@ -72,7 +72,7 @@ describe("FloatingAccountMenu component", () => {
     });
   });
 
-  it("toggles popover dropdown menu when clicked and shows Preview Guest badge", async () => {
+  it("toggles popover dropdown menu when clicked and shows Preview Guest badge without History/Analytics links", async () => {
     renderMenu({ user: null });
     await vi.waitFor(() => screen.getByRole("button", { name: /account menu/i }));
 
@@ -80,16 +80,19 @@ describe("FloatingAccountMenu component", () => {
 
     expect(screen.getByText("Preview Guest")).toBeInTheDocument();
     expect(screen.getByText("Account Settings")).toBeInTheDocument();
-    expect(screen.getByText("Detection History")).toBeInTheDocument();
+    expect(screen.queryByText("Detection History")).not.toBeInTheDocument();
+    expect(screen.queryByText("Analytics & Trends")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it("renders Account Member role badge when logged in as regular user", async () => {
+  it("renders Account Member role badge and full links when logged in as regular user", async () => {
     renderMenu({ user: { id: "u1", email: "member@test.com" } });
     await vi.waitFor(() => screen.getByRole("button", { name: /account menu/i }));
 
     fireEvent.click(screen.getByRole("button", { name: /account menu/i }));
     expect(screen.getByText("Account Member")).toBeInTheDocument();
+    expect(screen.getByText("Detection History")).toBeInTheDocument();
+    expect(screen.getByText("Analytics & Trends")).toBeInTheDocument();
   });
 
   it("renders Administrator role badge when logged in as admin", async () => {

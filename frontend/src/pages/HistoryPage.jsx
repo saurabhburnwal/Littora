@@ -7,7 +7,6 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
 import PhotoGallery from "../components/PhotoGallery.jsx";
 import HistoryTable from "../components/HistoryTable.jsx";
-import GuestLockScreen from "../components/GuestLockScreen.jsx";
 
 const API_BASE   = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 const SEVERITIES = ["All", "Low", "Moderate", "High", "Severe"];
@@ -150,11 +149,6 @@ export default function HistoryPage() {
               Refresh
             </button>
           </div>
-        ) : !user ? (
-          <>
-            <h1>Detection History (Guest Preview)</h1>
-            <p>You are viewing History in <strong>Guest Preview Mode</strong>. Sign in to view your personal analysis records.</p>
-          </>
         ) : (
           <>
             <h1>My History</h1>
@@ -212,16 +206,8 @@ export default function HistoryPage() {
         </div>
       )}
 
-      {/* Guest Lock Banner */}
-      {!user && !loading && (
-        <GuestLockScreen
-          title="History Is Private to Signed-In Users"
-          message="Sign in to view your private detection history, access past uploaded beach scans, and export detection data."
-        />
-      )}
-
       {/* Empty state */}
-      {user && !loading && !error && history.length === 0 && (
+      {!loading && !error && history.length === 0 && (
         <div className="result-placeholder" style={{ marginTop: "3rem" }}>
           <ImageOff size={48} strokeWidth={1.2} />
           {isAdmin ? (

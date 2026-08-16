@@ -17,7 +17,17 @@ import { StatsProvider } from "../../context/StatsContext.jsx";
 import { SettingsProvider } from "../../context/SettingsContext.jsx";
 import AnalyticsPage from "../AnalyticsPage.jsx";
 
+function setupAuthMock(user = { id: "u1", email: "user@test.com" }) {
+  const session = user ? { user } : null;
+  supabase.auth.getSession.mockResolvedValue({ data: { session } });
+  supabase.auth.onAuthStateChange.mockImplementation((cb) => {
+    cb(user ? "SIGNED_IN" : "SIGNED_OUT", session);
+    return { data: { subscription: { unsubscribe: vi.fn() } } };
+  });
+}
+
 function renderAnalytics() {
+  setupAuthMock();
   return render(
     <MemoryRouter>
       <SettingsProvider>
@@ -34,19 +44,14 @@ function renderAnalytics() {
 describe("AnalyticsPage component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    supabase.auth.getSession.mockResolvedValue({ data: { session: null } });
-    supabase.auth.onAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    });
   });
 
-  it("renders Analytics heading and summary stats", async () => {
+  it("renders Analytics heading and chart sections", async () => {
     renderAnalytics();
     await vi.waitFor(() => {
       expect(screen.getByRole("heading", { level: 1, name: /analytics/i })).toBeInTheDocument();
     });
-    // Guest users see the lock screen instead of charts
-    expect(screen.getByRole("heading", { level: 3, name: /analytics are private/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /sign in to access/i })).toBeInTheDocument();
+    expect(screen.getByText("Top Locations by Detections")).toBeInTheDocument();
+    expect(screen.getByText("Waste Composition")).toBeInTheDocument();
   });
 });

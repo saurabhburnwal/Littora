@@ -229,77 +229,81 @@ export default function FloatingAccountMenu() {
             </div>
           </div>
 
-          {/* Quick Action Navigation Links */}
-          <div style={{ padding: "0.5rem 0", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            <Link
-              to="/settings"
-              onClick={() => setIsOpen(false)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                padding: "0.65rem 0.75rem",
-                borderRadius: "10px",
-                color: "var(--text-primary, #0f172a)",
-                fontSize: "0.88rem",
-                fontWeight: 700,
-                textDecoration: "none",
-                transition: "all 0.15s ease",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              <Settings size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
-              <span>Account Settings</span>
-              <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
-            </Link>
+            {/* Quick Action Navigation Links */}
+            <div style={{ padding: "0.5rem 0", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+              <Link
+                to="/settings"
+                onClick={() => setIsOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "0.65rem 0.75rem",
+                  borderRadius: "10px",
+                  color: "var(--text-primary, #0f172a)",
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              >
+                <Settings size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+                <span>Account Settings</span>
+                <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+              </Link>
 
-            <Link
-              to="/history"
-              onClick={() => setIsOpen(false)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                padding: "0.65rem 0.75rem",
-                borderRadius: "10px",
-                color: "var(--text-primary, #0f172a)",
-                fontSize: "0.88rem",
-                fontWeight: 700,
-                textDecoration: "none",
-                transition: "all 0.15s ease",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              <Clock size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
-              <span>Detection History</span>
-              <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
-            </Link>
+              {user && (
+                <>
+                  <Link
+                    to="/history"
+                    onClick={() => setIsOpen(false)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                      padding: "0.65rem 0.75rem",
+                      borderRadius: "10px",
+                      color: "var(--text-primary, #0f172a)",
+                      fontSize: "0.88rem",
+                      fontWeight: 700,
+                      textDecoration: "none",
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  >
+                    <Clock size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+                    <span>Detection History</span>
+                    <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+                  </Link>
 
-            <Link
-              to="/analytics"
-              onClick={() => setIsOpen(false)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                padding: "0.65rem 0.75rem",
-                borderRadius: "10px",
-                color: "var(--text-primary, #0f172a)",
-                fontSize: "0.88rem",
-                fontWeight: 700,
-                textDecoration: "none",
-                transition: "all 0.15s ease",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              <BarChart3 size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
-              <span>Analytics & Trends</span>
-              <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
-            </Link>
-          </div>
+                  <Link
+                    to="/analytics"
+                    onClick={() => setIsOpen(false)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                      padding: "0.65rem 0.75rem",
+                      borderRadius: "10px",
+                      color: "var(--text-primary, #0f172a)",
+                      fontSize: "0.88rem",
+                      fontWeight: 700,
+                      textDecoration: "none",
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  >
+                    <BarChart3 size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+                    <span>Analytics & Trends</span>
+                    <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+                  </Link>
+                </>
+              )}
+            </div>
 
           {/* Footer Auth Action */}
           <div style={{ borderTop: "1px solid var(--border-lt)", paddingTop: "0.65rem" }}>

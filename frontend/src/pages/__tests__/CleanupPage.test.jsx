@@ -17,7 +17,17 @@ import { StatsProvider } from "../../context/StatsContext.jsx";
 import { SettingsProvider } from "../../context/SettingsContext.jsx";
 import CleanupPage from "../CleanupPage.jsx";
 
+function setupAuthMock(user = { id: "u1", email: "user@test.com" }) {
+  const session = user ? { user } : null;
+  supabase.auth.getSession.mockResolvedValue({ data: { session } });
+  supabase.auth.onAuthStateChange.mockImplementation((cb) => {
+    cb(user ? "SIGNED_IN" : "SIGNED_OUT", session);
+    return { data: { subscription: { unsubscribe: vi.fn() } } };
+  });
+}
+
 function renderCleanup() {
+  setupAuthMock();
   return render(
     <MemoryRouter>
       <SettingsProvider>
@@ -34,19 +44,13 @@ function renderCleanup() {
 describe("CleanupPage component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    supabase.auth.getSession.mockResolvedValue({ data: { session: null } });
-    supabase.auth.onAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    });
   });
 
-  it("renders Cleanup Recommendations title and feature cards", async () => {
+  it("renders Cleanup Recommendations title and recommended actions", async () => {
     renderCleanup();
     await vi.waitFor(() => {
       expect(screen.getByRole("heading", { level: 1, name: /cleanup recommendations/i })).toBeInTheDocument();
     });
-    // Guest users see the lock screen instead of recommendations
-    expect(screen.getByRole("heading", { level: 3, name: /cleanup recommendations are private/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /sign in to access/i })).toBeInTheDocument();
+    expect(screen.getByText("Recommended Actions")).toBeInTheDocument();
   });
 });

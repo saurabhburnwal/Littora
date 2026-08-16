@@ -5,7 +5,6 @@ import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { generatePdfReport } from "../utils/generatePdfReport.js";
 import { formatWasteType } from "../utils/wasteUtils.js";
-import GuestLockScreen  from "../components/GuestLockScreen.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -115,14 +114,7 @@ End of Report - Littora Coastal Monitoring Systems
         <p>Generate, download, and email detailed reports on waste detection.</p>
       </div>
 
-      {!user ? (
-        <GuestLockScreen
-          title="Reports Require a Signed-In Account"
-          message="Sign in to generate, download, and email detailed beach waste detection reports."
-        />
-      ) : (
-        <>
-          <div className="cards-grid-2" style={{ marginBottom: '1.5rem' }}>
+      <div className="cards-grid-2" style={{ marginBottom: '1.5rem' }}>
             {REPORT_TYPES.map(r => (
               <div
                 key={r.id}
@@ -184,8 +176,6 @@ End of Report - Littora Coastal Monitoring Systems
               Click <strong>Download Report</strong> or <strong>Email to Me</strong> to receive the detailed {selected} summary report.
             </p>
           </div>
-        </>
-      )}
 
       {/* ── Toast ── */}
       {toast && (

@@ -6,7 +6,6 @@ import {
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth }  from "../context/AuthContext.jsx";
 import { formatWasteType } from "../utils/wasteUtils.js";
-import GuestLockScreen from "../components/GuestLockScreen.jsx";
 
 const PIE_COLORS = ["#2f6f5e", "#c97b3d", "#a13d3d", "#3d6ea1", "#7c3d8a", "#f0b060"];
 
@@ -53,14 +52,7 @@ export default function AnalyticsPage() {
         <p>Deep-dive into waste detection patterns and beach pollution data.</p>
       </div>
 
-      {!user ? (
-        <GuestLockScreen
-          title="Analytics Are Private to Signed-In Users"
-          message="Sign in to view waste composition charts, top locations, and detection count breakdowns."
-        />
-      ) : (
-        <>
-          <div className="charts-row" style={{ padding: 0 }}>
+      <div className="charts-row" style={{ padding: 0 }}>
             <div className="chart-card">
               <div className="chart-card-title">Top Locations by Detections</div>
               {beachData.length === 0 ? (
@@ -165,8 +157,6 @@ export default function AnalyticsPage() {
               </table>
             )}
           </div>
-        </>
-      )}
     </div>
   );
 }

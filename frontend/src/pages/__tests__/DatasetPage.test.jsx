@@ -51,16 +51,7 @@ describe("DatasetPage component", () => {
     vi.clearAllMocks();
   });
 
-  it("renders guest lock banner card when unauthenticated", async () => {
-    renderDataset(null);
-    await vi.waitFor(() => {
-      expect(screen.getByText("Dataset Explorer Is Private to Signed-In Users")).toBeInTheDocument();
-    });
-    expect(screen.getByText("Sign In to Access")).toBeInTheDocument();
-    expect(screen.queryByRole("table")).not.toBeInTheDocument();
-  });
-
-  it("renders Dataset Explorer title and dataset overview cards when authenticated", async () => {
+  it("renders Dataset Explorer title, table, and dataset search controls", async () => {
     renderDataset();
     await vi.waitFor(() => {
       expect(screen.getByRole("heading", { name: /dataset explorer/i })).toBeInTheDocument();

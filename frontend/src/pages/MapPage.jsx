@@ -1,7 +1,6 @@
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import PollutionMap from "../components/PollutionMap.jsx";
-import GuestLockScreen from "../components/GuestLockScreen.jsx";
 
 const LEGEND = [
   { label: "Low",      color: "#2f6f5e", desc: "Minimal Risk" },
@@ -12,22 +11,7 @@ const LEGEND = [
 
 export default function MapPage() {
   const { stats } = useStats();
-  const { user, isAdmin } = useAuth();
-
-  if (!user) {
-    return (
-      <div className="map-page-container">
-        <div className="map-page-header" style={{ marginBottom: "1.2rem" }}>
-          <h1>Pollution Map</h1>
-          <p>Geolocated beach waste hotspots and coastal cleanup zones.</p>
-        </div>
-        <GuestLockScreen
-          title="Beach Pollution Map Is Private to Signed-In Users"
-          message="Sign in or create an account to view geolocated pollution hotspots, interactive beach maps, and coastal cleanup zones."
-        />
-      </div>
-    );
-  }
+  const { isAdmin } = useAuth();
 
   return (
     <div className="map-page-container">

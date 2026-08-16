@@ -3,7 +3,6 @@ import { Clock, Users, Waves, ShieldAlert, Sparkles, MapPin } from "lucide-react
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth }  from "../context/AuthContext.jsx";
 import { normalizeSeverity } from "../utils/wasteUtils.js";
-import GuestLockScreen from "../components/GuestLockScreen.jsx";
 
 export default function CleanupPage() {
   const { user } = useAuth();
@@ -80,13 +79,7 @@ export default function CleanupPage() {
         <p>AI-powered recommendations calculated dynamically from real-time database scans &amp; pollution analytics.</p>
       </div>
 
-      {!user ? (
-        <GuestLockScreen
-          title="Cleanup Recommendations Are Private"
-          message="Sign in to view AI-powered priority cleanup recommendations based on live pollution scan data."
-        />
-      ) : (
-        <div className="cards-grid-2">
+      <div className="cards-grid-2">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
               <p className="section-title" style={{ margin: 0 }}>Recommended Actions</p>
@@ -192,7 +185,6 @@ export default function CleanupPage() {
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 }

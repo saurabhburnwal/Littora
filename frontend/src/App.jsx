@@ -94,16 +94,19 @@ export default function App() {
           <ProtectedRoute allowGuest={true}>
             <AppShell>
               <Routes>
+                {/* Guest-accessible routes */}
                 <Route path="/"          element={<DashboardPage />} />
                 <Route path="/detect"    element={<UploadPage />} />
-                <Route path="/trends"    element={<TrendsPage />} />
-                <Route path="/map"       element={<MapPage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/history"   element={<HistoryPage />} />
-                <Route path="/reports"   element={<ReportsPage />} />
-                <Route path="/cleanup"   element={<CleanupPage />} />
-                <Route path="/dataset"   element={<DatasetPage />} />
                 <Route path="/settings"  element={<SettingsPage />} />
+
+                {/* Authenticated-only routes (redirects unauthenticated guests to /login) */}
+                <Route path="/trends"    element={<ProtectedRoute allowGuest={false}><TrendsPage /></ProtectedRoute>} />
+                <Route path="/map"       element={<ProtectedRoute allowGuest={false}><MapPage /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute allowGuest={false}><AnalyticsPage /></ProtectedRoute>} />
+                <Route path="/history"   element={<ProtectedRoute allowGuest={false}><HistoryPage /></ProtectedRoute>} />
+                <Route path="/reports"   element={<ProtectedRoute allowGuest={false}><ReportsPage /></ProtectedRoute>} />
+                <Route path="/cleanup"   element={<ProtectedRoute allowGuest={false}><CleanupPage /></ProtectedRoute>} />
+                <Route path="/dataset"   element={<ProtectedRoute allowGuest={false}><DatasetPage /></ProtectedRoute>} />
 
                 {/* Legacy redirect */}
                 <Route path="/upload" element={<Navigate to="/detect" replace />} />

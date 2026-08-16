@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useAuth }  from "../context/AuthContext.jsx";
-import GuestLockScreen from "../components/GuestLockScreen.jsx";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
   ResponsiveContainer, CartesianGrid
@@ -216,15 +215,8 @@ export default function TrendsPage() {
         <p>Monitor seasonal pollution shifts, waste category composition, and day/time detection density.</p>
       </div>
 
-      {!user ? (
-        <GuestLockScreen
-          title="Historical Trends Are Private to Signed-In Users"
-          message="Sign in to view trend analytics, seasonal pollution shifts, day/time heatmaps, and waste category breakdowns."
-        />
-      ) : (
-        <>
-          {/* Dynamic Database Filter Bar */}
-          <div className="filter-bar-card">
+      {/* Dynamic Database Filter Bar */}
+      <div className="filter-bar-card">
             <div className="filter-group">
               <label className="filter-label">Date Range</label>
               <select value={dateRange} onChange={e => setDateRange(e.target.value)} className="filter-select">
@@ -401,8 +393,6 @@ export default function TrendsPage() {
               </div>
             </div>
           </div>
-        </>
-      )}
     </div>
   );
 }

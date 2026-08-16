@@ -66,16 +66,7 @@ describe("MapPage component", () => {
     vi.clearAllMocks();
   });
 
-  it("renders guest lock banner card when unauthenticated", async () => {
-    renderMapWithStats({ locations: mockLocations }, null);
-    await vi.waitFor(() => {
-      expect(screen.getByText("Beach Pollution Map Is Private to Signed-In Users")).toBeInTheDocument();
-    });
-    expect(screen.getByText("Sign In to Access")).toBeInTheDocument();
-    expect(screen.queryByTestId("map-container")).not.toBeInTheDocument();
-  });
-
-  it("renders page title and interactive map container when authenticated", async () => {
+  it("renders page title and interactive map container when loaded", async () => {
     renderMapWithStats();
     await vi.waitFor(() => {
       expect(screen.getByRole("heading", { name: /pollution map/i })).toBeInTheDocument();
