@@ -15,10 +15,6 @@ on:
       - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
 jobs:
   test-and-deploy:
     name: Test and Deploy Frontend
@@ -46,42 +42,14 @@ jobs:
       - name: Install Latest Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Configure Vercel Project
+      - name: Deploy to Vercel (Preview)
+        if: github.event_name == 'pull_request'
         working-directory: ./frontend
         run: |
-          ORG_ID=$(echo "${{ secrets.VERCEL_ORG_ID }}" | xargs)
-          PROJECT_ID=$(echo "${{ secrets.VERCEL_PROJECT_ID }}" | xargs)
-          echo "VERCEL_ORG_ID=$ORG_ID" >> $GITHUB_ENV
-          echo "VERCEL_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
-          mkdir -p .vercel
-          echo "{\"projectId\":\"$PROJECT_ID\",\"orgId\":\"$ORG_ID\",\"projectName\":\"littora\"}" > .vercel/project.json
+          npx vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Pull Vercel Environment Information (Preview)
-        if: github.event_name == 'pull_request'
-        working-directory: ./frontend
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Pull Vercel Environment Information (Production)
+      - name: Deploy to Vercel (Production)
         if: github.event_name != 'pull_request'
         working-directory: ./frontend
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project Artifacts (Preview)
-        if: github.event_name == 'pull_request'
-        working-directory: ./frontend
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project Artifacts (Production)
-        if: github.event_name != 'pull_request'
-        working-directory: ./frontend
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy Project Artifacts to Vercel (Preview)
-        if: github.event_name == 'pull_request'
-        working-directory: ./frontend
-        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy Project Artifacts to Vercel (Production)
-        if: github.event_name != 'pull_request'
-        working-directory: ./frontend
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npx vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
