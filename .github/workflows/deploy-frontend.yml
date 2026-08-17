@@ -42,14 +42,28 @@ jobs:
       - name: Install Latest Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Link to Vercel Project (littora)
+        working-directory: ./frontend
+        run: |
+          mkdir -p .vercel
+          ORG_ID=$(echo "${{ secrets.VERCEL_ORG_ID }}" | xargs)
+          PROJECT_ID=$(echo "${{ secrets.VERCEL_PROJECT_ID }}" | xargs)
+          echo "{\"projectId\":\"$PROJECT_ID\",\"orgId\":\"$ORG_ID\",\"projectName\":\"littora\"}" > .vercel/project.json
+
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
         working-directory: ./frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           npx vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel (Production)
         if: github.event_name != 'pull_request'
         working-directory: ./frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           npx vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
