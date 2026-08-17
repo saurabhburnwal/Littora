@@ -30,7 +30,9 @@ export function StatsProvider({ children }) {
       const { data } = await axios.get(`${API_BASE}/api/stats`, { headers });
       setStats(data);
     } catch (err) {
-      console.error("Failed to load stats:", err);
+      if (typeof process === "undefined" || process.env.NODE_ENV !== "test") {
+        console.error("Failed to load stats:", err);
+      }
     }
   }, [user, getToken]);
 
