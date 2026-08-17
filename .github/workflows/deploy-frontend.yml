@@ -46,6 +46,16 @@ jobs:
       - name: Install Latest Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Configure Vercel Project
+        working-directory: ./frontend
+        run: |
+          ORG_ID=$(echo "${{ secrets.VERCEL_ORG_ID }}" | xargs)
+          PROJECT_ID=$(echo "${{ secrets.VERCEL_PROJECT_ID }}" | xargs)
+          echo "VERCEL_ORG_ID=$ORG_ID" >> $GITHUB_ENV
+          echo "VERCEL_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+          mkdir -p .vercel
+          echo "{\"projectId\":\"$PROJECT_ID\",\"orgId\":\"$ORG_ID\",\"projectName\":\"littora\"}" > .vercel/project.json
+
       - name: Pull Vercel Environment Information (Preview)
         if: github.event_name == 'pull_request'
         working-directory: ./frontend
