@@ -4,13 +4,11 @@ import {
   PieChart, Pie, Cell, Legend
 } from "recharts";
 import { useStats } from "../context/StatsContext.jsx";
-import { useAuth }  from "../context/AuthContext.jsx";
 import { formatWasteType } from "../utils/wasteUtils.js";
 
 const PIE_COLORS = ["#2f6f5e", "#c97b3d", "#a13d3d", "#3d6ea1", "#7c3d8a", "#f0b060"];
 
 export default function AnalyticsPage() {
-  const { user } = useAuth();
   const { stats } = useStats();
 
   const wasteComposition = useMemo(() => {

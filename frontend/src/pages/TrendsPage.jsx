@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
-import { useAuth }  from "../context/AuthContext.jsx";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
   ResponsiveContainer, CartesianGrid
@@ -25,7 +24,6 @@ function getHeatmapColor(val, isDark) {
 export default function TrendsPage() {
   const { stats } = useStats();
   const { theme } = useTheme();
-  const { user } = useAuth();
   const isDark = theme === "dark";
 
   const linePrimary = isDark ? "#00D4AA" : "#0E8C86";

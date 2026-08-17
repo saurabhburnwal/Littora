@@ -1,11 +1,9 @@
 import { useMemo } from "react";
 import { Clock, Users, Waves, ShieldAlert, Sparkles, MapPin } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
-import { useAuth }  from "../context/AuthContext.jsx";
 import { normalizeSeverity } from "../utils/wasteUtils.js";
 
 export default function CleanupPage() {
-  const { user } = useAuth();
   const { stats, loading } = useStats();
 
   const recommendations = useMemo(() => {
