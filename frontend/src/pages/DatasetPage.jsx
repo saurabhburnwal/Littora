@@ -11,7 +11,6 @@ export default function DatasetPage() {
 
   const datasets = useMemo(() => {
     const userRecordsCount = stats.totalAnalyses || 0;
-    const userWasteCount = stats.totalWasteAllTime || 0;
     const userEmail = user?.email || "user";
 
     if (isAdmin) {
@@ -26,7 +25,7 @@ export default function DatasetPage() {
         { id: "2", name: `My Detection History Export`, records: userRecordsCount, size: `${(userRecordsCount * 0.18).toFixed(1)} MB`, format: "JSON", updated: "Today", isMyData: true },
       ];
     }
-  }, [stats.totalAnalyses, stats.totalWasteAllTime, user, isAdmin]);
+  }, [stats.totalAnalyses, user, isAdmin]);
 
   const filtered = datasets.filter(d => {
     const matchesSearch = d.name.toLowerCase().includes(search.toLowerCase());

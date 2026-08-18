@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -22,28 +23,35 @@ export default function ResultPanel({ result }) {
   const activePalette = theme === "dark" ? PIE_COLORS.dark : PIE_COLORS.earth;
   const { total_waste = 0, pollution_score = 0, severity = "Low" } = result || {};
 
-  const normalizedDetections = normalizeDetections(result?.detections);
   const wasteCatalog = result?.wasteTypesCatalog || [];
 
-  const barData = Object.entries(normalizedDetections).map(([type, count]) => ({
-    type: formatWasteType(type),
-    count,
-  }));
+  const { normalizedDetections, barData, pieData, totalPieItems } = useMemo(() => {
+    const norm = normalizeDetections(result?.detections);
+    const bars = Object.entries(norm).map(([type, count]) => ({
+      type: formatWasteType(type),
+      count,
+    }));
 
-  let recyclable = 0;
-  let nonRecyclable = 0;
+    let recyclable = 0;
+    let nonRecyclable = 0;
 
-  for (const [type, count] of Object.entries(normalizedDetections)) {
-    if (isRecyclableWaste(type, wasteCatalog)) recyclable += count;
-    else nonRecyclable += count;
-  }
+    for (const [type, count] of Object.entries(norm)) {
+      if (isRecyclableWaste(type, wasteCatalog)) recyclable += count;
+      else nonRecyclable += count;
+    }
 
-  const pieData = [
-    { name: "Recyclable",     value: recyclable },
-    { name: "Non-recyclable", value: nonRecyclable },
-  ];
+    const pies = [
+      { name: "Recyclable",     value: recyclable },
+      { name: "Non-recyclable", value: nonRecyclable },
+    ];
 
-  const totalPieItems = recyclable + nonRecyclable;
+    return {
+      normalizedDetections: norm,
+      barData: bars,
+      pieData: pies,
+      totalPieItems: recyclable + nonRecyclable,
+    };
+  }, [result?.detections, wasteCatalog]);
 
   return (
     <section className="result-panel">

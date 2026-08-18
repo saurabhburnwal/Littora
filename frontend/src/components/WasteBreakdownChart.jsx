@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
@@ -17,14 +18,16 @@ const COLORS = {
 };
 
 export default function WasteBreakdownChart({ aggregateDetections }) {
-  const chartData = Object.entries(aggregateDetections || {})
-    .filter(([_, count]) => count > 0)
-    .map(([type, count]) => ({
-      type: formatWasteType(type),
-      count,
-    }));
-
-  const total = chartData.reduce((s, d) => s + d.count, 0);
+  const { chartData, total } = useMemo(() => {
+    const data = Object.entries(aggregateDetections || {})
+      .filter(([_, count]) => count > 0)
+      .map(([type, count]) => ({
+        type: formatWasteType(type),
+        count,
+      }));
+    const sum = data.reduce((s, d) => s + d.count, 0);
+    return { chartData: data, total: sum };
+  }, [aggregateDetections]);
 
   return (
     <div className="chart-card">

@@ -10,7 +10,14 @@ import {
 } from "../services/supabaseClient.js";
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    cb(null, allowed.includes(file.mimetype.toLowerCase()));
+  },
+});
 
 // POST /api/analyze — multipart/form-data, field name "image"
 // Optional extra fields: latitude, longitude, location_label (all nullable)
@@ -19,16 +26,18 @@ router.post("/", upload.single("image"), async (req, res) => {
   if (!req.file) {
     return res
       .status(400)
-      .json({ error: "No image file provided (field name: image)" });
+      .json({ error: "No image file provided (field name: image). Allowed formats: JPEG, PNG, WebP (max 10MB)" });
   }
 
   try {
     const { buffer, originalname, mimetype } = req.file;
 
-    // Parse optional location fields — don't fail if absent
-    const latitude      = req.body.latitude      ? parseFloat(req.body.latitude)  : null;
-    const longitude     = req.body.longitude     ? parseFloat(req.body.longitude) : null;
-    const locationLabel = req.body.location_label || null;
+    // Parse optional location fields with bounds checking
+    const rawLat = req.body.latitude ? parseFloat(req.body.latitude) : null;
+    const rawLng = req.body.longitude ? parseFloat(req.body.longitude) : null;
+    const latitude = (rawLat !== null && !isNaN(rawLat) && rawLat >= -90 && rawLat <= 90) ? rawLat : null;
+    const longitude = (rawLng !== null && !isNaN(rawLng) && rawLng >= -180 && rawLng <= 180) ? rawLng : null;
+    const locationLabel = req.body.location_label?.trim() || null;
 
     // Extract user_id from JWT if present (optional — upload works anonymously too)
     let userId = null;

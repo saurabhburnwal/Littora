@@ -1,19 +1,22 @@
+import { useMemo } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 
 export default function TrendChart({ history }) {
   // history is newest-first from the API — reverse to chronological for the chart
-  const chartData = (history || [])
-    .slice()
-    .reverse()
-    .map((r) => ({
-      date:  new Date(r.created_at).toLocaleDateString("en-IN", {
-        month: "short",
-        day:   "numeric",
-      }),
-      score: r.pollution_score,
-    }));
+  const chartData = useMemo(() => {
+    return (history || [])
+      .slice()
+      .reverse()
+      .map((r) => ({
+        date: new Date(r.created_at).toLocaleDateString("en-IN", {
+          month: "short",
+          day:   "numeric",
+        }),
+        score: r.pollution_score,
+      }));
+  }, [history]);
 
   return (
     <div className="chart-card">

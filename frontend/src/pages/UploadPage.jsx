@@ -9,11 +9,10 @@ import ResultPanel from "../components/ResultPanel.jsx";
 import { DEFAULT_AI_MODELS } from "../utils/wasteUtils.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || "admin@littora.app";
 
 export default function UploadPage() {
   const { loadStats }  = useStats();
-  const { user, getToken } = useAuth();
+  const { user, getToken, isAdmin } = useAuth();
   const [result,  setResult]  = useState(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
@@ -25,8 +24,6 @@ export default function UploadPage() {
     availableModels: DEFAULT_AI_MODELS,
   });
   const [updatingModel, setUpdatingModel] = useState(false);
-
-  const isAdmin = user && user.email === ADMIN_EMAIL;
 
   useEffect(() => {
     fetchModelInfo();

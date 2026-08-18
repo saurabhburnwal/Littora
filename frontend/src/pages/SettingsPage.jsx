@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Moon, Leaf, Download, Trash2, Bell, Globe, CalendarDays, List, CheckCircle, AlertTriangle, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -8,6 +9,7 @@ import { supabase } from "../lib/supabase.js";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const {
     language,    setLanguage,
@@ -59,8 +61,7 @@ export default function SettingsPage() {
   // --- Export: download all user analyses as JSON ---
   const handleExport = async () => {
     if (!user) {
-      setAuthFeature("export personal data");
-      setShowAuthModal(true);
+      navigate("/login");
       return;
     }
     setExporting(true);
@@ -142,7 +143,7 @@ export default function SettingsPage() {
           </div>
           <button
             className="filter-btn-apply"
-            onClick={() => window.location.href = "/login"}
+            onClick={() => navigate("/login")}
             style={{ display: "flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap" }}
           >
             Sign In / Register
@@ -370,7 +371,7 @@ export default function SettingsPage() {
               </p>
               <button
                 className="filter-btn-apply"
-                onClick={() => window.location.href = "/login"}
+                onClick={() => navigate("/login")}
                 style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
               >
                 Sign In to Unlock

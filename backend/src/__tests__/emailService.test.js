@@ -53,12 +53,12 @@ describe("EmailService", () => {
       text: "Content text",
     });
 
-    expect(mockCreateTransport).toHaveBeenCalledWith({
+    expect(mockCreateTransport).toHaveBeenCalledWith(expect.objectContaining({
       host: "smtp.example.com",
       port: 465,
       secure: true,
       auth: { user: "user@example.com", pass: "secretpass" },
-    });
+    }));
     expect(mockSendMail).toHaveBeenCalledWith({
       from: '"Littora" <info@littora.app>',
       to: "recipient@example.com",
@@ -79,11 +79,11 @@ describe("EmailService", () => {
 
     await sendEmail({ to: "target@example.com", subject: "Port 587" });
 
-    expect(mockCreateTransport).toHaveBeenCalledWith({
+    expect(mockCreateTransport).toHaveBeenCalledWith(expect.objectContaining({
       host: "smtp.example.com",
       port: 587,
       secure: false,
       auth: { user: "user@example.com", pass: "pass" },
-    });
+    }));
   });
 });

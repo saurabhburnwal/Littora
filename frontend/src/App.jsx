@@ -1,10 +1,10 @@
 import { useState, lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Menu } from "lucide-react";
-import Sidebar        from "./components/Sidebar.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import LoginPage      from "./pages/LoginPage.jsx";
-import SetPasswordPage from "./pages/SetPasswordPage.jsx";
+import Sidebar             from "./components/Sidebar.jsx";
+import ProtectedRoute      from "./components/ProtectedRoute.jsx";
+import FloatingAccountMenu from "./components/FloatingAccountMenu.jsx";
+import LoginPage           from "./pages/LoginPage.jsx";
+import SetPasswordPage     from "./pages/SetPasswordPage.jsx";
 
 const DashboardPage    = lazy(() => import("./pages/DashboardPage.jsx"));
 const UploadPage       = lazy(() => import("./pages/UploadPage.jsx"));
@@ -27,8 +27,6 @@ function PageLoader() {
     </div>
   );
 }
-
-import FloatingAccountMenu from "./components/FloatingAccountMenu.jsx";
 
 // Layout wrapper: sidebar + content (used for all protected pages)
 function AppShell({ children }) {

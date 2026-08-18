@@ -36,7 +36,7 @@ export default function FloatingAccountMenu() {
   };
 
   const rawFullName = user?.user_metadata?.full_name?.trim() || user?.user_metadata?.name?.trim();
-  const isAdminUser = isAdmin || user?.email?.toLowerCase() === "admin@littora.app";
+  const isAdminUser = Boolean(isAdmin);
 
   const displayName = user
     ? (rawFullName || (isAdminUser ? "Admin" : (user.email ?? "User")))

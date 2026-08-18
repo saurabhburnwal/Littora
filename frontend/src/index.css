@@ -125,9 +125,7 @@
   --bbox-label-bg:      rgba(14,140,134,0.92);
 }
 
-[data-theme="dark"],
-[data-theme="ocean"],
-[data-theme="light"] {
+[data-theme="dark"] {
   /* ── Backgrounds ── */
   --bg:                 #0B1220;
   --bg-secondary:       #111827;
@@ -652,41 +650,6 @@ body {
 .sidebar-footer { overflow: hidden; flex-shrink: 0; }
 .sidebar-wave { display: block; width: 100%; }
 
-/* ─── Unified Topbar Header ────────────────────────────── */
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--sidebar-bg);
-  color: #e8f4f0;
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.topbar-title {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.hamburger {
-  background: transparent !important;
-  border: none;
-  color: #e8f4f0;
-  cursor: pointer;
-  padding: 0.2rem;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-  box-shadow: none !important;
-}
-
 .sidebar-backdrop {
   display: none;
   position: fixed;
@@ -795,33 +758,6 @@ body {
   flex-direction: column;
   justify-content: space-between;
   padding: 2rem 3rem 2.5rem;
-}
-
-.hero-top-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1.5rem;
-}
-
-.btn-login-overlay {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: #2f4f3e;
-  color: #ffffff;
-  border: none;
-  border-radius: 9999px;
-  padding: 0.6rem 1.4rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(47, 79, 62, 0.25);
-  transition: background 0.15s, transform 0.1s;
-}
-
-.btn-login-overlay:hover {
-  background: #213a2d;
-  transform: translateY(-1px);
 }
 
 .hero-light-main {
@@ -961,86 +897,6 @@ body {
   backdrop-filter: blur(4px);
 }
 .btn-outline:hover { background: rgba(255,255,255,0.25); }
-
-/* Feature cards in hero */
-.hero-feature-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.hero-feature-card {
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 12px;
-  padding: 1rem 0.85rem;
-  color: white;
-}
-
-.hero-feature-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: rgba(240,176,96,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.6rem;
-  color: var(--amber);
-}
-
-.hero-feature-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  color: #fff;
-}
-
-.hero-feature-desc {
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.68);
-  line-height: 1.4;
-}
-
-/* Hero stats strip */
-.hero-stats-strip {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  background: rgba(27,61,50,0.85);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  padding: 0.85rem 2.5rem;
-  gap: 3rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-.hero-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.hero-stat-value {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-}
-
-.hero-stat-label {
-  font-size: 0.67rem;
-  color: rgba(255,255,255,0.6);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
 
 /* ─── Stat Cards ─────────────────────────────────────────── */
 .stat-cards {
@@ -1406,105 +1262,6 @@ body {
 }
 
 .result-placeholder p { font-size: 0.88rem; max-width: 260px; line-height: 1.6; }
-
-/* Detection result card */
-.detection-result-card {
-  background: var(--card-bg);
-  border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-}
-
-.detection-result-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--ink);
-  padding: 1.25rem 1.5rem 0;
-  margin-bottom: 0.75rem;
-}
-
-.detection-result-img {
-  width: 100%;
-  max-height: 280px;
-  object-fit: cover;
-  display: block;
-  position: relative;
-}
-
-.detected-summary {
-  padding: 1.25rem 1.5rem;
-}
-
-.detected-summary-title {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.75rem;
-}
-
-.detected-items-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.detected-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  background: var(--bg);
-  border-radius: 10px;
-  padding: 0.75rem 0.5rem;
-}
-
-.detected-item-icon { font-size: 1.5rem; }
-
-.detected-item-count {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.detected-item-label {
-  font-size: 0.65rem;
-  color: var(--muted);
-  font-weight: 500;
-  text-align: center;
-}
-
-.total-objects-badge {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 0.75rem;
-  background: var(--bg);
-  border-radius: 8px;
-  font-size: 0.8rem;
-}
-
-.total-label { color: var(--muted); font-weight: 500; }
-.total-value { font-size: 1.1rem; font-weight: 700; color: var(--ink); }
-
-.download-result-btn {
-  background: var(--teal);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 0.7rem 1.25rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  transition: background 0.15s;
-  font-family: 'Inter', system-ui, sans-serif;
-}
-.download-result-btn:hover { background: var(--teal-dark); }
 
 /* ─── Buttons (base) ─────────────────────────────────────── */
 button {
@@ -3366,95 +3123,6 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SIDEBAR — User strip & Admin badge
-═══════════════════════════════════════════════════════════ */
-
-.sidebar-user-strip {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.75rem 1.2rem;
-  border-bottom: 1px solid var(--border-lt);
-  background: rgba(52,78,65,0.06);
-  flex-shrink: 0;
-}
-.sidebar-user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
-  color: #e8f4f0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  letter-spacing: 0.02em;
-}
-.sidebar-user-info {
-  flex: 1;
-  min-width: 0;
-}
-.sidebar-user-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sidebar-user-email {
-  font-size: 0.7rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sidebar-admin-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #d4924b 0%, #e6a545 100%);
-  color: white;
-  flex-shrink: 0;
-}
-.nav-item-admin {
-  color: var(--clay) !important;
-  background: rgba(212,146,75,0.08);
-  margin-top: 0.4rem;
-  border: 1px dashed rgba(212,146,75,0.3);
-}
-.nav-item-admin:hover {
-  background: rgba(212,146,75,0.14) !important;
-}
-.nav-item-admin.active {
-  background: rgba(212,146,75,0.2) !important;
-  font-weight: 700;
-}
-
-/* ── Hero user avatar (Dashboard hero top-right) ── */
-.hero-user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--teal) 0%, var(--clay) 100%);
-  color: white;
-  font-weight: 700;
-  font-size: 0.88rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid rgba(255,255,255,0.5);
-  cursor: default;
-  transition: transform 0.15s;
-}
-.hero-user-avatar:hover { transform: scale(1.08); }
-
-/* ═══════════════════════════════════════════════════════════
    ADMIN DASHBOARD
 ═══════════════════════════════════════════════════════════ */
 
@@ -3529,98 +3197,7 @@ tbody tr:last-child td { border-bottom: none; }
   font-size: 0.88rem;
   margin-bottom: 1.5rem;
 }
-.admin-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 4rem 0;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-.admin-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 5rem 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-/* Image grid */
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.25rem;
-}
-.admin-card {
-  background: var(--white);
-  border: 1px solid var(--border-lt);
-  border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.admin-card:hover {
-  box-shadow: var(--card-shadow-h);
-  transform: translateY(-2px);
-}
-.admin-card-img-wrap {
-  position: relative;
-  aspect-ratio: 4/3;
-  background: #e8e0d0;
-  overflow: hidden;
-}
-.admin-card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.35s ease;
-}
-.admin-card:hover .admin-card-img { transform: scale(1.04); }
-
-.admin-severity-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: white;
-  letter-spacing: 0.03em;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-
-.admin-delete-overlay-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(220,38,38,0.85);
-  backdrop-filter: blur(4px);
-  border: none;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transform: scale(0.8);
-  transition: opacity 0.18s, transform 0.18s, background 0.15s;
-}
-.admin-card:hover .admin-delete-overlay-btn {
-  opacity: 1;
-  transform: scale(1);
-}
-.admin-delete-overlay-btn:hover { background: rgba(185,28,28,0.95); }
-.admin-delete-overlay-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-/* Gallery delete button (history tab) — same style, triggered on gallery-card hover */
+/* Gallery delete button (history tab) — triggered on gallery-card hover */
 .gallery-delete-btn {
   position: absolute;
   top: 8px;
@@ -3647,40 +3224,6 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .gallery-delete-btn:hover { background: rgba(185,28,28,0.95); }
 .gallery-delete-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.admin-card-body {
-  padding: 0.85rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-.admin-card-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.admin-card-waste, .admin-card-score {
-  font-size: 0.8rem;
-  color: var(--ink-light);
-}
-.admin-card-score strong { color: var(--ink); }
-.admin-card-location {
-  font-size: 0.75rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.admin-card-date {
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-.admin-card-user {
-  font-size: 0.7rem;
-  color: var(--muted);
-  font-family: 'Courier New', monospace;
-}
-.admin-card-user.anon { font-style: italic; }
 
 /* Confirmation modal */
 .admin-modal-backdrop {
@@ -3795,23 +3338,4 @@ tbody tr:last-child td { border-bottom: none; }
   .login-panel-side { display: none; }
   .login-card { padding: 2rem 1.5rem; }
 }
-
-/* ─── Progress Bar Thresholds ────────────────────────────── */
-.progress-bar-track {
-  width: 100%;
-  height: 8px;
-  background: var(--sand);
-  border-radius: 999px;
-  overflow: hidden;
-}
-.progress-bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.3s ease, background-color 0.3s ease;
-}
-.progress-0-25   { background-color: #2E7D32; }
-.progress-25-50  { background-color: #8BC34A; }
-.progress-50-75  { background-color: #F9A825; }
-.progress-75-90  { background-color: #EF6C00; }
-.progress-90-100 { background-color: #C62828; }
 

@@ -40,6 +40,7 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
 }));
 
 const { default: app } = await import("../index.js");
+const { supabase } = await import("../services/supabaseClient.js");
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe("GET /health", () => {
@@ -52,7 +53,18 @@ describe("GET /health", () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe("GET /api/analyses", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    supabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: "u1", email: "user@test.com" } },
+      error: null,
+    });
+  });
+
+  it("returns 401 when authorization header is missing", async () => {
+    const res = await request(app).get("/api/analyses");
+    expect(res.status).toBe(401);
+  });
 
   it("returns 200 with analyses array", async () => {
     const fakeData = [{ id: 1, severity: "Low" }, { id: 2, severity: "High" }];

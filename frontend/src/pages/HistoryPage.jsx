@@ -105,7 +105,12 @@ export default function HistoryPage() {
       const itemSeverity = (r.severity || "").toString().trim().toLowerCase();
       const matchesSeverity =
         filter === "All" || itemSeverity === filter.toLowerCase();
-      const wasteTypesStr = (r.detections || []).map(d => d.waste_type).join(" ").toLowerCase();
+      const detectionKeys = Array.isArray(r.detections)
+        ? r.detections.map((d) => (typeof d === "object" ? d?.waste_type || d?.type || "" : String(d)))
+        : typeof r.detections === "object" && r.detections !== null
+        ? Object.keys(r.detections)
+        : [];
+      const wasteTypesStr = detectionKeys.join(" ").toLowerCase();
       const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString().toLowerCase() : "";
       const matchesSearch =
         !query ||

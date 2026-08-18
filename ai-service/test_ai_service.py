@@ -4,7 +4,7 @@ Unit tests for AI Service (severity scoring & FastAPI endpoints).
 
 import unittest
 from severity import compute_score
-from main import app, health, list_models, MODELS_CONFIG
+from main import health, list_models, MODELS_CONFIG
 
 
 class TestSeverityScoring(unittest.TestCase):

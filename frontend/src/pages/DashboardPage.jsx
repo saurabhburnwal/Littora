@@ -9,16 +9,14 @@ import GuestLockScreen    from "../components/GuestLockScreen.jsx";
 import dashboardBg        from "../assets/dashboard_bg.png";
 
 export default function DashboardPage() {
-  const { stats }   = useStats();
-  const { user }    = useAuth();
-  const navigate    = useNavigate();
+  const { stats } = useStats();
+  const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   const scrollToStats = () => {
     const el = document.getElementById("analytics-section");
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
-
-  const { isAdmin } = useAuth();
 
   const sectionTitle =
     isAdmin         ? "Live Monitoring & Analytics (All Users)"

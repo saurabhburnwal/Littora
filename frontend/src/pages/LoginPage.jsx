@@ -57,7 +57,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email.trim(), password);
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {

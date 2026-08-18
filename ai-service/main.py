@@ -120,6 +120,7 @@ def get_yolo_model(model_id: str) -> tuple[YOLO, str]:
                     except Exception as ex:
                         logger.warning(f"Could not load fallback model at {fb_path}: {ex}")
                         continue
+                _loaded_models[model_id] = _loaded_models[fb_key]
                 return _loaded_models[fb_key], target["name"]
 
         # 3. Final fallback: download lightweight standard weights if local weights missing
@@ -127,6 +128,7 @@ def get_yolo_model(model_id: str) -> tuple[YOLO, str]:
             logger.info("Falling back to standard default YOLO model 'yolov8n.pt'")
             _loaded_models["default"] = YOLO("yolov8n.pt")
 
+        _loaded_models[model_id] = _loaded_models["default"]
         return _loaded_models["default"], target["name"]
 
 
