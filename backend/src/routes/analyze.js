@@ -72,6 +72,9 @@ router.post("/", upload.single("image"), async (req, res) => {
       longitude,
       locationLabel,
       userId,
+      // Persist the actual model reported by the AI service. This matters when
+      // a configured model is unavailable and the service uses a local fallback.
+      modelUsed: result.model_used || activeModel,
     });
 
     // 4. Return the combined response React expects

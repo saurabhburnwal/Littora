@@ -57,6 +57,9 @@ SUPABASE_URL=https://your-supabase-project.supabase.co
 SUPABASE_SECRET_KEY=your-supabase-secret-key
 SUPABASE_STORAGE_BUCKET=beach-waste-images
 AI_SERVICE_URL=http://localhost:8000
+AI_SERVICE_TIMEOUT_MS=120000
+# Production: add the Vercel domain (and any preview domains that need API access)
+FRONTEND_ORIGINS=http://localhost:5173
 ADMIN_EMAIL=admin@littora.app
 ```
 

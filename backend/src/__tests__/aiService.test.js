@@ -37,8 +37,9 @@ describe("runDetection", () => {
     const result = await runDetection(buffer, name, mimeType);
 
     expect(mockAxiosPost).toHaveBeenCalledTimes(1);
-    const [url] = mockAxiosPost.mock.calls[0];
+    const [url, _form, options] = mockAxiosPost.mock.calls[0];
     expect(url).toMatch(/\/detect$/);
+    expect(options.timeout).toBe(120000);
     expect(result).toEqual(fakeResult);
   });
 

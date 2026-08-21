@@ -8,6 +8,7 @@ Stateless FastAPI service — Node backend orchestrates model selection and pers
 from contextlib import asynccontextmanager
 import io
 import logging
+import os
 from pathlib import Path
 import threading
 from typing import Any, Dict
@@ -27,9 +28,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger("ai_service")
 
-# Absolute path resolution for models directory
+# Absolute path resolution allows managed deployments to mount model artifacts
+# outside the application source tree.
 BASE_DIR = Path(__file__).resolve().parent
-MODELS_DIR = BASE_DIR / "models"
+MODELS_DIR = Path(os.getenv("MODEL_DIR", str(BASE_DIR / "models"))).resolve()
 
 MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
     "yolov8m": {
@@ -38,7 +40,7 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
         "tag": "Standard Baseline",
         "architecture": "YOLOv8m",
         "params": "25.9M",
-        "path": MODELS_DIR / "best.pt",
+        "filename": "best.pt",
         "description": "Balanced speed & precision for general coastal debris detection.",
         "badge": "Baseline",
     },
@@ -48,7 +50,7 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
         "tag": "Enhanced Accuracy",
         "architecture": "YOLOv11m",
         "params": "20.1M",
-        "path": MODELS_DIR / "yolov11m.pt",
+        "filename": "yolov11m.pt",
         "description": "Enhanced feature extraction & attention mechanisms for complex or occluded waste.",
         "badge": "Default (High Precision)",
     },
@@ -58,7 +60,7 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
         "tag": "Ultra-Fast Edge",
         "architecture": "YOLOv26s",
         "params": "9.6M",
-        "path": MODELS_DIR / "yolov26s.pt",
+        "filename": "yolov26s.pt",
         "description": "Lightweight, low-latency inference optimized for real-time mobile & drone feeds.",
         "badge": "Fastest",
     },
@@ -76,60 +78,67 @@ _loaded_models: Dict[str, YOLO] = {}
 _model_lock = threading.Lock()
 
 
-def get_yolo_model(model_id: str) -> tuple[YOLO, str]:
+class ModelWeightsUnavailable(RuntimeError):
+    """Raised when no deployed custom model artifact is available."""
+
+
+def model_path(config: Dict[str, Any]) -> Path:
+    """Resolve a model file against the deployment-configured model directory."""
+    return MODELS_DIR / config["filename"]
+
+
+def get_yolo_model(model_id: str) -> tuple[YOLO, str, str]:
     """
     Retrieves or dynamically loads a requested YOLO model with dynamic fallback logic.
     Thread-safe model loading ensures single initialization per model weights file.
     """
-    target = MODELS_CONFIG.get(model_id, MODELS_CONFIG["yolov11m"])
-    target_path = Path(target["path"])
+    target_id = model_id if model_id in MODELS_CONFIG else "yolov11m"
+    target = MODELS_CONFIG[target_id]
+    target_path = model_path(target)
 
     with _model_lock:
-        if model_id in _loaded_models:
-            return _loaded_models[model_id], target["name"]
+        if target_id in _loaded_models:
+            return _loaded_models[target_id], target_id, target["name"]
 
         # 1. Try specified path
         if target_path.exists():
             try:
                 model = YOLO(str(target_path))
-                _loaded_models[model_id] = model
-                logger.info(f"Loaded model '{model_id}' from {target_path}")
-                return model, target["name"]
+                _loaded_models[target_id] = model
+                logger.info(f"Loaded model '{target_id}' from {target_path}")
+                return model, target_id, target["name"]
             except Exception as err:
                 logger.warning(f"Failed to load model weights at {target_path}: {err}")
 
         # 2. Dynamic Fallback: check available model files in models/ directory
         fallback_candidates = [
-            MODELS_DIR / "yolov11m.pt",
-            MODELS_DIR / "yolov26s.pt",
-            MODELS_DIR / "best.pt",
+            ("yolov11m", MODELS_DIR / "yolov11m.pt"),
+            ("yolov26s", MODELS_DIR / "yolov26s.pt"),
+            ("yolov8m", MODELS_DIR / "best.pt"),
         ]
 
         if MODELS_DIR.exists():
             for extra_pt in MODELS_DIR.glob("*.pt"):
-                if extra_pt not in fallback_candidates:
-                    fallback_candidates.append(extra_pt)
+                if extra_pt not in [path for _, path in fallback_candidates]:
+                    fallback_candidates.append((extra_pt.stem, extra_pt))
 
-        for fb_path in fallback_candidates:
+        for fallback_id, fb_path in fallback_candidates:
             if fb_path.exists():
-                fb_key = fb_path.stem
-                if fb_key not in _loaded_models:
+                if fallback_id not in _loaded_models:
                     try:
-                        _loaded_models[fb_key] = YOLO(str(fb_path))
-                        logger.info(f"Loaded fallback model '{fb_key}' from {fb_path}")
+                        _loaded_models[fallback_id] = YOLO(str(fb_path))
+                        logger.info(f"Loaded fallback model '{fallback_id}' from {fb_path}")
                     except Exception as ex:
                         logger.warning(f"Could not load fallback model at {fb_path}: {ex}")
                         continue
-                _loaded_models[model_id] = _loaded_models[fb_key]
-                return _loaded_models[fb_key], target["name"]
+                fallback_config = MODELS_CONFIG.get(fallback_id)
+                fallback_name = fallback_config["name"] if fallback_config else fallback_id
+                return _loaded_models[fallback_id], fallback_id, fallback_name
 
-        # 3. Final fallback: download lightweight standard weights if local weights missing
-        if "default" not in _loaded_models:
-            logger.info("Falling back to standard default YOLO model 'yolov8n.pt'")
-            _loaded_models["default"] = YOLO("yolov8n.pt")
-
-        _loaded_models[model_id] = _loaded_models["default"]
-        return _loaded_models["default"], target["name"]
+        raise ModelWeightsUnavailable(
+            f"No model weights found in {MODELS_DIR}. Deploy a supported .pt artifact "
+            "or set MODEL_DIR to its mounted location."
+        )
 
 
 @asynccontextmanager
@@ -234,9 +243,15 @@ async def _process_detection(file: UploadFile, model_name: str) -> DetectionResp
         )
 
     try:
-        model, model_display_name = get_yolo_model(model_name)
+        model, model_id, model_display_name = get_yolo_model(model_name)
         with torch.inference_mode():
             results = model.predict(image, verbose=False)[0]
+    except ModelWeightsUnavailable as err:
+        logger.error(str(err))
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(err),
+        )
     except Exception as err:
         logger.error(f"Inference error during model execution: {err}")
         raise HTTPException(
@@ -288,7 +303,7 @@ async def _process_detection(file: UploadFile, model_name: str) -> DetectionResp
         pollution_score=pollution_score,
         severity=severity,
         boxes=boxes,
-        model_used=model_name,
+        model_used=model_id,
         model_name=model_display_name,
     )
 
@@ -311,10 +326,10 @@ def list_models():
     """Returns metadata for all supported models and their local availability status."""
     models_list = []
     for m_id, cfg in MODELS_CONFIG.items():
-        path_obj = Path(cfg["path"])
+        path_obj = model_path(cfg)
         item = {
             **cfg,
-            "path": str(cfg["path"]),
+            "path": str(path_obj),
             "available": path_obj.exists(),
         }
         models_list.append(ModelInfo(**item))
@@ -337,4 +352,3 @@ async def predict(
 ):
     """Inference alias endpoint for /detect."""
     return await _process_detection(file, model_name)
-

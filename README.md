@@ -130,6 +130,15 @@ npm install
 npm run dev                 # Runs on http://localhost:5173
 ```
 
+### Deployment configuration
+
+Set the frontend build variables `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, and
+`VITE_SUPABASE_ANON_KEY` in Vercel. Set `FRONTEND_ORIGINS` on the backend to
+the deployed Vercel origin(s), and set `AI_SERVICE_URL` to the private URL of
+the AI service. Deploy the AI service with `ai-service/Dockerfile`; its custom
+model weights must be supplied separately at `MODEL_DIR`, because weight files
+are deliberately not committed to the repository.
+
 ---
 
 ## Testing & Verification

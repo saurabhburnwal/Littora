@@ -48,6 +48,15 @@ uvicorn main:app --reload --port 8000
 ```
 *Service runs on `http://localhost:8000`.*
 
+## Deployment
+
+Build from `ai-service/` with the included Dockerfile. It listens on the
+platform-provided `PORT` (falling back to `8000` locally). The custom `.pt`
+weights are intentionally excluded from Git, so deploy them as a build artifact
+or mount them at `MODEL_DIR` (default: `/app/models` in the container). The
+service returns `503` for inference until a supported weight file is present;
+it does not download unrelated public weights at runtime.
+
 ---
 
 ## API Endpoint

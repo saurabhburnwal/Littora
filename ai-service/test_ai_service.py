@@ -3,8 +3,13 @@ Unit tests for AI Service (severity scoring & FastAPI endpoints).
 """
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
+
+import main as main_module
 from severity import compute_score
-from main import health, list_models, MODELS_CONFIG
+from main import ModelWeightsUnavailable, get_yolo_model, health, list_models, MODELS_CONFIG
 
 
 class TestSeverityScoring(unittest.TestCase):
@@ -69,6 +74,36 @@ class TestFastAPIEndpoints(unittest.TestCase):
         model_ids = [m.id for m in res.models]
         self.assertIn("yolov11m", model_ids)
         self.assertIn("yolov26s", model_ids)
+
+
+class TestModelResolution(unittest.TestCase):
+    def setUp(self):
+        main_module._loaded_models.clear()
+
+    def tearDown(self):
+        main_module._loaded_models.clear()
+
+    def test_reports_the_model_that_is_actually_loaded_from_fallback(self):
+        with TemporaryDirectory() as temp_dir:
+            model_dir = Path(temp_dir)
+            (model_dir / "yolov11m.pt").touch()
+            loaded_model = object()
+
+            with patch.object(main_module, "MODELS_DIR", model_dir), patch.object(
+                main_module, "YOLO", return_value=loaded_model
+            ):
+                model, model_id, model_name = get_yolo_model("yolov8m")
+
+        self.assertIs(model, loaded_model)
+        self.assertEqual(model_id, "yolov11m")
+        self.assertEqual(model_name, "YOLOv11 Medium")
+
+    def test_raises_when_no_deployed_weights_exist(self):
+        with TemporaryDirectory() as temp_dir, patch.object(
+            main_module, "MODELS_DIR", Path(temp_dir)
+        ):
+            with self.assertRaises(ModelWeightsUnavailable):
+                get_yolo_model("yolov11m")
 
 
 if __name__ == "__main__":

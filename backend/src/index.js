@@ -15,9 +15,20 @@ import emailRouter      from "./routes/email.js";
 import modelRouter      from "./routes/model.js";
 
 const app = express();
+
+const allowedOrigins = (process.env.FRONTEND_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(compression());
-app.use(cors({ maxAge: 86400 }));
+app.use(cors({
+  // Set FRONTEND_ORIGINS in production. The permissive fallback keeps local
+  // development and existing deployments working until that is configured.
+  origin: allowedOrigins.length ? allowedOrigins : true,
+  maxAge: 86400,
+}));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));

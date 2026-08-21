@@ -45,6 +45,7 @@ const FAKE_DETECTION = {
   total_waste:    3,
   pollution_score: 45,
   severity:       "Moderate",
+  model_used:     "yolov11m",
 };
 
 const FAKE_ANALYSIS = {
@@ -86,6 +87,9 @@ describe("POST /api/analyze", () => {
       pollution_score: 45,
       severity:        "Moderate",
     });
+    expect(mockSaveAnalysis).toHaveBeenCalledWith(
+      expect.objectContaining({ modelUsed: "yolov11m" })
+    );
   });
 
   it("passes latitude and longitude when provided", async () => {
