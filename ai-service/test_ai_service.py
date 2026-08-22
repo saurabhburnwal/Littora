@@ -1,110 +1,116 @@
 """
-Unit tests for AI Service (severity scoring & FastAPI endpoints).
+Pytest suite for AI Service (severity scoring, model loading, & FastAPI async endpoints).
 """
 
-import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+import pytest
+from httpx import AsyncClient
+
 import main as main_module
 from severity import compute_score
-from main import ModelWeightsUnavailable, get_yolo_model, health, list_models, MODELS_CONFIG
+from main import (
+    ModelWeightsUnavailable,
+    get_yolo_model,
+    health,
+    list_models,
+    MODELS_CONFIG,
+)
 
 
-class TestSeverityScoring(unittest.TestCase):
-    def test_empty_detections(self):
-        total, score, severity = compute_score({})
-        self.assertEqual(total, 0)
-        self.assertEqual(score, 0)
-        self.assertEqual(severity, "Low")
+# --- 1. Severity Scoring Tests (Parametrized) ---
 
-    def test_none_detections(self):
-        total, score, severity = compute_score(None)
-        self.assertEqual(total, 0)
-        self.assertEqual(score, 0)
-        self.assertEqual(severity, "Low")
-
-    def test_low_severity(self):
-        # bottle (2.0 * 2 = 4), can (2.0 * 1 = 2) => score 6 => Low (<=10)
-        total, score, severity = compute_score({"bottle": 2, "can": 1})
-        self.assertEqual(total, 3)
-        self.assertEqual(score, 6)
-        self.assertEqual(severity, "Low")
-
-    def test_moderate_severity(self):
-        # bag (5.0 * 4 = 20), wrapper (3.0 * 2 = 6) => score 26 => Moderate (11-30)
-        total, score, severity = compute_score({"bag": 4, "wrapper": 2})
-        self.assertEqual(total, 6)
-        self.assertEqual(score, 26)
-        self.assertEqual(severity, "Moderate")
-
-    def test_high_severity(self):
-        # bag (5.0 * 10 = 50) => High (31-60)
-        total, score, severity = compute_score({"bag": 10})
-        self.assertEqual(total, 10)
-        self.assertEqual(score, 50)
-        self.assertEqual(severity, "High")
-
-    def test_severe_severity(self):
-        # bag (5.0 * 13 = 65) => Severe (>60)
-        total, score, severity = compute_score({"bag": 13})
-        self.assertEqual(total, 13)
-        self.assertEqual(score, 65)
-        self.assertEqual(severity, "Severe")
-
-    def test_unknown_waste_category_fallback(self):
-        # Unknown categories use the conservative default weight of 1.0.
-        total, score, severity = compute_score({"plastic_chair": 5})
-        self.assertEqual(total, 5)
-        self.assertEqual(score, 5)
-        self.assertEqual(severity, "Low")
+@pytest.mark.parametrize(
+    "detections, expected_total, expected_score, expected_severity",
+    [
+        # Empty / None
+        ({}, 0, 0, "Low"),
+        (None, 0, 0, "Low"),
+        # Low severity: bottle (2.0 * 2 = 4), can (2.0 * 1 = 2) => score 6 <= 10
+        ({"bottle": 2, "can": 1}, 3, 6, "Low"),
+        # Moderate severity: bag (5.0 * 4 = 20), wrapper (3.0 * 2 = 6) => score 26 (11-30)
+        ({"bag": 4, "wrapper": 2}, 6, 26, "Moderate"),
+        # High severity: bag (5.0 * 10 = 50) => score 50 (31-60)
+        ({"bag": 10}, 10, 50, "High"),
+        # Severe severity: bag (5.0 * 13 = 65) => score 65 (>60)
+        ({"bag": 13}, 13, 65, "Severe"),
+        # Unknown categories fallback to default 1.0 weight
+        ({"plastic_chair": 5}, 5, 5, "Low"),
+    ],
+)
+def test_compute_score_scenarios(
+    detections, expected_total, expected_score, expected_severity
+):
+    total, score, severity = compute_score(detections)
+    assert total == expected_total
+    assert score == expected_score
+    assert severity == expected_severity
 
 
-class TestFastAPIEndpoints(unittest.TestCase):
-    def test_health_endpoint(self):
-        res = health()
-        self.assertEqual(res.status, "ok")
-        self.assertIn(res.device, ["cuda", "mps", "cpu"])
-        self.assertIsInstance(res.loaded_models, list)
+# --- 2. Direct Function Tests ---
 
-    def test_models_endpoint(self):
-        res = list_models()
-        self.assertEqual(len(res.models), len(MODELS_CONFIG))
-        model_ids = [m.id for m in res.models]
-        self.assertIn("yolov11m", model_ids)
-        self.assertIn("yolov26s", model_ids)
+def test_health_direct():
+    res = health()
+    assert res.status == "ok"
+    assert res.device in ["cuda", "mps", "cpu"]
+    assert isinstance(res.loaded_models, list)
 
 
-class TestModelResolution(unittest.TestCase):
-    def setUp(self):
-        main_module._loaded_models.clear()
-
-    def tearDown(self):
-        main_module._loaded_models.clear()
-
-    def test_reports_the_model_that_is_actually_loaded_from_fallback(self):
-        with TemporaryDirectory() as temp_dir:
-            model_dir = Path(temp_dir)
-            (model_dir / "yolov11m.pt").touch()
-            loaded_model = object()
-
-            with patch.object(main_module, "MODELS_DIR", model_dir), patch.object(
-                main_module, "YOLO", return_value=loaded_model
-            ):
-                model, model_id, model_name = get_yolo_model("yolov8m")
-
-        self.assertIs(model, loaded_model)
-        self.assertEqual(model_id, "yolov11m")
-        self.assertEqual(model_name, "YOLOv11 Medium")
-
-    def test_raises_when_no_deployed_weights_exist(self):
-        with TemporaryDirectory() as temp_dir, patch.object(
-            main_module, "MODELS_DIR", Path(temp_dir)
-        ):
-            with self.assertRaises(ModelWeightsUnavailable):
-                get_yolo_model("yolov11m")
+def test_models_direct():
+    res = list_models()
+    assert len(res.models) == len(MODELS_CONFIG)
+    model_ids = [m.id for m in res.models]
+    assert "yolov11m" in model_ids
+    assert "yolov26s" in model_ids
 
 
-if __name__ == "__main__":
-    unittest.main()
+# --- 3. Async FastAPI HTTP Endpoint Tests ---
+
+async def test_health_endpoint_async(async_client: AsyncClient):
+    response = await async_client.get("/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert "device" in data
+    assert "loaded_models" in data
+
+
+async def test_models_endpoint_async(async_client: AsyncClient):
+    response = await async_client.get("/models")
+    assert response.status_code == 200
+    data = response.json()
+    assert "models" in data
+    assert len(data["models"]) >= 2
+
+
+async def test_predict_endpoint_invalid_image(async_client: AsyncClient):
+    files = {"file": ("corrupt.jpg", b"not-an-image-data", "image/jpeg")}
+    response = await async_client.post("/predict", files=files)
+    assert response.status_code == 400
+
+
+# --- 4. Model Resolution & Fallback Tests ---
+
+def test_reports_model_loaded_from_fallback(monkeypatch):
+    with TemporaryDirectory() as temp_dir:
+        model_dir = Path(temp_dir)
+        (model_dir / "yolov11m.pt").touch()
+        dummy_model = object()
+
+        monkeypatch.setattr(main_module, "MODELS_DIR", model_dir)
+        monkeypatch.setattr(main_module, "YOLO", lambda path: dummy_model)
+
+        model, model_id, model_name = get_yolo_model("yolov8m")
+
+        assert model is dummy_model
+        assert model_id == "yolov11m"
+        assert model_name == "YOLOv11 Medium"
+
+
+def test_raises_when_no_weights_exist(monkeypatch):
+    with TemporaryDirectory() as temp_dir:
+        monkeypatch.setattr(main_module, "MODELS_DIR", Path(temp_dir))
+        with pytest.raises(ModelWeightsUnavailable):
+            get_yolo_model("yolov11m")
