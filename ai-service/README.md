@@ -9,7 +9,7 @@ The **ai-service** component is a stateless microservice responsible for real-ti
 - **Multi-Model Inference & Dynamic Fallback**: Supports YOLOv11 Medium (`yolov11m`), YOLOv26 Small (`yolov26s`), and YOLOv8 Medium (`yolov8m`) with thread-safe lazy model caching and automated fallback mechanisms.
 - **FastAPI Lifespan Warm-Up**: Pre-warms active default models on service startup to eliminate cold-start latency.
 - **Pydantic Validation**: Strictly typed request/response schemas for `/detect`, `/models`, and `/health` endpoints.
-- **Pollution Scoring**: Calculates a normalized pollution score (0–100) and severity classification (`Low`, `Moderate`, `High`, `Severe`) based on waste density and category weights (`severity.py`).
+- **Pollution Scoring**: Calculates an unbounded weighted pollution score and severity classification (`Low`, `Moderate`, `High`, `Severe`). Each detected bag, wrapper, bottle, can, and unknown item contributes 5, 3, 2, 2, and 1 point respectively (`severity.py`).
 - **Stateless Execution**: Operates purely in-memory; returns JSON inference results without direct database or storage dependencies.
 
 ---

@@ -17,10 +17,11 @@ const supabase = createClient(supabaseUrl, supabaseSecretKey);
 // Severity weights matching ai-service/severity.py
 const WEIGHTS = {
   bottle: 2.0,
-  can: 1.5,
-  bag: 3.0,
-  wrapper: 1.0,
+  can: 2.0,
+  bag: 5.0,
+  wrapper: 3.0,
 };
+const UNKNOWN_ITEM_WEIGHT = 1.0;
 
 const SEVERITY_THRESHOLDS = [
   { max: 10.0, label: "Low" },
@@ -35,7 +36,7 @@ function computeScore(detections) {
   }
   const total_waste = Object.values(detections).reduce((sum, c) => sum + Math.max(0, c), 0);
   const raw_score = Object.entries(detections).reduce((sum, [type, count]) => {
-    const w = WEIGHTS[type.toLowerCase().trim()] || 1.0;
+    const w = WEIGHTS[type.toLowerCase().trim()] ?? UNKNOWN_ITEM_WEIGHT;
     return sum + w * Math.max(0, count);
   }, 0);
   const pollution_score = Math.round(raw_score);

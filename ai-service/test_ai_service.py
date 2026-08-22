@@ -26,35 +26,35 @@ class TestSeverityScoring(unittest.TestCase):
         self.assertEqual(severity, "Low")
 
     def test_low_severity(self):
-        # bottle (2.0 * 2 = 4.0), can (1.5 * 1 = 1.5) => raw 5.5 => rounded 6 => Low (<=10)
+        # bottle (2.0 * 2 = 4), can (2.0 * 1 = 2) => score 6 => Low (<=10)
         total, score, severity = compute_score({"bottle": 2, "can": 1})
         self.assertEqual(total, 3)
         self.assertEqual(score, 6)
         self.assertEqual(severity, "Low")
 
     def test_moderate_severity(self):
-        # bottle (2.0 * 5 = 10), bag (3.0 * 5 = 15) => raw 25 => Moderate (11-30)
-        total, score, severity = compute_score({"bottle": 5, "bag": 5})
-        self.assertEqual(total, 10)
-        self.assertEqual(score, 25)
+        # bag (5.0 * 4 = 20), wrapper (3.0 * 2 = 6) => score 26 => Moderate (11-30)
+        total, score, severity = compute_score({"bag": 4, "wrapper": 2})
+        self.assertEqual(total, 6)
+        self.assertEqual(score, 26)
         self.assertEqual(severity, "Moderate")
 
     def test_high_severity(self):
-        # bag (3.0 * 15 = 45) => High (31-60)
-        total, score, severity = compute_score({"bag": 15})
-        self.assertEqual(total, 15)
-        self.assertEqual(score, 45)
+        # bag (5.0 * 10 = 50) => High (31-60)
+        total, score, severity = compute_score({"bag": 10})
+        self.assertEqual(total, 10)
+        self.assertEqual(score, 50)
         self.assertEqual(severity, "High")
 
     def test_severe_severity(self):
-        # bag (3.0 * 30 = 90) => Severe (>60)
-        total, score, severity = compute_score({"bag": 30})
-        self.assertEqual(total, 30)
-        self.assertEqual(score, 90)
+        # bag (5.0 * 13 = 65) => Severe (>60)
+        total, score, severity = compute_score({"bag": 13})
+        self.assertEqual(total, 13)
+        self.assertEqual(score, 65)
         self.assertEqual(severity, "Severe")
 
     def test_unknown_waste_category_fallback(self):
-        # unknown_item uses default weight 1.0
+        # Unknown categories use the conservative default weight of 1.0.
         total, score, severity = compute_score({"plastic_chair": 5})
         self.assertEqual(total, 5)
         self.assertEqual(score, 5)
