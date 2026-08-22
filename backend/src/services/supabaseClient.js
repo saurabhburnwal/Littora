@@ -368,46 +368,115 @@ export async function getStats(userId = null) {
     }
   }
 
-  const locations = data
-    .filter((r) => r.latitude != null && r.longitude != null)
-    .map((r) => {
-      const detMap = {};
-      if (r.detections_map && typeof r.detections_map === "object") {
-        Object.entries(r.detections_map).forEach(([type, count]) => {
-          detMap[type.toLowerCase()] = Number(count || 1);
-        });
-      } else if (Array.isArray(r.detections)) {
-        r.detections.forEach((d) => {
-          if (d && d.waste_type) {
-            const type = d.waste_type.toLowerCase();
-            detMap[type] = (detMap[type] || 0) + Number(d.count || 1);
-          }
-        });
-      }
+  // Helper to extract beach, city, country from location_label (e.g. "Whitehaven Beach, Whitsundays, Australia")
+  const parseLocationLabel = (label = "") => {
+    const parts = label.split(",").map((p) => p.trim()).filter(Boolean);
+    const beach = parts[0] || "Coastal Site";
+    const city = parts.length > 2 ? parts[1] : parts.length === 2 ? parts[1] : "";
+    const country = parts.length > 2 ? parts[2] : parts.length === 2 ? parts[1] : "Coastal Region";
+    return { beach, city, country };
+  };
 
-      const labelParts = (r.location_label || "").split(",");
-      const beachName  = labelParts[0]?.trim() || "Coastal Site";
-      const cityName   = labelParts[1]?.trim() || "";
+  const SEV_RANK = { low: 0, moderate: 1, high: 2, severe: 3 };
 
-      return {
-        id:              r.id,
+  // Group all analyses by their location_id (or lat,lng) so multiple detections per beach are combined
+  const locationGroupMap = new Map();
+
+  for (const r of data) {
+    if (r.latitude == null || r.longitude == null) continue;
+    const key = r.location_id || `${Number(r.latitude).toFixed(4)},${Number(r.longitude).toFixed(4)}`;
+    const { beach, city, country } = parseLocationLabel(r.location_label);
+    const rowSev = formatSev(r.severity);
+    const rowScore = Number(r.pollution_score || 0);
+    const rowWaste = Number(r.total_waste || 0);
+
+    if (!locationGroupMap.has(key)) {
+      locationGroupMap.set(key, {
+        id:              r.location_id || r.id,
+        location_id:     r.location_id,
         latitude:        r.latitude,
         longitude:       r.longitude,
         location_label:  r.location_label,
         locationLabel:   r.location_label,
-        beach:           beachName,
-        city:            cityName,
-        country:         "India",
-        pollution_score: Number(r.pollution_score || 0),
-        pollutionScore:  Number(r.pollution_score || 0),
-        severity:        formatSev(r.severity),
+        beach,
+        city,
+        country,
+        pollution_scores: [],
+        total_waste:     0,
+        severity:        rowSev,
         created_at:      r.created_at,
-        total_waste:     Number(r.total_waste || 0),
-        totalWaste:      Number(r.total_waste || 0),
         image_url:       r.image_url,
-        detections:      detMap,
-      };
+        detections:      {},
+        scan_count:      0,
+        scans:           [],
+      });
+    }
+
+    const group = locationGroupMap.get(key);
+    group.total_waste += rowWaste;
+    group.pollution_scores.push(rowScore);
+    group.scan_count += 1;
+    if (new Date(r.created_at) >= new Date(group.created_at)) {
+      group.image_url = r.image_url;
+      group.created_at = r.created_at;
+    }
+
+    if (r.detections_map && typeof r.detections_map === "object") {
+      Object.entries(r.detections_map).forEach(([type, count]) => {
+        const k = type.toLowerCase();
+        group.detections[k] = (group.detections[k] || 0) + Number(count || 1);
+      });
+    } else if (Array.isArray(r.detections)) {
+      r.detections.forEach((d) => {
+        if (d && d.waste_type) {
+          const k = d.waste_type.toLowerCase();
+          group.detections[k] = (group.detections[k] || 0) + Number(d.count || 1);
+        }
+      });
+    }
+
+    const currentRank = SEV_RANK[group.severity.toLowerCase()] ?? 0;
+    const newRank = SEV_RANK[rowSev.toLowerCase()] ?? 0;
+    if (newRank > currentRank) {
+      group.severity = rowSev;
+    }
+
+    group.scans.push({
+      id: r.id,
+      created_at: r.created_at,
+      severity: rowSev,
+      pollution_score: rowScore,
+      total_waste: rowWaste,
+      image_url: r.image_url,
     });
+  }
+
+  const locations = Array.from(locationGroupMap.values()).map((g) => {
+    const avgScore = g.pollution_scores.length
+      ? Math.round(g.pollution_scores.reduce((sum, s) => sum + s, 0) / g.pollution_scores.length)
+      : 0;
+    return {
+      id:              g.id,
+      location_id:     g.location_id,
+      latitude:        g.latitude,
+      longitude:       g.longitude,
+      location_label:  g.location_label,
+      locationLabel:   g.location_label,
+      beach:           g.beach,
+      city:            g.city,
+      country:         g.country,
+      pollution_score: avgScore,
+      pollutionScore:  avgScore,
+      severity:        g.severity,
+      created_at:      g.created_at,
+      total_waste:     g.total_waste,
+      totalWaste:      g.total_waste,
+      image_url:       g.image_url,
+      detections:      g.detections,
+      scan_count:      g.scan_count,
+      scans:           g.scans,
+    };
+  });
 
   // Reverse to newest-first for the history table
   const history = data.map(formatAnalysisRow).reverse();
@@ -420,16 +489,17 @@ export async function getStats(userId = null) {
 
   // If user has no scan locations yet, populate map locations from locationsCatalog so map and cleanup page render beach hotspots
   const displayLocations = locations.length > 0 ? locations : locationsCatalog.map((loc) => {
-    const labelParts = (loc.location_label || "").split(",");
+    const { beach, city, country } = parseLocationLabel(loc.location_label);
     return {
       id:              loc.id,
+      location_id:     loc.id,
       latitude:        loc.latitude,
       longitude:       loc.longitude,
       location_label:  loc.location_label,
       locationLabel:   loc.location_label,
-      beach:           labelParts[0]?.trim() || "Coastal Site",
-      city:            labelParts[1]?.trim() || "",
-      country:         "India",
+      beach,
+      city,
+      country,
       pollution_score: 15,
       pollutionScore:  15,
       severity:        "Low",
@@ -437,6 +507,8 @@ export async function getStats(userId = null) {
       total_waste:     0,
       totalWaste:      0,
       detections:      {},
+      scan_count:      0,
+      scans:           [],
     };
   });
 

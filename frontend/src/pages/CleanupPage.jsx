@@ -11,30 +11,39 @@ export default function CleanupPage() {
       return [];
     }
 
-    return stats.locations.map((loc) => {
+    const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+
+    const list = stats.locations.map((loc) => {
       const totalWaste = loc.total_waste ?? loc.totalWaste ?? loc.wasteCount ?? 0;
       const score = loc.pollution_score ?? loc.pollutionScore ?? totalWaste;
       const normSev = normalizeSeverity(loc.severity || score);
+      const scanCount = loc.scan_count || loc.scanCount || (loc.scans ? loc.scans.length : 1);
 
       let priority = "low";
       let action = "Awareness campaign for local visitors and regular beach checks.";
-      let reason = `Low waste accumulation (${totalWaste} items). Preventive maintenance recommended.`;
+      let reason = scanCount > 1
+        ? `Aggregated across ${scanCount} scans (${totalWaste} total items). Low accumulation rate.`
+        : `Low waste accumulation (${totalWaste} items). Preventive maintenance recommended.`;
       let estimate = { volunteers: "5-8", time: "2 hours" };
 
       if (normSev === "Severe" || normSev === "High") {
         priority = "high";
         action = "Organize urgent cleanup drive within 48 hours & deploy waste bins.";
-        reason = `Critical pollution score detected (${score} pts). Immediate action required.`;
-        estimate = { volunteers: "20-30", time: "4 hours" };
+        reason = scanCount > 1
+          ? `High pollution alert across ${scanCount} scans (${totalWaste} items, avg ${score} pts). Immediate intervention required.`
+          : `Critical pollution score detected (${score} pts). Immediate action required.`;
+        estimate = { volunteers: totalWaste > 20 ? "25-40" : "15-25", time: "4 hours" };
       } else if (normSev === "Moderate") {
         priority = "medium";
         action = "Schedule bi-weekly community monitoring and collection drives.";
-        reason = `Moderate waste accumulation (${totalWaste} items). Upward pollution trend observed.`;
+        reason = scanCount > 1
+          ? `Moderate accumulation across ${scanCount} scans (${totalWaste} items). Upward trend observed.`
+          : `Moderate waste accumulation (${totalWaste} items). Upward pollution trend observed.`;
         estimate = { volunteers: "10-15", time: "3 hours" };
       }
 
       const displayBeach = loc.beach || (loc.location_label || loc.locationLabel || "").split(",")[0]?.trim() || "Coastal Site";
-      const displayLocation = loc.location_label || loc.locationLabel || (loc.city ? `${loc.city}, India` : "Coastal Region");
+      const displayLocation = loc.location_label || loc.locationLabel || [loc.city, loc.country].filter(Boolean).join(", ") || "Coastal Region";
 
       return {
         beach: displayBeach,
@@ -44,8 +53,14 @@ export default function CleanupPage() {
         reason,
         estimate,
         totalWaste,
+        score,
+        scanCount,
+        severity: normSev,
       };
     });
+
+    // Sort by priority (High -> Medium -> Low), then highest waste count
+    return list.sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2) || b.totalWaste - a.totalWaste);
   }, [stats?.locations]);
 
   const upcomingCleanups = useMemo(() => {
@@ -121,7 +136,21 @@ export default function CleanupPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-                      <div style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--ink)" }}>{r.beach}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                        <span style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--ink)" }}>{r.beach}</span>
+                        {r.scanCount > 1 && (
+                          <span style={{
+                            fontSize: "0.68rem",
+                            background: "rgba(47, 111, 94, 0.1)",
+                            color: "var(--teal)",
+                            padding: "0.1rem 0.45rem",
+                            borderRadius: "12px",
+                            fontWeight: 600,
+                          }}>
+                            {r.scanCount} scans combined
+                          </span>
+                        )}
+                      </div>
                       <span className={`cleanup-priority priority-${r.priority}`}>
                         {r.priority.charAt(0).toUpperCase() + r.priority.slice(1)} Priority
                       </span>

@@ -11,6 +11,11 @@ __pycache__/
 *.pyc
 venv/
 .venv/
+**/venv
+**/venv/
+**/.venv/
+ai-service/venv/
+ai-service/venv
 *.egg-info/
 
 # Environment files

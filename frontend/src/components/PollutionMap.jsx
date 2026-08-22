@@ -38,8 +38,8 @@ const TILE_LAYERS = {
   },
 };
 
-const DEFAULT_CENTER = [20.5937, 78.9629];
-const DEFAULT_ZOOM   = 4;
+const DEFAULT_CENTER = [15.0, 10.0];
+const DEFAULT_ZOOM   = 2;
 
 
 /**
