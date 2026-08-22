@@ -413,6 +413,7 @@ export async function getStats(userId = null) {
         created_at:      r.created_at,
         image_url:       r.image_url,
         detections:      {},
+        boxes:           r.boxes || [],
         scan_count:      0,
         scans:           [],
       });
@@ -424,6 +425,7 @@ export async function getStats(userId = null) {
     group.scan_count += 1;
     if (new Date(r.created_at) >= new Date(group.created_at)) {
       group.image_url = r.image_url;
+      group.boxes = r.boxes || [];
       group.created_at = r.created_at;
     }
 
@@ -454,6 +456,7 @@ export async function getStats(userId = null) {
       pollution_score: rowScore,
       total_waste: rowWaste,
       image_url: r.image_url,
+      boxes: r.boxes || [],
     });
   }
 
@@ -479,6 +482,7 @@ export async function getStats(userId = null) {
       totalWaste:      g.total_waste,
       image_url:       g.image_url,
       detections:      g.detections,
+      boxes:           g.boxes || [],
       scan_count:      g.scan_count,
       scans:           g.scans,
     };
