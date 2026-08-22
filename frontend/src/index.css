@@ -2071,11 +2071,32 @@ button {
   to   { transform: translateY(0);    opacity: 1; }
 }
 
+.modal-img-container {
+  position: relative;
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-img-full {
+  width: 100%;
+  height: auto;
+  max-height: 60vh;
+  object-fit: contain;
+  display: block;
+  background: var(--bg-card);
+  transition: opacity 0.2s ease;
+}
+
 .modal-img {
   width: 100%;
-  min-height: 220px;
-  max-height: 340px;
-  object-fit: cover;
+  height: auto;
+  max-height: 60vh;
+  object-fit: contain;
   background: var(--bg-card);
   border-radius: 18px 18px 0 0;
   display: block;

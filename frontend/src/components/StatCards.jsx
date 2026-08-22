@@ -47,7 +47,7 @@ export default function StatCards({
           <span className="stat-card-label">Pollution Severity Index</span>
           <ShieldCheck size={20} className="stat-card-icon" color="var(--rose)" />
         </div>
-        <span className="stat-card-value">{avgScore}/100</span>
+        <span className="stat-card-value">{avgScore}</span>
         <div className="stat-card-delta positive">
           <span>Mean Risk Score</span>
         </div>

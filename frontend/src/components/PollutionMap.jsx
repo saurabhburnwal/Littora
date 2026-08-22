@@ -5,6 +5,7 @@ import { Layers, Filter, MapPin, AlertCircle, Compass, Search, Calendar, X, Eye 
 import { useTheme } from "../context/ThemeContext.jsx";
 import { StatsContext } from "../context/StatsContext.jsx";
 import ResultPanel from "./ResultPanel.jsx";
+import BoundingBoxImage from "./BoundingBoxImage.jsx";
 import { normalizeSeverity, toResultShape } from "../utils/wasteUtils.js";
 import "leaflet/dist/leaflet.css";
 
@@ -303,7 +304,7 @@ export default function PollutionMap({ locations: locationsProp }) {
             </div>
             <div className="map-stat-item">
               <Compass size={13} style={{ color: "#d97706" }} />
-              <span>Peak Score: <strong>{maxScore}</strong>/100</span>
+              <span>Peak Score: <strong>{maxScore}</strong></span>
             </div>
           </div>
 
@@ -397,7 +398,7 @@ export default function PollutionMap({ locations: locationsProp }) {
                               <span>Waste Items:</span> <strong>{loc.total_waste || 0}</strong>
                             </div>
                             <div className="map-popup-stat-pill">
-                              <span>Pollution Score:</span> <strong>{loc.pollution_score || 0}</strong>/100
+                              <span>Pollution Score:</span> <strong>{loc.pollution_score || 0}</strong>
                             </div>
                           </div>
 
@@ -458,14 +459,11 @@ export default function PollutionMap({ locations: locationsProp }) {
               <X size={16} />
             </button>
 
-            {selectedModalLoc.image_url && (
-              <img
-                src={selectedModalLoc.image_url}
-                alt="Full-size beach analysis"
-                className="modal-img"
-                decoding="async"
-              />
-            )}
+            <BoundingBoxImage
+              src={selectedModalLoc.image_url}
+              alt="Full-size beach analysis"
+              boxes={selectedModalLoc.boxes || []}
+            />
 
             <div className="modal-body">
               <ResultPanel result={toResultShape(selectedModalLoc)} />

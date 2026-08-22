@@ -92,12 +92,13 @@ export function normalizeDetections(rawDetections) {
  * Converts any raw analysis/location object into standard result shape expected by ResultPanel component
  */
 export function toResultShape(item) {
-  if (!item) return { detections: {}, total_waste: 0, pollution_score: 0, severity: "Low" };
+  if (!item) return { detections: {}, total_waste: 0, pollution_score: 0, severity: "Low", boxes: [] };
   return {
     ...item,
     detections: normalizeDetections(item.detections),
     total_waste: item.total_waste ?? 0,
     pollution_score: item.pollution_score ?? 0,
     severity: normalizeSeverity(item.severity),
+    boxes: item.boxes || [],
   };
 }

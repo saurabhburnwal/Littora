@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { User, Trash2, Loader2, X } from "lucide-react";
 import ResultPanel from "./ResultPanel.jsx";
+import BoundingBoxImage from "./BoundingBoxImage.jsx";
 import { toResultShape } from "../utils/wasteUtils.js";
 
 export default function PhotoGallery({ items, showUser = false, onDeleteRequest, deletingId }) {
@@ -111,14 +112,11 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
               <X size={16} />
             </button>
 
-            {modalItem.image_url && (
-              <img
-                src={modalItem.image_url}
-                alt="Full-size beach analysis"
-                className="modal-img"
-                decoding="async"
-              />
-            )}
+            <BoundingBoxImage
+              src={modalItem.image_url}
+              alt="Full-size beach analysis"
+              boxes={modalItem.boxes || []}
+            />
 
             <div className="modal-body">
               {showUser && (modalItem.user_name || modalItem.user_email || modalItem.user_id) && (

@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useContext } from "react";
 import { Download, Eye, Trash2, Loader2, X, User } from "lucide-react";
 import ResultPanel from "./ResultPanel.jsx";
+import BoundingBoxImage from "./BoundingBoxImage.jsx";
 import { SettingsContext } from "../context/SettingsContext.jsx";
 import { toResultShape, formatWasteType } from "../utils/wasteUtils.js";
 
@@ -246,14 +247,11 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
               <X size={16} />
             </button>
 
-            {selectedRow.image_url && (
-              <img
-                src={selectedRow.image_url}
-                alt="Full-size beach analysis"
-                className="modal-img"
-                decoding="async"
-              />
-            )}
+            <BoundingBoxImage
+              src={selectedRow.image_url}
+              alt="Full-size beach analysis"
+              boxes={selectedRow.boxes || []}
+            />
 
             <div className="modal-body">
               {showUser && (selectedRow.user_name || selectedRow.user_email || selectedRow.user_id) && (

@@ -55,6 +55,7 @@ export async function saveAnalysis({
   pollutionScore,
   severity,
   detections,
+  boxes,
   latitude,
   longitude,
   locationLabel,
@@ -83,17 +84,22 @@ export async function saveAnalysis({
   }
 
   // 2. Insert analysis row — only location_id, no raw coordinate columns (5NF)
+  const insertPayload = {
+    image_url:       imageUrl,
+    total_waste:     totalWaste,
+    pollution_score: pollutionScore,
+    severity,
+    user_id:         userId      ?? null,
+    model_used:      activeModelId || null,
+    location_id:     locationId,
+  };
+  if (boxes && Array.isArray(boxes)) {
+    insertPayload.boxes = boxes;
+  }
+
   const { data: analysis, error: analysisError } = await supabase
     .from("analyses")
-    .insert({
-      image_url:       imageUrl,
-      total_waste:     totalWaste,
-      pollution_score: pollutionScore,
-      severity,
-      user_id:         userId      ?? null,
-      model_used:      activeModelId || null,
-      location_id:     locationId,
-    })
+    .insert(insertPayload)
     .select()
     .single();
 
