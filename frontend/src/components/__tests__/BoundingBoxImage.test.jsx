@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import BoundingBoxImage from "../BoundingBoxImage.jsx";
 
 describe("BoundingBoxImage component", () => {
@@ -15,6 +15,7 @@ describe("BoundingBoxImage component", () => {
     expect(img).toHaveAttribute("src", "https://example.com/beach.jpg");
     expect(img).toHaveClass("modal-img-full");
     expect(document.querySelector(".bbox-overlay-layer")).toBeNull();
+    expect(document.querySelector(".bbox-filter-toolbar")).toBeNull();
   });
 
   it("renders bounding box overlays when boxes array is provided", () => {
@@ -47,6 +48,79 @@ describe("BoundingBoxImage component", () => {
 
     expect(screen.getByText(/bottle 94%/i)).toBeInTheDocument();
     expect(screen.getByText(/can 88%/i)).toBeInTheDocument();
+    expect(document.querySelector(".bbox-filter-toolbar")).toBeInTheDocument();
+  });
+
+  it("toggles category visibility when clicking category chips", () => {
+    const mockBoxes = [
+      {
+        class_name: "bottle",
+        confidence: 0.9,
+        box_normalized: [0.1, 0.2, 0.3, 0.4],
+      },
+      {
+        class_name: "bag",
+        confidence: 0.85,
+        box_normalized: [0.5, 0.6, 0.8, 0.9],
+      },
+    ];
+
+    render(
+      <BoundingBoxImage
+        src="https://example.com/beach.jpg"
+        alt="Multi-category test"
+        boxes={mockBoxes}
+      />
+    );
+
+    expect(document.querySelectorAll(".bbox-box")).toHaveLength(2);
+
+    // Click "Bottle" chip to hide bottles
+    const bottleChip = screen.getByTitle(/hide bottle detections/i);
+    fireEvent.click(bottleChip);
+
+    expect(document.querySelectorAll(".bbox-box")).toHaveLength(1);
+    expect(screen.queryByText(/bottle 90%/i)).toBeNull();
+    expect(screen.getByText(/bag 85%/i)).toBeInTheDocument();
+
+    // Click again to show bottles
+    fireEvent.click(bottleChip);
+    expect(document.querySelectorAll(".bbox-box")).toHaveLength(2);
+  });
+
+  it("filters boxes when adjusting confidence threshold slider", () => {
+    const mockBoxes = [
+      {
+        class_name: "bottle",
+        confidence: 0.30,
+        box_normalized: [0.1, 0.2, 0.3, 0.4],
+      },
+      {
+        class_name: "can",
+        confidence: 0.80,
+        box_normalized: [0.5, 0.6, 0.8, 0.9],
+      },
+    ];
+
+    render(
+      <BoundingBoxImage
+        src="https://example.com/beach.jpg"
+        alt="Confidence slider test"
+        boxes={mockBoxes}
+      />
+    );
+
+    // Initial default threshold is 25%, so both boxes (30% and 80%) show
+    expect(document.querySelectorAll(".bbox-box")).toHaveLength(2);
+
+    // Change confidence threshold to 50%
+    const slider = screen.getByLabelText(/minimum detection confidence/i);
+    fireEvent.change(slider, { target: { value: "50" } });
+
+    // Now only the 80% can box should be visible
+    expect(document.querySelectorAll(".bbox-box")).toHaveLength(1);
+    expect(screen.getByText(/can 80%/i)).toBeInTheDocument();
+    expect(screen.queryByText(/bottle 30%/i)).toBeNull();
   });
 
   it("filters out invalid bounding boxes gracefully", () => {

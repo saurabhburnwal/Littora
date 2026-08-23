@@ -2071,6 +2071,79 @@ button {
   to   { transform: translateY(0);    opacity: 1; }
 }
 
+.bbox-interactive-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.bbox-filter-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.bbox-filter-conf {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+
+.bbox-filter-conf input[type="range"] {
+  width: 90px;
+  height: 4px;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
+.bbox-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bbox-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--chip-color, var(--teal));
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.bbox-chip:hover {
+  transform: translateY(-1px);
+}
+
+.bbox-chip--off {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.bbox-chip-count {
+  font-size: 0.66rem;
+  opacity: 0.8;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
 .modal-img-container {
   position: relative;
   width: 100%;

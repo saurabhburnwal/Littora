@@ -13,6 +13,7 @@ import myAnalysesRouter from "./routes/myAnalyses.js";
 import adminRouter      from "./routes/admin.js";
 import emailRouter      from "./routes/email.js";
 import modelRouter      from "./routes/model.js";
+import datasetRouter    from "./routes/dataset.js";
 
 const app = express();
 
@@ -55,6 +56,9 @@ app.use("/api/email",        emailRouter);
 
 // GET /api/model, POST /api/model — active AI model configuration
 app.use("/api/model",        modelRouter);
+
+// GET /api/dataset.geojson, GET /api/dataset.csv — dataset export endpoints (auth-gated)
+app.use("/api",              datasetRouter);
 
 // 404 Catch-All Handler
 app.use((_req, res) => {

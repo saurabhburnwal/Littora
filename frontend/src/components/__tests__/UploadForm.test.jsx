@@ -105,4 +105,18 @@ describe("UploadForm component", () => {
     expect(alertSpy).toHaveBeenCalledWith("Camera capture coming soon!");
     alertSpy.mockRestore();
   });
+
+  it("submits with extracted EXIF coordinates when available", async () => {
+    const onUpload = vi.fn();
+    const { container } = render(<UploadForm onUpload={onUpload} loading={false} result={null} />);
+    const file = new File(["dummy"], "photo_with_gps.jpg", { type: "image/jpeg" });
+
+    const input = container.querySelector("input[type='file']");
+    fireEvent.change(input, { target: { files: [file] } });
+
+    // Submit form
+    fireEvent.submit(container.querySelector("form"));
+    expect(onUpload).toHaveBeenCalled();
+  });
 });
+

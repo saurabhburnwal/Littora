@@ -1,75 +1,122 @@
 import { useState, useMemo } from "react";
-import { Download, Search, Filter, Database } from "lucide-react";
+import axios from "axios";
+import { Download, Search, Filter, Database, MapPin, FileSpreadsheet } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
 export default function DatasetPage() {
   const { stats } = useStats();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, getToken } = useAuth();
   const [search, setSearch] = useState("");
   const [formatFilter, setFormatFilter] = useState("ALL");
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const datasets = useMemo(() => {
     const userRecordsCount = stats.totalAnalyses || 0;
     const userEmail = user?.email || "user";
 
+    const baseList = [
+      {
+        id: "geojson-export",
+        name: "Coastal Debris GeoJSON Map Points",
+        records: userRecordsCount,
+        size: `${Math.max(0.1, userRecordsCount * 0.18).toFixed(1)} MB`,
+        format: "GEOJSON",
+        updated: "Live",
+        isServerEndpoint: true,
+        endpoint: "/api/dataset.geojson",
+        filename: "littora_coastal_debris.geojson",
+        description: "GIS FeatureCollection format for QGIS, ArcGIS, and Google Earth.",
+      },
+      {
+        id: "csv-export",
+        name: "Standardized Marine Litter Dataset (CSV)",
+        records: userRecordsCount,
+        size: `${Math.max(0.1, userRecordsCount * 0.12).toFixed(1)} MB`,
+        format: "CSV",
+        updated: "Live",
+        isServerEndpoint: true,
+        endpoint: "/api/dataset.csv",
+        filename: "littora_marine_litter_dataset.csv",
+        description: "Tabular dataset with coordinates, severity metrics, and debris counts.",
+      },
+    ];
+
     if (isAdmin) {
       return [
-        { id: "1", name: "All System Uploads Dataset", records: userRecordsCount, size: `${(userRecordsCount * 0.15).toFixed(1)} MB`, format: "CSV", updated: "Today", isMyData: true },
-        { id: "2", name: "Global Coastal Waste JSON Export", records: userRecordsCount, size: `${(userRecordsCount * 0.22).toFixed(1)} MB`, format: "JSON", updated: "Today", isMyData: true },
-        { id: "3", name: "Public Training Dataset v2", records: 24820, size: "2.1 GB", format: "ZIP", updated: "15 Jun 2026", isMyData: false },
+        ...baseList,
+        { id: "all-json", name: "Global Coastal Waste JSON Export", records: userRecordsCount, size: `${(userRecordsCount * 0.22).toFixed(1)} MB`, format: "JSON", updated: "Today", isServerEndpoint: false, filename: "global_waste_dump.json" },
+        { id: "zip-v2", name: "Public Training Dataset v2", records: 24820, size: "2.1 GB", format: "ZIP", updated: "15 Jun 2026", isServerEndpoint: false, filename: "training_v2.zip" },
       ];
     } else {
       return [
-        { id: "1", name: `My Uploads Dataset (${userEmail})`, records: userRecordsCount, size: `${(userRecordsCount * 0.12).toFixed(1)} MB`, format: "CSV", updated: "Today", isMyData: true },
-        { id: "2", name: `My Detection History Export`, records: userRecordsCount, size: `${(userRecordsCount * 0.18).toFixed(1)} MB`, format: "JSON", updated: "Today", isMyData: true },
+        ...baseList,
+        { id: "my-json", name: `Detection History Export (${userEmail})`, records: userRecordsCount, size: `${(userRecordsCount * 0.18).toFixed(1)} MB`, format: "JSON", updated: "Today", isServerEndpoint: false, filename: "my_history.json" },
       ];
     }
   }, [stats.totalAnalyses, user, isAdmin]);
 
-  const filtered = datasets.filter(d => {
-    const matchesSearch = d.name.toLowerCase().includes(search.toLowerCase());
+  const filtered = datasets.filter((d) => {
+    const matchesSearch = d.name.toLowerCase().includes(search.toLowerCase()) ||
+      (d.description && d.description.toLowerCase().includes(search.toLowerCase()));
     const matchesFormat = formatFilter === "ALL" || d.format === formatFilter;
     return matchesSearch && matchesFormat;
   });
 
-  const handleExport = (dataset) => {
-    let content = "";
-    let mimeType = "text/plain";
-    let extension = "txt";
+  const handleDownload = async (dataset) => {
+    setDownloadingId(dataset.id);
+    try {
+      if (dataset.isServerEndpoint) {
+        const token = await getToken();
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(`${API_BASE}${dataset.endpoint}`, {
+          headers,
+          responseType: "blob",
+        });
 
-    if (dataset.format === "JSON") {
-      content = JSON.stringify({
-        dataset: dataset.name,
-        user: user?.email,
-        exported_at: new Date().toISOString(),
-        total_records: stats.totalAnalyses,
-        total_waste: stats.totalWasteAllTime,
-        history: stats.history || []
-      }, null, 2);
-      mimeType = "application/json";
-      extension = "json";
-    } else {
-      content = `Analysis_ID,Created_At,Total_Waste,Pollution_Score,Severity,Location\n`;
-      (stats.history || []).forEach(row => {
-        content += `"${row.id}","${row.created_at}",${row.total_waste || 0},${row.pollution_score || 0},"${row.severity || 'Low'}","${row.location_label || 'Beach Site'}"\n`;
-      });
-      if (!stats.history || stats.history.length === 0) {
-        content += `Sample_1,"${new Date().toISOString()}",5,12,"Moderate","Sample Beach Zone A"\n`;
+        const blob = new Blob([res.data], {
+          type: res.headers["content-type"] || "application/octet-stream",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = dataset.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        // Fallback local JSON generator
+        const content = JSON.stringify(
+          {
+            dataset: dataset.name,
+            user: user?.email,
+            exported_at: new Date().toISOString(),
+            total_records: stats.totalAnalyses,
+            total_waste: stats.totalWasteAllTime,
+            history: stats.history || [],
+          },
+          null,
+          2
+        );
+        const blob = new Blob([content], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = dataset.filename || "dataset.json";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       }
-      mimeType = "text/csv";
-      extension = "csv";
+    } catch (err) {
+      console.error("Dataset download failed:", err);
+      alert("Failed to download dataset. Please check your connection and login status.");
+    } finally {
+      setDownloadingId(null);
     }
-
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${dataset.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.${extension}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   return (
@@ -77,17 +124,16 @@ export default function DatasetPage() {
       <div className="page-heading">
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <Database size={22} style={{ color: "var(--teal)" }} />
-          <h1 style={{ margin: 0 }}>Dataset Explorer</h1>
+          <h1 style={{ margin: 0 }}>Dataset Explorer &amp; Open Exports</h1>
         </div>
         <p>
           {isAdmin
-            ? "Admin View — Browse and export global system-wide waste datasets."
-            : "Browse and export datasets of your uploaded beach waste detections."
-          }
+            ? "Admin View — Export global coastal research datasets in GeoJSON, CSV, and JSON formats."
+            : "Browse and export research-ready coastal waste datasets with GIS coordinates."}
         </p>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: "flex", gap: "0.65rem", marginBottom: "1.5rem", alignItems: "center", flexWrap: "wrap" }}>
         <div className="search-box">
           <Search size={14} className="search-icon" />
           <input
@@ -95,8 +141,8 @@ export default function DatasetPage() {
             type="text"
             placeholder="Search datasets..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ width: '260px' }}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: "260px" }}
           />
         </div>
 
@@ -105,10 +151,11 @@ export default function DatasetPage() {
           <select
             className="filter-select"
             value={formatFilter}
-            onChange={e => setFormatFilter(e.target.value)}
+            onChange={(e) => setFormatFilter(e.target.value)}
             style={{ padding: "0.4rem 0.8rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--ink)", fontSize: "0.85rem" }}
           >
             <option value="ALL">All Formats</option>
+            <option value="GEOJSON">GeoJSON</option>
             <option value="CSV">CSV</option>
             <option value="JSON">JSON</option>
             <option value="ZIP">ZIP</option>
@@ -124,7 +171,7 @@ export default function DatasetPage() {
               <th>Records</th>
               <th>Size</th>
               <th>Format</th>
-              <th>Last Updated</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -138,23 +185,42 @@ export default function DatasetPage() {
             ) : (
               filtered.map((d) => (
                 <tr key={d.id}>
-                  <td style={{ fontWeight: 500 }}>{d.name}</td>
-                  <td>{d.records.toLocaleString()}</td>
-                  <td style={{ color: 'var(--muted)' }}>{d.size}</td>
                   <td>
-                    <span className="waste-badge waste-plastic" style={{ background: 'var(--sand-dark)', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                      {d.format === "GEOJSON" && <MapPin size={14} style={{ color: "var(--teal)" }} />}
+                      {d.format === "CSV" && <FileSpreadsheet size={14} style={{ color: "#F59E0B" }} />}
+                      <span>{d.name}</span>
+                    </div>
+                    {d.description && (
+                      <div style={{ fontSize: "0.74rem", color: "var(--muted)", marginTop: "2px" }}>
+                        {d.description}
+                      </div>
+                    )}
+                  </td>
+                  <td>{d.records.toLocaleString()}</td>
+                  <td style={{ color: "var(--muted)" }}>{d.size}</td>
+                  <td>
+                    <span
+                      className="waste-badge"
+                      style={{
+                        background: d.format === "GEOJSON" ? "rgba(14, 140, 134, 0.15)" : "var(--sand-dark)",
+                        color: d.format === "GEOJSON" ? "var(--teal)" : "var(--ink)",
+                        fontWeight: 700,
+                      }}
+                    >
                       {d.format}
                     </span>
                   </td>
-                  <td style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>{d.updated}</td>
+                  <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>{d.updated}</td>
                   <td>
                     <button
                       className="export-btn"
-                      style={{ fontSize: '0.73rem', padding: '0.3rem 0.7rem', display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
-                      onClick={() => handleExport(d)}
+                      style={{ fontSize: "0.73rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                      disabled={downloadingId === d.id}
+                      onClick={() => handleDownload(d)}
                     >
-                      <Download size={12} />
-                      Export My Dataset
+                      <Download size={13} />
+                      {downloadingId === d.id ? "Downloading…" : `Export ${d.format}`}
                     </button>
                   </td>
                 </tr>

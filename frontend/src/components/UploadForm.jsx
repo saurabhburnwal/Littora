@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
-import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check } from "lucide-react";
+import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check, Navigation } from "lucide-react";
 import { StatsContext } from "../context/StatsContext.jsx";
+import { extractGPS } from "../utils/extractGPS.js";
 
 import { DEFAULT_AI_MODELS } from "../utils/wasteUtils.js";
 
@@ -33,6 +34,7 @@ export default function UploadForm({
   const [previewUrl,    setPreviewUrl]    = useState(null);
   const [dragging,      setDragging]      = useState(false);
   const [selectedBeach, setSelectedBeach] = useState("auto");
+  const [exifCoords,    setExifCoords]    = useState(null);
   // idle | fetching | granted | denied
   const [locStatus,     setLocStatus]     = useState("idle");
 
@@ -42,12 +44,24 @@ export default function UploadForm({
     availableModels: DEFAULT_AI_MODELS,
   };
 
-  function applyFile(selected) {
+  async function applyFile(selected) {
     if (!selected || !selected.type.startsWith("image/")) return;
     setFile(selected);
     setPreviewUrl(URL.createObjectURL(selected));
     setLocStatus("idle");
+    setExifCoords(null);
     if (onReset) onReset();
+
+    // Silently attempt EXIF GPS extraction
+    try {
+      const gps = await extractGPS(selected);
+      if (gps) {
+        setExifCoords(gps);
+        setSelectedBeach("auto");
+      }
+    } catch (_) {
+      // Non-fatal
+    }
   }
 
   function handleFileChange(e)  { applyFile(e.target.files[0]); }
@@ -63,6 +77,7 @@ export default function UploadForm({
     e.preventDefault();
     if (!file) return;
 
+    // 1. Manual beach selection override
     if (selectedBeach !== "auto") {
       const preset = dbLocations.find((l, idx) => (l.id ? String(l.id) === selectedBeach : `loc_${idx}` === selectedBeach));
       if (preset) {
@@ -75,6 +90,16 @@ export default function UploadForm({
       }
     }
 
+    // 2. EXIF GPS extracted directly from image
+    if (exifCoords) {
+      onUpload(file, {
+        latitude:  exifCoords.latitude,
+        longitude: exifCoords.longitude,
+      });
+      return;
+    }
+
+    // 3. Fallback to device browser geolocation
     if (!navigator.geolocation) {
       onUpload(file, null);
       return;
@@ -257,16 +282,40 @@ export default function UploadForm({
 
       {/* Beach Location Selector */}
       <div className="beach-selector-container" style={{ margin: "0.85rem 0" }}>
-        <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", fontWeight: 600, color: "var(--muted)", marginBottom: "0.35rem" }}>
-          <MapPin size={14} style={{ color: "var(--teal)" }} /> Target Beach Location:
-        </label>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", fontWeight: 600, color: "var(--muted)" }}>
+            <MapPin size={14} style={{ color: "var(--teal)" }} /> Target Beach Location:
+          </label>
+        </div>
+
+        {exifCoords && selectedBeach === "auto" && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.45rem",
+            padding: "0.45rem 0.75rem",
+            borderRadius: "8px",
+            background: "rgba(14, 140, 134, 0.12)",
+            border: "1px solid rgba(14, 140, 134, 0.3)",
+            color: "var(--teal)",
+            fontSize: "0.76rem",
+            fontWeight: 600,
+            marginBottom: "0.6rem"
+          }}>
+            <Navigation size={13} style={{ flexShrink: 0 }} />
+            <span>Photo EXIF GPS: <strong>{exifCoords.latitude.toFixed(4)}, {exifCoords.longitude.toFixed(4)}</strong></span>
+          </div>
+        )}
+
         <select
           value={selectedBeach}
           onChange={(e) => setSelectedBeach(e.target.value)}
           className="settings-select"
           style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "8px" }}
         >
-          <option value="auto">Device GPS (Auto-detect)</option>
+          <option value="auto">
+            {exifCoords ? "Photo EXIF GPS (Auto-detected)" : "Device GPS (Auto-detect)"}
+          </option>
           {dbLocations.map((item, idx) => {
             const key = item.id ? String(item.id) : `loc_${idx}`;
             const label = item.location_label || item.locationLabel || item.beach || (item.latitude != null && item.longitude != null ? `${item.latitude}, ${item.longitude}` : `Location #${idx + 1}`);
