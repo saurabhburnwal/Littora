@@ -58,5 +58,11 @@ describe("TrendsPage component", () => {
     });
     expect(screen.getByText("Total Waste Items")).toBeInTheDocument();
     expect(screen.getByText("AI Accuracy")).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "All" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Plastic Bottle" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Metal Can" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Plastic Bag" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Food Wrapper" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Glass Bottle" })).not.toBeInTheDocument();
   });
 });

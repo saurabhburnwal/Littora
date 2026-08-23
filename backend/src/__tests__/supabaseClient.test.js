@@ -27,6 +27,7 @@ const {
   deleteAnalysisForUser,
   uploadImage,
   saveAnalysis,
+  getWasteTypesCatalog,
 } = await import("../services/supabaseClient.js");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -157,6 +158,31 @@ describe("saveAnalysis", () => {
       longitude: 72.8,
       locationLabel: "Girgaon Beach",
     })).rejects.toThrow("Detections FK error");
+  });
+
+  it("rejects waste types outside the deployed four-class model", async () => {
+    await expect(saveAnalysis({
+      imageUrl: "https://example.com/a.jpg",
+      totalWaste: 1,
+      pollutionScore: 2,
+      severity: "Low",
+      detections: { glass: 1 },
+    })).rejects.toThrow("Unsupported waste type(s): glass");
+  });
+});
+
+describe("getWasteTypesCatalog", () => {
+  it("returns only active catalog entries", async () => {
+    const activeTypes = [{ id: "bottle", name: "Plastic Bottle" }];
+    const chain = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      order: jest.fn().mockResolvedValue({ data: activeTypes, error: null }),
+    };
+    mockFrom.mockReturnValue(chain);
+
+    await expect(getWasteTypesCatalog()).resolves.toEqual(activeTypes);
+    expect(chain.eq).toHaveBeenCalledWith("is_active", true);
   });
 });
 

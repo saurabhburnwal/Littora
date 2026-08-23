@@ -6,7 +6,7 @@ import {
   ResponsiveContainer, CartesianGrid
 } from "recharts";
 import { TrendingUp, Trash2, ImageIcon, Target } from "lucide-react";
-import { formatWasteType } from "../utils/wasteUtils.js";
+import { formatWasteType, SUPPORTED_WASTE_TYPES } from "../utils/wasteUtils.js";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOURS = ["12 AM", "4 AM", "8 AM", "12 PM", "4 PM", "8 PM"];
@@ -67,18 +67,14 @@ export default function TrendsPage() {
 
   // Dynamic waste category list from database
   const wasteTypeOptions = useMemo(() => {
-    if (Array.isArray(stats.wasteTypesCatalog) && stats.wasteTypesCatalog.length > 0) {
-      return stats.wasteTypesCatalog.map((w) => ({
-        id: w.id,
-        name: w.name || formatWasteType(w.id),
-      }));
-    }
-    const aggregateKeys = Object.keys(stats.aggregateDetections || {});
-    return aggregateKeys.map((key) => ({
-      id: key,
-      name: formatWasteType(key),
-    }));
-  }, [stats.wasteTypesCatalog, stats.aggregateDetections]);
+    const catalogById = new Map(
+      (stats.wasteTypesCatalog || []).map((w) => [String(w.id).toLowerCase(), w])
+    );
+    return SUPPORTED_WASTE_TYPES.map((id) => {
+      const catalogItem = catalogById.get(id);
+      return { id, name: catalogItem?.name || formatWasteType(id) };
+    });
+  }, [stats.wasteTypesCatalog]);
 
   // Dynamic history filtering based on active dropdown criteria
   const filteredHistory = useMemo(() => {
@@ -236,7 +232,7 @@ export default function TrendsPage() {
             <div className="filter-group">
               <label className="filter-label">Waste Type</label>
               <select value={wasteType} onChange={e => setWasteType(e.target.value)} className="filter-select">
-                <option value="all">All Categories</option>
+                <option value="all">All</option>
                 {wasteTypeOptions.map((w) => (
                   <option key={w.id} value={w.id}>{w.name}</option>
                 ))}

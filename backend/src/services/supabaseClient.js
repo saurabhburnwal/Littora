@@ -22,6 +22,7 @@ export const supabase = createClient(supabaseUrl, supabaseSecretKey, {
 });
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "beach-waste-images";
+export const SUPPORTED_WASTE_TYPES = new Set(["bottle", "can", "bag", "wrapper"]);
 
 /**
  * Uploads an image buffer to Supabase Storage and returns its public URL.
@@ -62,6 +63,13 @@ export async function saveAnalysis({
   userId,
   modelUsed,
 }) {
+  const unsupportedWasteTypes = Object.keys(detections || {}).filter(
+    (wasteType) => !SUPPORTED_WASTE_TYPES.has(String(wasteType).toLowerCase())
+  );
+  if (unsupportedWasteTypes.length > 0) {
+    throw new Error(`Unsupported waste type(s): ${unsupportedWasteTypes.join(", ")}`);
+  }
+
   const activeModelId = modelUsed || (await getActiveSystemModel());
 
   // 1. Resolve location_id — upsert into locations if coordinates are provided
@@ -108,7 +116,7 @@ export async function saveAnalysis({
   // 3. Insert child detections rows
   const detectionRows = Object.entries(detections).map(([wasteType, count]) => ({
     analysis_id: analysis.id,
-    waste_type:  wasteType,
+    waste_type:  String(wasteType).toLowerCase(),
     count,
   }));
 
@@ -543,6 +551,7 @@ export async function getWasteTypesCatalog() {
     const { data, error } = await supabase
       .from("waste_types")
       .select("id, name, category, is_recyclable, color_hex")
+      .eq("is_active", true)
       .order("category", { ascending: true });
 
     if (error || !data) return [];
@@ -640,4 +649,3 @@ export async function setActiveSystemModel(modelId) {
 
   return modelId;
 }
-

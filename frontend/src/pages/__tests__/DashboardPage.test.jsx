@@ -56,6 +56,9 @@ describe("DashboardPage component", () => {
     expect(screen.getByText(/Smart Detection/i)).toBeInTheDocument();
     expect(screen.getByText(/Real-time Analysis/i)).toBeInTheDocument();
     expect(screen.getByText(/Data for Impact/i)).toBeInTheDocument();
+    expect(document.querySelector(".dashboard-light-container")).toHaveStyle({
+      "--dashboard-image": "url(bg.png)",
+    });
   });
 
   it("renders Guest Preview banner when user is not logged in", async () => {

@@ -24,12 +24,12 @@ export default function DashboardPage() {
     :                 "Platform Overview & Preview Analytics";
 
   return (
-    <div className="dashboard-light-container">
+    <div
+      className="dashboard-light-container"
+      style={{ "--dashboard-image": `url(${dashboardBg})` }}
+    >
       {/* ── Hero Banner (Reference Image 1 Aesthetic) ── */}
-      <div
-        className="dashboard-hero-light"
-        style={{ backgroundImage: `url(${dashboardBg})` }}
-      >
+      <div className="dashboard-hero-light">
         <div className="hero-light-overlay">
           <div className="hero-light-main">
             <h1 className="hero-title-light">

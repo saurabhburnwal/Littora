@@ -2,10 +2,12 @@
    LITTORA — Premium Design System v2
    Beach-inspired coastal monitoring dashboard
 ═══════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
 
 :root,
 [data-theme="earth"] {
+  --font-body:          'Inter', system-ui, -apple-system, sans-serif;
+  --font-display:       'Sora', 'Inter', system-ui, sans-serif;
   /* ── Backgrounds ── */
   --bg:                 #F7F2E8;
   --bg-secondary:       #F1E8D8;
@@ -298,7 +300,10 @@
 
 /* Dashboard container & hero — adapt overlay gradient for dark */
 [data-theme="dark"] .dashboard-light-container {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(11, 18, 32, 0.72), rgba(11, 18, 32, 0.82)),
+    var(--dashboard-image);
   color: #ffffff;
 }
 
@@ -679,7 +684,7 @@ body {
 }
 
 .page-heading h1 {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -730,15 +735,19 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f7f2e8;
+  background-color: #f7f2e8;
+  background-image:
+    linear-gradient(rgba(247, 242, 232, 0.68), rgba(247, 242, 232, 0.78)),
+    var(--dashboard-image);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .dashboard-hero-light {
   position: relative;
   min-height: 560px;
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
+  background: transparent;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -765,7 +774,7 @@ body {
 }
 
 .hero-title-light {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 3.6rem;
   font-weight: 800;
   color: #1a241f;
@@ -881,6 +890,20 @@ body {
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
+}
+
+.section-header-badge h2,
+.chart-box h3,
+.result-panel h3,
+.login-heading,
+.admin-modal-title {
+  font-family: var(--font-display);
+}
+
+@media (max-width: 768px) {
+  .dashboard-light-container {
+    background-attachment: scroll;
+  }
 }
 
 .btn-outline {
@@ -3432,4 +3455,3 @@ tbody tr:last-child td { border-bottom: none; }
   .login-panel-side { display: none; }
   .login-card { padding: 2rem 1.5rem; }
 }
-

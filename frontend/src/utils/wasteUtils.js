@@ -7,14 +7,20 @@
 export const DEFAULT_RECYCLABLE_TYPES = new Set([
   "bottle",
   "can",
-  "plastic_bottle",
-  "glass_bottle",
-  "metal_can",
   "aluminum_can",
   "cardboard",
   "paper",
   "glass",
 ]);
+
+export const SUPPORTED_WASTE_TYPES = ["bottle", "can", "bag", "wrapper"];
+
+const WASTE_TYPE_LABELS = {
+  bottle: "Plastic Bottle",
+  can: "Metal Can",
+  bag: "Plastic Bag",
+  wrapper: "Food Wrapper",
+};
 
 // Standard AI model configuration catalog defaults
 export const DEFAULT_AI_MODELS = [
@@ -36,11 +42,12 @@ export function normalizeSeverity(sev) {
 }
 
 /**
- * Formats a raw waste type identifier (e.g. "plastic_bottle") into title case ("Plastic Bottle")
+ * Formats a raw waste type identifier (e.g. "bottle") into its display label ("Plastic Bottle")
  */
 export function formatWasteType(type) {
   if (!type) return "Unknown";
-  return String(type)
+  const normalized = String(type).trim().toLowerCase();
+  return WASTE_TYPE_LABELS[normalized] || normalized
     .replace(/_/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
