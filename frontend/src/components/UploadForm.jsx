@@ -3,18 +3,7 @@ import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check, Navigation } from "l
 import { StatsContext } from "../context/StatsContext.jsx";
 import { extractGPS } from "../utils/extractGPS.js";
 
-import { DEFAULT_AI_MODELS } from "../utils/wasteUtils.js";
-
-const BBOX_COLORS = {
-  bottle:  "#00D4AA",
-  can:     "#F59E0B",
-  bag:     "#A855F7",
-  wrapper: "#F43F5E",
-  glass:   "#38BDF8",
-  foam:    "#EF4444",
-  metal:   "#818CF8",
-  other:   "#9CA3AF",
-};
+import { DEFAULT_AI_MODELS, BBOX_COLORS } from "../utils/wasteUtils.js";
 
 export default function UploadForm({
   onUpload,

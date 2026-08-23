@@ -3,8 +3,9 @@ import axios from "axios";
 import { Download, Search, Filter, Database, MapPin, FileSpreadsheet, ExternalLink } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { API_BASE } from "../utils/wasteUtils.js";
+import { downloadBlob, downloadJson } from "../utils/downloadUtils.js";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 const ROBOFLOW_URL = "https://app.roboflow.com/kuhelis-workspace-kt5yi/littora-beach-waste-1/2";
 
 export default function DatasetPage() {
@@ -116,17 +117,10 @@ export default function DatasetPage() {
         const blob = new Blob([res.data], {
           type: res.headers["content-type"] || "application/octet-stream",
         });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = dataset.filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        downloadBlob(blob, dataset.filename);
       } else {
-        // Fallback local JSON generator
-        const content = JSON.stringify(
+        // Local JSON export
+        downloadJson(
           {
             dataset: dataset.name,
             user: user?.email,
@@ -135,22 +129,11 @@ export default function DatasetPage() {
             total_waste: stats.totalWasteAllTime,
             history: stats.history || [],
           },
-          null,
-          2
+          dataset.filename || "dataset.json"
         );
-        const blob = new Blob([content], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = dataset.filename || "dataset.json";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
       }
     } catch (err) {
       console.error("Dataset download failed:", err);
-      alert("Failed to download dataset. Please check your connection and login status.");
     } finally {
       setDownloadingId(null);
     }
@@ -161,12 +144,10 @@ export default function DatasetPage() {
       <div className="page-heading">
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <Database size={22} style={{ color: "var(--teal)" }} />
-          <h1 style={{ margin: 0 }}>Dataset Explorer &amp; Open Exports</h1>
+          <h1 style={{ margin: 0 }}>Data Explorer</h1>
         </div>
         <p>
-          {isAdmin
-            ? "Admin View — Export global coastal research datasets in GeoJSON, CSV, and Roboflow training packages."
-            : "Browse and export research-ready coastal waste datasets with GIS coordinates and Roboflow training data."}
+          Browse and export research-ready coastal waste datasets with GIS coordinates and Roboflow training data.
         </p>
       </div>
 

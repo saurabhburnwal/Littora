@@ -9,7 +9,7 @@ const router = Router();
  * Requires: Authorization: Bearer <admin-jwt>
  * Returns ALL analyses (all users) for the admin dashboard.
  */
-router.get("/analyses", requireAuth, requireAdmin, async (req, res) => {
+router.get("/analyses", requireAuth, requireAdmin, async (_req, res) => {
   try {
     const analyses = await listAllAnalysesAdmin();
     res.json(analyses);

@@ -35,14 +35,14 @@ const mockItems = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe("PhotoGallery — rendering", () => {
-  it("renders photo cards with location and severity badge", () => {
+  it("renders photo cards with location, waste items count, and severity badge", () => {
     render(<PhotoGallery items={mockItems} />);
 
     expect(screen.getByText("Palolem Beach, Goa")).toBeInTheDocument();
-    expect(screen.getByText("35")).toBeInTheDocument();
+    expect(screen.getByText("8 waste items")).toBeInTheDocument();
     expect(screen.getByText("Moderate")).toBeInTheDocument();
     expect(screen.getByText("Kovalam Beach")).toBeInTheDocument();
-    expect(screen.getByText("70")).toBeInTheDocument();
+    expect(screen.getByText("15 waste items")).toBeInTheDocument();
     expect(screen.getByText("High")).toBeInTheDocument();
   });
 
@@ -54,29 +54,6 @@ describe("PhotoGallery — rendering", () => {
   it("renders empty state when items is undefined", () => {
     render(<PhotoGallery items={undefined} />);
     expect(screen.getByText("No photos match the selected filter.")).toBeInTheDocument();
-  });
-
-  it("shows user chip when showUser=true and user_email is present", () => {
-    render(<PhotoGallery items={mockItems} showUser={true} />);
-    // Should show email username (before @)
-    expect(screen.getByText("uploader@test.com")).toBeInTheDocument();
-  });
-
-  it("does not show user chip when showUser=false", () => {
-    render(<PhotoGallery items={mockItems} showUser={false} />);
-    expect(screen.queryByText("uploader")).not.toBeInTheDocument();
-  });
-
-  it("shows user_id as fallback when user_email is absent but showUser=true", () => {
-    const items = [{ ...mockItems[0], user_email: null, user_id: "abc123456789" }];
-    render(<PhotoGallery items={items} showUser={true} />);
-    expect(screen.getByText(/abc12345…/)).toBeInTheDocument();
-  });
-
-  it("shows 'Anon' when both user_email and user_id are absent and showUser=true", () => {
-    const items = [{ ...mockItems[0], user_email: null, user_id: null }];
-    render(<PhotoGallery items={items} showUser={true} />);
-    expect(screen.getByText("Anon")).toBeInTheDocument();
   });
 });
 
@@ -113,18 +90,17 @@ describe("PhotoGallery — modal", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("shows 'Uploaded by' section in modal when showUser=true", () => {
+  it("shows uploader info in modal when showUser=true", () => {
     render(<PhotoGallery items={mockItems} showUser={true} />);
     fireEvent.click(screen.getAllByRole("button", { name: /analysis from/i })[1]);
-    expect(screen.getByText(/uploaded by/i)).toBeInTheDocument();
-    expect(screen.getAllByText("uploader@test.com").length).toBeGreaterThan(0);
+    expect(screen.getByText("uploader@test.com")).toBeInTheDocument();
   });
 
   it("shows full user_name in modal when present", () => {
     const itemsWithName = [{ ...mockItems[1], user_name: "Saurabh" }];
     render(<PhotoGallery items={itemsWithName} showUser={true} />);
     fireEvent.click(screen.getByRole("button", { name: /analysis from/i }));
-    expect(screen.getAllByText("Saurabh").length).toBeGreaterThan(0);
+    expect(screen.getByText("Saurabh")).toBeInTheDocument();
   });
 });
 

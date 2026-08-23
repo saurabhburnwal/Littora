@@ -5,14 +5,11 @@ import { useStats } from "../context/StatsContext.jsx";
 import { useAuth }  from "../context/AuthContext.jsx";
 import UploadForm  from "../components/UploadForm.jsx";
 import ResultPanel from "../components/ResultPanel.jsx";
-
-import { DEFAULT_AI_MODELS } from "../utils/wasteUtils.js";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+import { API_BASE, DEFAULT_AI_MODELS } from "../utils/wasteUtils.js";
 
 export default function UploadPage() {
   const { loadStats }  = useStats();
-  const { user, getToken, isAdmin } = useAuth();
+  const { getToken, isAdmin } = useAuth();
   const [result,  setResult]  = useState(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);

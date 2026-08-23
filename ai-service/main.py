@@ -118,9 +118,11 @@ def get_yolo_model(model_id: str) -> tuple[YOLO, str, str]:
         ]
 
         if MODELS_DIR.exists():
+            known_paths = {path for _, path in fallback_candidates}
             for extra_pt in MODELS_DIR.glob("*.pt"):
-                if extra_pt not in [path for _, path in fallback_candidates]:
+                if extra_pt not in known_paths:
                     fallback_candidates.append((extra_pt.stem, extra_pt))
+                    known_paths.add(extra_pt)
 
         for fallback_id, fb_path in fallback_candidates:
             if fb_path.exists():

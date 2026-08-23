@@ -45,7 +45,7 @@ router.post("/login", authLimiter, async (req, res) => {
  * Invalidates the session on Supabase side.
  * The client should also clear its local session.
  */
-router.post("/logout", async (req, res) => {
+router.post("/logout", async (_req, res) => {
   // The frontend Supabase client handles local sign-out.
   // This endpoint is here for completeness / server-side invalidation.
   res.json({ message: "Logged out successfully" });

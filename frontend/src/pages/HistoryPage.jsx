@@ -1,24 +1,46 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
-  Search, ImageOff, Shield, AlertTriangle, Trash2, X, CheckCircle,
-  RefreshCw, ImageIcon, TrendingUp, BarChart3, Users
+  Search, ImageOff, RefreshCw, SlidersHorizontal, ChevronDown, Clock, X
 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
 import PhotoGallery from "../components/PhotoGallery.jsx";
 import HistoryTable from "../components/HistoryTable.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
+import ToastNotification from "../components/ToastNotification.jsx";
+import { API_BASE, formatWasteType, normalizeSeverity, SUPPORTED_WASTE_TYPES } from "../utils/wasteUtils.js";
 
-const API_BASE   = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
-const SEVERITIES = ["All", "Low", "Moderate", "High", "Severe"];
+const SEVERITY_OPTIONS = [
+  { id: "All",      label: "All",      sub: "" },
+  { id: "Low",      label: "Low",      sub: "0–10" },
+  { id: "Moderate", label: "Moderate", sub: "11–30" },
+  { id: "High",     label: "High",     sub: "31–60" },
+  { id: "Severe",   label: "Severe",   sub: ">60" },
+];
+
+const DATE_OPTIONS = [
+  { id: "all",    label: "All Time" },
+  { id: "today",  label: "Today" },
+  { id: "7days",  label: "Last 7 Days" },
+  { id: "30days", label: "Last 30 Days" },
+  { id: "90days", label: "Last 90 Days" },
+];
 
 export default function HistoryPage() {
   const { user, getToken, isAdmin } = useAuth();
 
-  const [history,     setHistory]     = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState(null);
-  const [filter,      setFilter]      = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [history,          setHistory]          = useState([]);
+  const [loading,          setLoading]          = useState(true);
+  const [error,            setError]            = useState(null);
+
+  // Filter states
+  const [filterSeverity,   setFilterSeverity]   = useState("All");
+  const [filterWasteType,  setFilterWasteType]  = useState("all");
+  const [filterDate,       setFilterDate]       = useState("all");
+  const [filterLocation,   setFilterLocation]   = useState("all");
+  const [searchQuery,      setSearchQuery]      = useState("");
+  const [isFilterOpen,     setIsFilterOpen]     = useState(false);
+  const filterMenuRef = useRef(null);
 
   // Delete state
   const [confirm,  setConfirm]  = useState(null); // analysis id awaiting confirmation
@@ -56,13 +78,24 @@ export default function HistoryPage() {
 
   useEffect(() => { loadAnalyses(); }, [loadAnalyses]);
 
+  // Close filter popover on outside click
+  useEffect(() => {
+    if (!isFilterOpen) return undefined;
+    const handleClickOutside = (event) => {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isFilterOpen]);
+
   const handleDeleteConfirm = async () => {
     const id = confirm;
     setConfirm(null);
     setDeleting(id);
     try {
       const token = await getToken();
-      // Admin uses the admin delete endpoint; users use their own
       const endpoint = isAdmin
         ? `${API_BASE}/api/admin/analyses/${id}`
         : `${API_BASE}/api/my-analyses/${id}`;
@@ -78,13 +111,22 @@ export default function HistoryPage() {
     }
   };
 
-  // Computed admin summary stats
+  // Distinct locations present in history dataset
+  const uniqueLocations = useMemo(() => {
+    const set = new Set();
+    history.forEach((h) => {
+      if (h.location_label) set.add(h.location_label);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [history]);
+
+  // Computed KPI stats
   const totalWaste = useMemo(
     () => history.reduce((s, a) => s + (a.total_waste || 0), 0),
     [history]
   );
   const uniqueUsers = useMemo(
-    () => new Set(history.map((a) => a.user_id).filter(Boolean)).size,
+    () => new Set(history.map((a) => a.user_id || a.user_email).filter(Boolean)).size,
     [history]
   );
   const avgScore = useMemo(
@@ -98,52 +140,140 @@ export default function HistoryPage() {
     [history]
   );
 
-  // Robust case-insensitive filter
+  const avgScoreStatus =
+    avgScore > 60
+      ? "Severe"
+      : avgScore >= 31
+      ? "High"
+      : avgScore >= 11
+      ? "Moderate"
+      : "Low";
+
+  // Multi-criteria filtering logic
   const filtered = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    return history.filter((r) => {
-      const itemSeverity = (r.severity || "").toString().trim().toLowerCase();
-      const matchesSeverity =
-        filter === "All" || itemSeverity === filter.toLowerCase();
-      const detectionKeys = Array.isArray(r.detections)
-        ? r.detections.map((d) => (typeof d === "object" ? d?.waste_type || d?.type || "" : String(d)))
-        : typeof r.detections === "object" && r.detections !== null
-        ? Object.keys(r.detections)
-        : [];
-      const wasteTypesStr = detectionKeys.join(" ").toLowerCase();
-      const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString().toLowerCase() : "";
-      const matchesSearch =
-        !query ||
-        (r.location_label && r.location_label.toLowerCase().includes(query)) ||
-        (r.severity && r.severity.toLowerCase().includes(query)) ||
-        wasteTypesStr.includes(query) ||
-        dateStr.includes(query) ||
-        (isAdmin && r.user_email && r.user_email.toLowerCase().includes(query)) ||
-        (isAdmin && r.user_id && r.user_id.toLowerCase().includes(query));
-      return matchesSeverity && matchesSearch;
-    });
-  }, [history, filter, searchQuery, isAdmin]);
+    const now = Date.now();
 
-  const countLabel = isAdmin
-    ? filter === "All" && !searchQuery.trim()
-      ? `${filtered.length} total analyses (all users)`
-      : `${filtered.length} matching analyses`
-    : filter === "All" && !searchQuery.trim()
-      ? `${filtered.length} of your analyses`
-      : `${filtered.length} matching analyses`;
+    return history.filter((r) => {
+      // 1. Severity Filter
+      const itemSeverity = normalizeSeverity(r.severity);
+      if (filterSeverity !== "All" && itemSeverity !== filterSeverity) {
+        return false;
+      }
+
+      // 2. Waste Type Filter
+      if (filterWasteType !== "all") {
+        const targetType = filterWasteType.toLowerCase();
+        let hasType = false;
+        if (r.detections && typeof r.detections === "object") {
+          if (Array.isArray(r.detections)) {
+            hasType = r.detections.some((d) => {
+              const k = String(d?.waste_type || d?.type || d?.class_name || "").toLowerCase();
+              return k === targetType;
+            });
+          } else {
+            hasType = Boolean(r.detections[targetType]);
+          }
+        }
+        if (!hasType && Array.isArray(r.boxes)) {
+          hasType = r.boxes.some((b) => String(b?.class_name || "").toLowerCase() === targetType);
+        }
+        if (!hasType) return false;
+      }
+
+      // 3. Location Filter
+      if (filterLocation !== "all" && (r.location_label || "") !== filterLocation) {
+        return false;
+      }
+
+      // 4. Date Range Filter
+      if (filterDate !== "all" && r.created_at) {
+        const itemTime = new Date(r.created_at).getTime();
+        const diffMs = now - itemTime;
+        if (filterDate === "today" && diffMs > 24 * 3600 * 1000) return false;
+        if (filterDate === "7days" && diffMs > 7 * 24 * 3600 * 1000) return false;
+        if (filterDate === "30days" && diffMs > 30 * 24 * 3600 * 1000) return false;
+        if (filterDate === "90days" && diffMs > 90 * 24 * 3600 * 1000) return false;
+      }
+
+      // 5. Global Text Search
+      if (query) {
+        const detectionKeys = Array.isArray(r.detections)
+          ? r.detections.map((d) => (typeof d === "object" ? d?.waste_type || d?.type || "" : String(d)))
+          : typeof r.detections === "object" && r.detections !== null
+          ? Object.keys(r.detections)
+          : [];
+        const wasteTypesStr = detectionKeys.join(" ").toLowerCase();
+        const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString().toLowerCase() : "";
+
+        const matchesSearch =
+          (r.location_label && r.location_label.toLowerCase().includes(query)) ||
+          (r.severity && r.severity.toLowerCase().includes(query)) ||
+          wasteTypesStr.includes(query) ||
+          dateStr.includes(query) ||
+          (r.user_name && r.user_name.toLowerCase().includes(query)) ||
+          (r.user_email && r.user_email.toLowerCase().includes(query)) ||
+          (r.user_id && String(r.user_id).toLowerCase().includes(query));
+
+        if (!matchesSearch) return false;
+      }
+
+      return true;
+    });
+  }, [history, filterSeverity, filterWasteType, filterLocation, filterDate, searchQuery]);
+
+  // Active filter chips
+  const activeChips = useMemo(() => {
+    const chips = [];
+    if (filterSeverity !== "All") {
+      chips.push({ key: "severity", label: `Severity: ${filterSeverity}`, onRemove: () => setFilterSeverity("All") });
+    }
+    if (filterWasteType !== "all") {
+      chips.push({ key: "wasteType", label: `Waste: ${formatWasteType(filterWasteType)}`, onRemove: () => setFilterWasteType("all") });
+    }
+    if (filterLocation !== "all") {
+      chips.push({ key: "location", label: `Location: ${filterLocation}`, onRemove: () => setFilterLocation("all") });
+    }
+    if (filterDate !== "all") {
+      const dateOption = DATE_OPTIONS.find((d) => d.id === filterDate);
+      chips.push({ key: "date", label: `Date: ${dateOption?.label || filterDate}`, onRemove: () => setFilterDate("all") });
+    }
+    if (searchQuery.trim() !== "") {
+      chips.push({ key: "search", label: `Search: "${searchQuery}"`, onRemove: () => setSearchQuery("") });
+    }
+    return chips;
+  }, [filterSeverity, filterWasteType, filterLocation, filterDate, searchQuery]);
+
+  const clearAllFilters = () => {
+    setFilterSeverity("All");
+    setFilterWasteType("all");
+    setFilterLocation("all");
+    setFilterDate("all");
+    setSearchQuery("");
+  };
+
+  const activeFilterCount = (filterSeverity !== "All" ? 1 : 0) +
+    (filterWasteType !== "all" ? 1 : 0) +
+    (filterDate !== "all" ? 1 : 0) +
+    (filterLocation !== "all" ? 1 : 0);
+
+  const isFiltered = activeChips.length > 0;
 
   return (
     <div className="page-container">
+      {/* Header */}
       <div className="page-heading">
-        {isAdmin ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <Shield size={22} style={{ color: "var(--teal)" }} />
-                <h1 style={{ margin: 0 }}>All Users&apos; History &amp; Management</h1>
-              </div>
-              <p style={{ marginTop: "0.2rem" }}>Admin view — system-wide uploads, statistics, and record management.</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", width: "100%" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <Clock size={22} style={{ color: "var(--teal)" }} />
+              <h1 style={{ margin: 0 }}>Detection History</h1>
             </div>
+            <p style={{ marginTop: "0.2rem" }}>
+              Review, inspect, and filter recorded coastal waste detections.
+            </p>
+          </div>
+          {isAdmin && (
             <button
               className="admin-refresh-btn"
               onClick={loadAnalyses}
@@ -153,45 +283,31 @@ export default function HistoryPage() {
               <RefreshCw size={15} style={{ animation: loading ? "spin 1s linear infinite" : "none" }} />
               Refresh
             </button>
-          </div>
-        ) : (
-          <>
-            <h1>My History</h1>
-            <p>Browse the photos <strong>you</strong> have uploaded and analyzed.</p>
-          </>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Admin Summary Stats Bar */}
-      {isAdmin && !loading && !error && history.length > 0 && (
-        <div className="admin-stats-bar" style={{ marginBottom: "1.5rem" }}>
-          <div className="admin-stat-card">
-            <div className="admin-stat-icon"><ImageIcon size={20} /></div>
-            <div>
-              <div className="admin-stat-val">{history.length}</div>
-              <div className="admin-stat-lbl">Total Analyses</div>
-            </div>
+      {/* KPI Section */}
+      {!loading && !error && history.length > 0 && (
+        <div className="kpi-stats-grid">
+          <div className="kpi-stat-card">
+            <div className="kpi-stat-val">{history.length}</div>
+            <div className="kpi-stat-lbl">Detection Sessions</div>
           </div>
-          <div className="admin-stat-card">
-            <div className="admin-stat-icon"><TrendingUp size={20} /></div>
-            <div>
-              <div className="admin-stat-val">{totalWaste.toLocaleString()}</div>
-              <div className="admin-stat-lbl">Total Waste Items</div>
-            </div>
+          <div className="kpi-stat-card">
+            <div className="kpi-stat-val">{totalWaste.toLocaleString()}</div>
+            <div className="kpi-stat-lbl">Waste Items</div>
           </div>
-          <div className="admin-stat-card">
-            <div className="admin-stat-icon"><BarChart3 size={20} /></div>
-            <div>
-              <div className="admin-stat-val">{avgScore}</div>
-              <div className="admin-stat-lbl">Avg Pollution Score</div>
-            </div>
+          <div className="kpi-stat-card">
+            <div className="kpi-stat-val">{avgScore}</div>
+            <div className="kpi-stat-lbl">Avg. Severity Score</div>
+            <span className={`kpi-stat-tier severity-${avgScoreStatus.toLowerCase()}`}>
+              {avgScoreStatus}
+            </span>
           </div>
-          <div className="admin-stat-card">
-            <div className="admin-stat-icon"><Users size={20} /></div>
-            <div>
-              <div className="admin-stat-val">{uniqueUsers}</div>
-              <div className="admin-stat-lbl">Unique Contributors</div>
-            </div>
+          <div className="kpi-stat-card">
+            <div className="kpi-stat-val">{uniqueUsers}</div>
+            <div className="kpi-stat-lbl">Unique Contributors</div>
           </div>
         </div>
       )}
@@ -228,102 +344,211 @@ export default function HistoryPage() {
         </div>
       )}
 
-      {/* Filters + content */}
+      {/* Main Content & Simplified Toolbar */}
       {user && !loading && !error && history.length > 0 && (
         <>
-          <div className="history-controls">
-            <p className="section-title" style={{ margin: 0 }}>
-              {countLabel}
-            </p>
-            <div className="history-filters-wrap">
-              <div className="search-box">
-                <Search size={16} className="search-icon" />
-                <input
-                  type="text"
-                  aria-label="Search"
-                  className="search-input"
-                  placeholder={isAdmin ? "Search location, severity, or email…" : "Search location or severity…"}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className="filter-bar">
-                {SEVERITIES.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className={`filter-pill${filter === s ? " active" : ""}`}
-                    onClick={() => setFilter(s)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+          <div className="history-toolbar-clean">
+            {/* Search Input */}
+            <div className="history-search-wrap">
+              <Search size={16} className="history-search-icon" />
+              <input
+                type="text"
+                aria-label="Search"
+                className="history-search-input"
+                placeholder="Search location, waste type, contributor..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="history-search-clear"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search text"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Filters Trigger with Popover */}
+            <div className="history-filter-trigger-wrap" ref={filterMenuRef}>
+              <button
+                type="button"
+                className={`history-filter-btn ${isFilterOpen || activeFilterCount > 0 ? "active" : ""}`}
+                onClick={() => setIsFilterOpen((prev) => !prev)}
+                aria-expanded={isFilterOpen}
+                aria-label="Toggle filters"
+              >
+                <SlidersHorizontal size={15} />
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="filter-count-badge">{activeFilterCount}</span>
+                )}
+                <ChevronDown size={14} className={`filter-chevron ${isFilterOpen ? "open" : ""}`} />
+              </button>
+
+              {/* Popover Filter Panel */}
+              {isFilterOpen && (
+                <div className="history-filter-popover" role="dialog" aria-label="Filter options">
+                  <div className="filter-popover-header">
+                    <span className="filter-popover-title">Filters</span>
+                    {activeFilterCount > 0 && (
+                      <button
+                        type="button"
+                        className="filter-popover-reset"
+                        onClick={clearAllFilters}
+                      >
+                        Reset All
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="filter-popover-body">
+                    {/* Severity Filter Group */}
+                    <div className="filter-group">
+                      <label className="filter-group-label">Severity Tier</label>
+                      <div className="filter-severity-pills">
+                        {SEVERITY_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            className={`filter-severity-pill ${filterSeverity === opt.id ? "active" : ""}`}
+                            onClick={() => setFilterSeverity(opt.id)}
+                          >
+                            <span>{opt.label}</span>
+                            {opt.sub && <span className="filter-pill-sub">{opt.sub}</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Waste Type Filter Group */}
+                    <div className="filter-group">
+                      <label className="filter-group-label" htmlFor="filter-waste-select">Waste Type</label>
+                      <select
+                        id="filter-waste-select"
+                        className="filter-popover-select"
+                        aria-label="Filter by waste type"
+                        value={filterWasteType}
+                        onChange={(e) => setFilterWasteType(e.target.value)}
+                      >
+                        <option value="all">All Waste Types</option>
+                        {SUPPORTED_WASTE_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            {formatWasteType(type)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Date Filter Group */}
+                    <div className="filter-group">
+                      <label className="filter-group-label" htmlFor="filter-date-select">Date Range</label>
+                      <select
+                        id="filter-date-select"
+                        className="filter-popover-select"
+                        aria-label="Filter by date range"
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
+                      >
+                        {DATE_OPTIONS.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Location Filter Group */}
+                    <div className="filter-group">
+                      <label className="filter-group-label" htmlFor="filter-loc-select">Beach Location</label>
+                      <select
+                        id="filter-loc-select"
+                        className="filter-popover-select"
+                        aria-label="Filter by location"
+                        value={filterLocation}
+                        onChange={(e) => setFilterLocation(e.target.value)}
+                      >
+                        <option value="all">All Locations</option>
+                        {uniqueLocations.map((loc) => (
+                          <option key={loc} value={loc}>
+                            {loc}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
+          {/* Active Filter Chips Bar */}
+          {isFiltered && (
+            <div className="active-filters-row">
+              <span className="active-filters-label">Active filters:</span>
+              {activeChips.map((chip) => (
+                <span key={chip.key} className="active-filter-chip">
+                  {chip.label}
+                  <button
+                    type="button"
+                    onClick={chip.onRemove}
+                    aria-label={`Remove ${chip.label}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <button
+                type="button"
+                className="clear-all-filters-btn"
+                onClick={clearAllFilters}
+              >
+                Clear all
+              </button>
+              <span className="active-results-count">
+                {filtered.length} {filtered.length === 1 ? "detection" : "detections"}
+              </span>
+            </div>
+          )}
+
           {/* Photo gallery */}
-          <section style={{ marginBottom: "0.5rem" }}>
+          <section style={{ marginBottom: "1rem" }}>
             <p className="section-title">Photo Gallery</p>
             <PhotoGallery
               items={filtered}
               showUser={isAdmin}
-              deletingId={deleting}
               onDeleteRequest={(id) => setConfirm(id)}
+              deletingId={deleting}
             />
           </section>
 
           {/* Detailed records table */}
           <section>
-            <p className="section-title">Detailed Records</p>
             <HistoryTable
               history={filtered}
               showUser={isAdmin}
-              deletingId={deleting}
               onDeleteRequest={(id) => setConfirm(id)}
+              deletingId={deleting}
             />
           </section>
         </>
       )}
 
-      {/* ── Confirmation Modal ── */}
-      {confirm && (
-        <div className="admin-modal-backdrop" onClick={() => setConfirm(null)}>
-          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-modal-icon">
-              <AlertTriangle size={32} style={{ color: "#dc2626" }} />
-            </div>
-            <h2 className="admin-modal-title">Delete this analysis?</h2>
-            <p className="admin-modal-body">
-              This will permanently remove the image and all associated data.
-              This action <strong>cannot be undone</strong>.
-            </p>
-            <div className="admin-modal-actions">
-              <button className="admin-modal-cancel" onClick={() => setConfirm(null)}>
-                <X size={15} /> Cancel
-              </button>
-              <button
-                id="history-confirm-delete-btn"
-                className="admin-modal-delete"
-                onClick={handleDeleteConfirm}
-              >
-                <Trash2 size={15} /> Yes, delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Confirm delete modal using shared ConfirmModal */}
+      <ConfirmModal
+        isOpen={confirm !== null}
+        title="Delete this analysis?"
+        message="This will permanently delete this analysis and all associated records. This action cannot be undone."
+        confirmLabel="Yes, delete"
+        confirmVariant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirm(null)}
+      />
 
-      {/* ── Toast ── */}
-      {toast && (
-        <div className={`admin-toast admin-toast-${toast.type}`}>
-          {toast.type === "success"
-            ? <CheckCircle size={16} />
-            : <AlertTriangle size={16} />
-          }
-          <span>{toast.message}</span>
-        </div>
-      )}
+      {/* Toast notification using shared ToastNotification */}
+      <ToastNotification toast={toast} />
     </div>
   );
 }

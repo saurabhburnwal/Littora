@@ -1,12 +1,10 @@
 import { useState, useEffect, useMemo, useContext } from "react";
-import { createPortal } from "react-dom";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
-import { Layers, Filter, MapPin, AlertCircle, Compass, Search, Calendar, X, Eye } from "lucide-react";
+import { Layers, Filter, MapPin, AlertCircle, Compass, Search, Calendar, Eye, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { StatsContext } from "../context/StatsContext.jsx";
-import ResultPanel from "./ResultPanel.jsx";
-import BoundingBoxImage from "./BoundingBoxImage.jsx";
-import { normalizeSeverity, toResultShape } from "../utils/wasteUtils.js";
+import AnalysisLightbox from "./AnalysisLightbox.jsx";
+import { normalizeSeverity } from "../utils/wasteUtils.js";
 import "leaflet/dist/leaflet.css";
 
 const SEVERITY_COLORS = {
@@ -441,37 +439,12 @@ export default function PollutionMap({ locations: locationsProp }) {
         </div>
       )}
 
-      {/* ── Interactive Analysis Lightbox Modal (Reusing Detection History .modal-overlay / .modal-content) ── */}
-      {selectedModalLoc && createPortal(
-        <div
-          className="modal-overlay"
-          onClick={() => setSelectedModalLoc(null)}
-        >
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="modal-close"
-              onClick={() => setSelectedModalLoc(null)}
-              aria-label="Close"
-            >
-              <X size={16} />
-            </button>
-
-            <BoundingBoxImage
-              src={selectedModalLoc.image_url}
-              alt="Full-size beach analysis"
-              boxes={selectedModalLoc.boxes || []}
-            />
-
-            <div className="modal-body">
-              <ResultPanel result={toResultShape(selectedModalLoc)} />
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* ── Universal Analysis Lightbox Modal ── */}
+      <AnalysisLightbox
+        item={selectedModalLoc}
+        showUser={false}
+        onClose={() => setSelectedModalLoc(null)}
+      />
     </div>
   );
 }

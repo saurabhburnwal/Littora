@@ -4,7 +4,6 @@ Pytest suite for AI Service (severity scoring, model loading, & FastAPI async en
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
 
 import pytest
 from httpx import AsyncClient

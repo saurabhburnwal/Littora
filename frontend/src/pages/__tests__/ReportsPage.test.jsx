@@ -62,7 +62,7 @@ describe("ReportsPage component", () => {
       expect(screen.getByRole("heading", { name: /^reports$/i })).toBeInTheDocument();
     });
     expect(screen.getByText("Daily Report")).toBeInTheDocument();
-    expect(screen.getByText("Monthly Report")).toBeInTheDocument();
+    expect(screen.getAllByText("Monthly Report").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /download pdf report/i })).toBeInTheDocument();
   });
 

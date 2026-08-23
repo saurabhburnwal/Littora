@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, Eye, EyeOff, CheckCircle, AlertCircle, Waves } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
+import { calculatePasswordStrength } from "../utils/wasteUtils.js";
 import logo from "../assets/logo.png";
 
 /**
@@ -185,19 +186,25 @@ export default function SetPasswordPage() {
                 </div>
 
                 {/* Password strength hint */}
-                {password.length > 0 && (
-                  <div style={{ display: "flex", gap: "4px", marginTop: "-0.5rem" }}>
-                    {[1,2,3,4].map((i) => (
-                      <div key={i} style={{
-                        flex: 1, height: 4, borderRadius: 2,
-                        background: password.length >= i * 3
-                          ? (password.length >= 10 ? "#22c55e" : password.length >= 6 ? "#e6a545" : "#dc2626")
-                          : "rgba(255,255,255,0.1)",
-                        transition: "background 0.25s"
-                      }} />
-                    ))}
-                  </div>
-                )}
+                {password.length > 0 && (() => {
+                  const pwInfo = calculatePasswordStrength(password);
+                  return (
+                    <div style={{ display: "flex", gap: "4px", marginTop: "-0.5rem" }}>
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          style={{
+                            flex: 1,
+                            height: 4,
+                            borderRadius: 2,
+                            background: pwInfo.score >= i ? pwInfo.color : "rgba(255,255,255,0.1)",
+                            transition: "background 0.25s",
+                          }}
+                        />
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 <button
                   id="set-password-submit-btn"

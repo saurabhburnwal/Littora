@@ -32,7 +32,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: "1mb" }));
 
-app.get("/health", (req, res) => res.json({ status: "ok" }));
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 // POST /api/analyze — image upload + AI inference + storage
 app.use("/api/analyze",      analyzeRouter);

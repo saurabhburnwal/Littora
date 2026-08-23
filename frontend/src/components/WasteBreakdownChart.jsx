@@ -2,20 +2,7 @@ import { useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
-import { formatWasteType } from "../utils/wasteUtils.js";
-
-const COLORS = {
-  Bottle:          "#0077B6",
-  "Plastic Bottle": "#0077B6",
-  Bag:             "#4CC9F0",
-  "Plastic Bag":    "#4CC9F0",
-  Wrapper:         "#F8961E",
-  Can:             "#90BE6D",
-  Glass:           "#577590",
-  Foam:            "#F94144",
-  Metal:           "#9C89B8",
-  Other:           "#ADB5BD",
-};
+import { formatWasteType, getWasteColor } from "../utils/wasteUtils.js";
 
 export default function WasteBreakdownChart({ aggregateDetections }) {
   const { chartData, total } = useMemo(() => {
@@ -23,6 +10,7 @@ export default function WasteBreakdownChart({ aggregateDetections }) {
       .filter(([_, count]) => count > 0)
       .map(([type, count]) => ({
         type: formatWasteType(type),
+        rawType: type,
         count,
       }));
     const sum = data.reduce((s, d) => s + d.count, 0);
@@ -64,7 +52,7 @@ export default function WasteBreakdownChart({ aggregateDetections }) {
               {chartData.map((entry) => (
                 <Cell
                   key={entry.type}
-                  fill={COLORS[entry.type] || "#2f6f5e"}
+                  fill={getWasteColor(entry.rawType)}
                 />
               ))}
             </Bar>

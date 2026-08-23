@@ -77,7 +77,7 @@ function buildCsv(analyses) {
 }
 
 // Handler for GeoJSON export
-async function handleGeoJsonExport(req, res) {
+async function handleGeoJsonExport(_req, res) {
   try {
     const analyses = await listAnalyses({ limit: 1000, offset: 0 });
     const geojson = buildGeoJson(analyses);
@@ -92,7 +92,7 @@ async function handleGeoJsonExport(req, res) {
 }
 
 // Handler for CSV export
-async function handleCsvExport(req, res) {
+async function handleCsvExport(_req, res) {
   try {
     const analyses = await listAnalyses({ limit: 1000, offset: 0 });
     const csv = buildCsv(analyses);

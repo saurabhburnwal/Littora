@@ -7,7 +7,7 @@ this returns. Tune WEIGHTS and the severity thresholds based on real
 beach survey data once literature review settles on a reference scale.
 """
 
-from typing import Mapping
+from collections.abc import Mapping
 
 # Relative pollution-risk weights per detected item. Bags pose the highest
 # entanglement risk; wrappers are persistent and difficult to collect.
@@ -40,12 +40,14 @@ def compute_score(detections: Mapping[str, int] | None = None) -> tuple[int, int
     if not detections:
         return 0, 0, "Low"
 
-    total_waste = sum(max(0, count) for count in detections.values())
+    total_waste = 0
+    raw_score = 0.0
 
-    raw_score = sum(
-        WEIGHTS.get(waste_type.lower().strip(), UNKNOWN_ITEM_WEIGHT) * max(0, count)
-        for waste_type, count in detections.items()
-    )
+    for waste_type, count in detections.items():
+        safe_count = max(0, count)
+        total_waste += safe_count
+        raw_score += WEIGHTS.get(waste_type.lower().strip(), UNKNOWN_ITEM_WEIGHT) * safe_count
+
     pollution_score = round(raw_score)
 
     severity = next(

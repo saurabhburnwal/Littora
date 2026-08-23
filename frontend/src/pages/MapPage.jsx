@@ -1,5 +1,4 @@
 import { useStats } from "../context/StatsContext.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
 import PollutionMap from "../components/PollutionMap.jsx";
 
 const LEGEND = [
@@ -11,17 +10,13 @@ const LEGEND = [
 
 export default function MapPage() {
   const { stats } = useStats();
-  const { isAdmin } = useAuth();
 
   return (
     <div className="map-page-container">
       <div className="map-page-header" style={{ marginBottom: "1.2rem" }}>
         <h1>Pollution Map</h1>
         <p>
-          {isAdmin
-            ? "Admin View — System-wide geolocated hotspots from all submitted beach waste analyses."
-            : "Geolocated hotspots from your submitted beach waste analyses — attach location on upload to populate this map."
-          }
+          Geolocated hotspots from submitted beach waste analyses — attach location on upload to populate this map.
         </p>
       </div>
 

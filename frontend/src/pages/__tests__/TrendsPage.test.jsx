@@ -54,10 +54,14 @@ describe("TrendsPage component", () => {
   it("renders trend analytics charts, metric cards, and filter controls", async () => {
     renderTrends({ user: { id: "u-logged", email: "user@test.com" } });
     await vi.waitFor(() => {
+      expect(screen.getByRole("heading", { level: 1, name: "Historical Trends" })).toBeInTheDocument();
       expect(screen.getByText("Total Detections")).toBeInTheDocument();
     });
     expect(screen.getByText("Total Waste Items")).toBeInTheDocument();
     expect(screen.getByText("AI Accuracy")).toBeInTheDocument();
+    expect(screen.getByText("Top Locations by Detections")).toBeInTheDocument();
+    expect(screen.getByText("Waste Category Composition")).toBeInTheDocument();
+    expect(screen.getByText("Waste Category Breakdown Table")).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "All" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Plastic Bottle" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Metal Can" })).toBeInTheDocument();

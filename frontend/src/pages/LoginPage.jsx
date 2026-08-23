@@ -5,20 +5,8 @@ import {
   AlertCircle, CheckCircle, User, Mail, Lock, Compass,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { calculatePasswordStrength } from "../utils/wasteUtils.js";
 import logo from "../assets/logo.png";
-
-/* ── Password strength helper ─────────────────────────────── */
-function pwStrength(pw) {
-  if (!pw) return 0;
-  let score = 0;
-  if (pw.length >= 6)  score++;
-  if (pw.length >= 10) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  return Math.min(score, 4); // 0-4
-}
-const STRENGTH_COLORS = ["", "#dc2626", "#ea580c", "#e6a545", "#22c55e"];
-const STRENGTH_LABELS  = ["", "Weak", "Fair", "Good", "Strong"];
 
 export default function LoginPage() {
   const { login, signUp } = useAuth();
@@ -89,8 +77,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
-
-  const strength = pwStrength(password);
 
   return (
     <div className="login-page">
@@ -339,29 +325,32 @@ export default function LoginPage() {
                     </div>
 
                     {/* Strength bar */}
-                    {password.length > 0 && (
-                      <div className="pw-strength-wrap">
-                        <div className="pw-strength-bar">
-                          {[1, 2, 3, 4].map((i) => (
-                            <div
-                              key={i}
-                              className="pw-strength-seg"
-                              style={{
-                                background: strength >= i
-                                  ? STRENGTH_COLORS[strength]
-                                  : "rgba(255,255,255,0.1)",
-                              }}
-                            />
-                          ))}
+                    {password.length > 0 && (() => {
+                      const pwInfo = calculatePasswordStrength(password);
+                      return (
+                        <div className="pw-strength-wrap">
+                          <div className="pw-strength-bar">
+                            {[1, 2, 3, 4].map((i) => (
+                              <div
+                                key={i}
+                                className="pw-strength-seg"
+                                style={{
+                                  background: pwInfo.score >= i
+                                    ? pwInfo.color
+                                    : "rgba(255,255,255,0.1)",
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <span
+                            className="pw-strength-label"
+                            style={{ color: pwInfo.color }}
+                          >
+                            {pwInfo.label}
+                          </span>
                         </div>
-                        <span
-                          className="pw-strength-label"
-                          style={{ color: STRENGTH_COLORS[strength] }}
-                        >
-                          {STRENGTH_LABELS[strength]}
-                        </span>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
 
                   {/* Confirm password */}

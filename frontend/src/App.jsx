@@ -11,7 +11,6 @@ const UploadPage       = lazy(() => import("./pages/UploadPage.jsx"));
 const MapPage          = lazy(() => import("./pages/MapPage.jsx"));
 const HistoryPage      = lazy(() => import("./pages/HistoryPage.jsx"));
 const TrendsPage       = lazy(() => import("./pages/TrendsPage.jsx"));
-const AnalyticsPage    = lazy(() => import("./pages/AnalyticsPage.jsx"));
 const ReportsPage      = lazy(() => import("./pages/ReportsPage.jsx"));
 const CleanupPage      = lazy(() => import("./pages/CleanupPage.jsx"));
 const DatasetPage      = lazy(() => import("./pages/DatasetPage.jsx"));
@@ -100,7 +99,7 @@ export default function App() {
                 {/* Authenticated-only routes (redirects unauthenticated guests to /login) */}
                 <Route path="/trends"    element={<ProtectedRoute allowGuest={false}><TrendsPage /></ProtectedRoute>} />
                 <Route path="/map"       element={<ProtectedRoute allowGuest={false}><MapPage /></ProtectedRoute>} />
-                <Route path="/analytics" element={<ProtectedRoute allowGuest={false}><AnalyticsPage /></ProtectedRoute>} />
+                <Route path="/analytics" element={<Navigate to="/trends" replace />} />
                 <Route path="/history"   element={<ProtectedRoute allowGuest={false}><HistoryPage /></ProtectedRoute>} />
                 <Route path="/reports"   element={<ProtectedRoute allowGuest={false}><ReportsPage /></ProtectedRoute>} />
                 <Route path="/cleanup"   element={<ProtectedRoute allowGuest={false}><CleanupPage /></ProtectedRoute>} />

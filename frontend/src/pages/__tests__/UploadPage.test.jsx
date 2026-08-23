@@ -118,7 +118,7 @@ describe("UploadPage component", () => {
         expect.any(FormData),
         expect.objectContaining({ headers: expect.objectContaining({ "Content-Type": "multipart/form-data" }) })
       );
-      expect(screen.getByText("Total waste")).toBeInTheDocument();
+      expect(screen.getByText(/detected waste/i)).toBeInTheDocument();
     });
   });
 
@@ -147,7 +147,7 @@ describe("UploadPage component", () => {
 
     await vi.waitFor(() => {
       expect(axios.post).toHaveBeenCalled();
-      expect(screen.getByText("Total waste")).toBeInTheDocument();
+      expect(screen.getByText(/detected waste/i)).toBeInTheDocument();
       expect(screen.getByText("Moderate")).toBeInTheDocument();
     });
   });

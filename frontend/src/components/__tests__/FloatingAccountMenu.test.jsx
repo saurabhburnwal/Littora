@@ -81,7 +81,7 @@ describe("FloatingAccountMenu component", () => {
     expect(screen.getByText("Preview Guest")).toBeInTheDocument();
     expect(screen.getByText("Account Settings")).toBeInTheDocument();
     expect(screen.queryByText("Detection History")).not.toBeInTheDocument();
-    expect(screen.queryByText("Analytics & Trends")).not.toBeInTheDocument();
+    expect(screen.queryByText("Historical Trends")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 
@@ -92,7 +92,7 @@ describe("FloatingAccountMenu component", () => {
     fireEvent.click(screen.getByRole("button", { name: /account menu/i }));
     expect(screen.getByText("Account Member")).toBeInTheDocument();
     expect(screen.getByText("Detection History")).toBeInTheDocument();
-    expect(screen.getByText("Analytics & Trends")).toBeInTheDocument();
+    expect(screen.getByText("Historical Trends")).toBeInTheDocument();
   });
 
   it("renders Administrator role badge when logged in as admin", async () => {

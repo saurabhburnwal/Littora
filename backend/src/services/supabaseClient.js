@@ -314,6 +314,25 @@ export async function listAnalyses({ limit = 50, offset = 0 } = {}) {
   return data ? data.map(formatAnalysisRow) : [];
 }
 
+function formatSev(s) {
+  if (!s) return "Low";
+  const str = String(s).toLowerCase();
+  if (str === "severe") return "Severe";
+  if (str === "high") return "High";
+  if (str === "moderate") return "Moderate";
+  return "Low";
+}
+
+function parseLocationLabel(label = "") {
+  const parts = label.split(",").map((p) => p.trim()).filter(Boolean);
+  const beach = parts[0] || "Coastal Site";
+  const city = parts.length >= 2 ? parts[1] : "";
+  const country = parts.length > 2 ? parts[2] : parts.length === 2 ? parts[1] : "Coastal Region";
+  return { beach, city, country };
+}
+
+const SEV_RANK = { low: 0, moderate: 1, high: 2, severe: 3 };
+
 /**
  * Returns aggregated statistics for the dashboard:
  * - totals (analyses count, all-time waste, avg score)
@@ -352,15 +371,6 @@ export async function getStats(userId = null) {
       )
     : 0;
 
-  const formatSev = (s) => {
-    if (!s) return "Low";
-    const str = String(s).toLowerCase();
-    if (str === "severe") return "Severe";
-    if (str === "high") return "High";
-    if (str === "moderate") return "Moderate";
-    return "Low";
-  };
-
   const severityCounts = { Low: 0, Moderate: 0, High: 0, Severe: 0 };
   const aggregateDetections = {};
 
@@ -381,17 +391,6 @@ export async function getStats(userId = null) {
       }
     }
   }
-
-  // Helper to extract beach, city, country from location_label (e.g. "Whitehaven Beach, Whitsundays, Australia")
-  const parseLocationLabel = (label = "") => {
-    const parts = label.split(",").map((p) => p.trim()).filter(Boolean);
-    const beach = parts[0] || "Coastal Site";
-    const city = parts.length > 2 ? parts[1] : parts.length === 2 ? parts[1] : "";
-    const country = parts.length > 2 ? parts[2] : parts.length === 2 ? parts[1] : "Coastal Region";
-    return { beach, city, country };
-  };
-
-  const SEV_RANK = { low: 0, moderate: 1, high: 2, severe: 3 };
 
   // Group all analyses by their location_id (or lat,lng) so multiple detections per beach are combined
   const locationGroupMap = new Map();

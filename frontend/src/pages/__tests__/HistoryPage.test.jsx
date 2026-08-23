@@ -40,7 +40,7 @@ const mockHistoryData = [
     pollution_score: 15,
     severity: "Moderate",
     image_url: "https://example.com/photo1.jpg",
-    detections: [],
+    detections: [{ waste_type: "bottle", count: 3 }],
   },
   {
     id: 2,
@@ -50,7 +50,7 @@ const mockHistoryData = [
     pollution_score: 5,
     severity: "low",
     image_url: "https://example.com/photo2.jpg",
-    detections: [],
+    detections: [{ waste_type: "can", count: 2 }],
   },
   {
     id: 3,
@@ -60,7 +60,7 @@ const mockHistoryData = [
     pollution_score: 45,
     severity: "HIGH",
     image_url: "https://example.com/photo3.jpg",
-    detections: [],
+    detections: [{ waste_type: "bag", count: 5 }],
   },
   {
     id: 4,
@@ -70,7 +70,7 @@ const mockHistoryData = [
     pollution_score: 85,
     severity: "Severe",
     image_url: "https://example.com/photo4.jpg",
-    detections: [],
+    detections: [{ waste_type: "wrapper", count: 10 }],
   },
 ];
 
@@ -100,31 +100,40 @@ async function waitForLoaded() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe("HistoryPage — rendering and filtering", () => {
-  it("renders History page title and initial total count", async () => {
+  it("renders History page title and KPI summary stats", async () => {
     renderHistoryPage();
-    expect(screen.getByRole("heading", { level: 1, name: /history/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /detection history/i })).toBeInTheDocument();
     await waitForLoaded();
-    expect(screen.getByText(/4 of your analyses/i)).toBeInTheDocument();
+    expect(screen.getByText("Detection Sessions")).toBeInTheDocument();
+    expect(screen.getByText("Waste Items")).toBeInTheDocument();
+    expect(screen.getByText("Avg. Severity Score")).toBeInTheDocument();
   });
 
-  it("filters analyses correctly when clicking Low severity pill", async () => {
+  it("filters analyses correctly when clicking Low severity pill in filters popover", async () => {
     renderHistoryPage();
     await waitForLoaded();
 
-    fireEvent.click(screen.getByRole("button", { name: /^low$/i }));
+    // Open Filters popover
+    fireEvent.click(screen.getByRole("button", { name: /toggle filters/i }));
 
-    expect(screen.getByText(/1 matching analyses/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^low/i }));
+
+    expect(screen.getByText(/severity: low/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 detection/i)).toBeInTheDocument();
     expect(screen.getAllByText("Baga Beach, Goa").length).toBeGreaterThan(0);
-    expect(screen.queryByText("Marina Beach, Chennai")).not.toBeInTheDocument();
+    expect(screen.queryByRole("cell", { name: "Marina Beach, Chennai" })).not.toBeInTheDocument();
   });
 
-  it("filters analyses correctly when clicking High severity pill", async () => {
+  it("filters analyses correctly when clicking High severity pill in filters popover", async () => {
     renderHistoryPage();
     await waitForLoaded();
 
-    fireEvent.click(screen.getByRole("button", { name: /^high$/i }));
+    // Open Filters popover
+    fireEvent.click(screen.getByRole("button", { name: /toggle filters/i }));
 
-    expect(screen.getByText(/1 matching analyses/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^high/i }));
+
+    expect(screen.getByText(/severity: high/i)).toBeInTheDocument();
     expect(screen.getAllByText("Marina Beach, Chennai").length).toBeGreaterThan(0);
   });
 
@@ -132,42 +141,56 @@ describe("HistoryPage — rendering and filtering", () => {
     renderHistoryPage();
     await waitForLoaded();
 
-    const searchInput = screen.getByPlaceholderText(/search location or severity/i);
+    const searchInput = screen.getByPlaceholderText(/search location, waste type, contributor\.\.\./i);
     fireEvent.change(searchInput, { target: { value: "Juhu" } });
 
-    expect(screen.getByText(/2 matching analyses/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 detections/i)).toBeInTheDocument();
     expect(screen.getAllByText("Juhu Beach, Mumbai").length).toBeGreaterThan(0);
-    expect(screen.queryByText("Baga Beach, Goa")).not.toBeInTheDocument();
+    expect(screen.queryByRole("cell", { name: "Baga Beach, Goa" })).not.toBeInTheDocument();
   });
 
-  it("combines severity pill filter and search input", async () => {
+  it("combines severity pill filter and search input and allows Clear all", async () => {
     renderHistoryPage();
     await waitForLoaded();
 
-    fireEvent.click(screen.getByRole("button", { name: /^moderate$/i }));
-    const searchInput = screen.getByPlaceholderText(/search location or severity/i);
+    // Open Filters popover
+    fireEvent.click(screen.getByRole("button", { name: /toggle filters/i }));
+
+    fireEvent.click(screen.getByRole("button", { name: /^moderate/i }));
+    const searchInput = screen.getByPlaceholderText(/search location, waste type, contributor\.\.\./i);
     fireEvent.change(searchInput, { target: { value: "Juhu" } });
 
-    expect(screen.getByText(/1 matching analyses/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 detection/i)).toBeInTheDocument();
+
+    // Click Clear all
+    fireEvent.click(screen.getByRole("button", { name: /clear all/i }));
+    expect(screen.queryByText(/active filters:/i)).not.toBeInTheDocument();
+  });
+
+  it("filters by categorical waste type dropdown inside popover", async () => {
+    renderHistoryPage();
+    await waitForLoaded();
+
+    // Open Filters popover
+    fireEvent.click(screen.getByRole("button", { name: /toggle filters/i }));
+
+    const wasteSelect = screen.getByLabelText(/filter by waste type/i);
+    fireEvent.change(wasteSelect, { target: { value: "bottle" } });
+
+    expect(screen.getByText(/waste: plastic bottle/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Juhu Beach, Mumbai").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("cell", { name: "Marina Beach, Chennai" })).not.toBeInTheDocument();
   });
 
   it("displays empty filter state when no matches are found", async () => {
     renderHistoryPage();
     await waitForLoaded();
 
-    const searchInput = screen.getByPlaceholderText(/search location or severity/i);
+    const searchInput = screen.getByPlaceholderText(/search location, waste type, contributor\.\.\./i);
     fireEvent.change(searchInput, { target: { value: "NonExistentLocation" } });
 
-    expect(screen.getByText(/0 matching analyses/i)).toBeInTheDocument();
+    expect(screen.getByText(/0 detections/i)).toBeInTheDocument();
     expect(screen.getAllByText(/no photos match the selected filter/i).length).toBeGreaterThan(0);
-  });
-
-  it("shows 'All' pill as active by default", async () => {
-    renderHistoryPage();
-    await waitForLoaded();
-
-    const allPill = screen.getByRole("button", { name: /^all$/i });
-    expect(allPill).toHaveClass("active");
   });
 
   it("shows empty state when API returns no data", async () => {

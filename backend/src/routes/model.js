@@ -13,7 +13,7 @@ const router = Router();
  * Returns active model ID, active model details, and available models list directly from Postgres database.
  * Accessible to all users (Admin, Member, Guest).
  */
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   try {
     const availableModels = await getAvailableAiModels();
     const activeModelId = await getActiveSystemModel();

@@ -171,4 +171,10 @@ describe("HistoryTable — delete button", () => {
     const disabledBtn = btns.find((b) => b.disabled);
     expect(disabledBtn).toBeTruthy();
   });
+
+  it("renders a View Detection button for every row", () => {
+    render(<HistoryTable history={sampleRecords.slice(0, 3)} />);
+    const viewBtns = screen.getAllByRole("button", { name: /view detection/i });
+    expect(viewBtns).toHaveLength(3);
+  });
 });

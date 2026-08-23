@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, ScanLine, TrendingUp, MapPin, BarChart3,
+  LayoutDashboard, ScanLine, TrendingUp, MapPin,
   Clock, FileText, Recycle, Database, Settings, PanelLeftClose, PanelLeftOpen, Lock
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -13,12 +13,11 @@ const NAV_ITEMS = [
   { to: "/",          label: "Dashboard",              icon: LayoutDashboard, end: true,  guestLocked: false },
   { to: "/detect",    label: "Detect Waste",           icon: ScanLine,        end: false, guestLocked: false },
   { to: "/trends",    label: "Historical Trends",      icon: TrendingUp,      end: false, guestLocked: true  },
-  { to: "/map",       label: "Beach Map",              icon: MapPin,          end: false, guestLocked: true  },
-  { to: "/analytics", label: "Analytics",              icon: BarChart3,       end: false, guestLocked: true  },
+  { to: "/map",       label: "Pollution Map",          icon: MapPin,          end: false, guestLocked: true  },
   { to: "/history",   label: "Detection History",      icon: Clock,           end: false, guestLocked: true  },
   { to: "/reports",   label: "Reports",                icon: FileText,        end: false, guestLocked: true  },
   { to: "/cleanup",   label: "Cleanup Recommendations",icon: Recycle,         end: false, guestLocked: true  },
-  { to: "/dataset",   label: "Dataset Explorer",       icon: Database,        end: false, guestLocked: true  },
+  { to: "/dataset",   label: "Data Explorer",          icon: Database,        end: false, guestLocked: true  },
   { to: "/settings",  label: "Settings",               icon: Settings,        end: false, guestLocked: false },
 ];
 

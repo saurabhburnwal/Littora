@@ -69,10 +69,10 @@ describe("DashboardPage component", () => {
     expect(screen.getByText(/Platform Overview & Preview Analytics/i)).toBeInTheDocument();
   });
 
-  it("renders personal analytics heading when logged in as regular user", async () => {
+  it("renders live monitoring analytics heading when logged in as authenticated user", async () => {
     renderDashboard({ user: { id: "u1", email: "user@test.com" } });
     await vi.waitFor(() => {
-      expect(screen.getByText("Your Personal Beach Waste Analytics")).toBeInTheDocument();
+      expect(screen.getByText("Live Monitoring & Analytics")).toBeInTheDocument();
     });
     expect(screen.queryByText(/Welcome to Guest Preview Mode/i)).not.toBeInTheDocument();
   });

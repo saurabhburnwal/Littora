@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { User, LogOut, LogIn, Settings, Clock, Shield, ChevronDown, ChevronRight, BarChart3 } from "lucide-react";
+import { LogOut, LogIn, Settings, Clock, Shield, ChevronDown, ChevronRight, TrendingUp, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import ConfirmModal from "./ConfirmModal.jsx";
 
 export default function FloatingAccountMenu() {
   const { user, logout, isAdmin } = useAuth();
@@ -111,7 +112,7 @@ export default function FloatingAccountMenu() {
         />
       </button>
 
-      {/* Redesigned Popover Card with High Contrast */}
+      {/* Popover Card */}
       {isOpen && (
         <div className="account-dropdown-card" style={{
           position: "absolute",
@@ -229,84 +230,88 @@ export default function FloatingAccountMenu() {
             </div>
           </div>
 
-            {/* Quick Action Navigation Links */}
-            <div style={{ padding: "0.5rem 0", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-              <Link
-                to="/settings"
-                onClick={() => setIsOpen(false)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  padding: "0.65rem 0.75rem",
-                  borderRadius: "10px",
-                  color: "var(--text-primary, #0f172a)",
-                  fontSize: "0.88rem",
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-              >
-                <Settings size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
-                <span>Account Settings</span>
-                <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
-              </Link>
+          {/* Navigation Links */}
+          <div style={{ padding: "0.5rem 0", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <Link
+              to="/settings"
+              onClick={() => setIsOpen(false)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                padding: "0.65rem 0.75rem",
+                borderRadius: "10px",
+                color: "var(--text-primary, #0f172a)",
+                fontSize: "0.88rem",
+                fontWeight: 700,
+                textDecoration: "none",
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+            >
+              <Settings size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+              <span>Account Settings</span>
+              <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+            </Link>
 
-              {user && (
-                <>
-                  <Link
-                    to="/history"
-                    onClick={() => setIsOpen(false)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.75rem",
-                      padding: "0.65rem 0.75rem",
-                      borderRadius: "10px",
-                      color: "var(--text-primary, #0f172a)",
-                      fontSize: "0.88rem",
-                      fontWeight: 700,
-                      textDecoration: "none",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                  >
-                    <Clock size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
-                    <span>Detection History</span>
-                    <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
-                  </Link>
+            {user && (
+              <>
+                <Link
+                  to="/history"
+                  onClick={() => setIsOpen(false)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    padding: "0.65rem 0.75rem",
+                    borderRadius: "10px",
+                    color: "var(--text-primary, #0f172a)",
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <Clock size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+                  <span>Detection History</span>
+                  <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+                </Link>
 
-                  <Link
-                    to="/analytics"
-                    onClick={() => setIsOpen(false)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.75rem",
-                      padding: "0.65rem 0.75rem",
-                      borderRadius: "10px",
-                      color: "var(--text-primary, #0f172a)",
-                      fontSize: "0.88rem",
-                      fontWeight: 700,
-                      textDecoration: "none",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                  >
-                    <BarChart3 size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
-                    <span>Analytics & Trends</span>
-                    <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
-                  </Link>
-                </>
-              )}
-            </div>
+                <Link
+                  to="/trends"
+                  onClick={() => setIsOpen(false)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    padding: "0.65rem 0.75rem",
+                    borderRadius: "10px",
+                    color: "var(--text-primary, #0f172a)",
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <TrendingUp size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+                  <span>Historical Trends</span>
+                  <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+                </Link>
+              </>
+            )}
+          </div>
 
-          {/* Footer Auth Action */}
-          <div style={{ borderTop: "1px solid var(--border-lt)", paddingTop: "0.65rem" }}>
+          {/* Footer Action */}
+          <div style={{
+            padding: "0.6rem 0.6rem 0.2rem",
+            borderTop: "1px solid var(--border-lt)",
+            marginTop: "0.25rem"
+          }}>
             {user ? (
               <button
                 type="button"
@@ -315,33 +320,26 @@ export default function FloatingAccountMenu() {
                   setShowLogoutModal(true);
                 }}
                 style={{
-                  width: "100%",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.55rem",
-                  padding: "0.65rem 0.8rem",
+                  gap: "0.6rem",
+                  width: "100%",
+                  padding: "0.65rem 0.75rem",
                   borderRadius: "10px",
-                  color: "#9F1239",
+                  border: "none",
+                  background: "rgba(220, 38, 38, 0.08)",
+                  color: "#dc2626",
                   fontSize: "0.88rem",
                   fontWeight: 800,
-                  background: "#FEF2F2",
-                  border: "1px solid #FECDD3",
                   cursor: "pointer",
-                  transition: "all 0.18s ease"
+                  textAlign: "left",
+                  transition: "all 0.15s ease"
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#E11D48";
-                  e.currentTarget.style.color = "#ffffff";
-                  e.currentTarget.style.borderColor = "#BE123C";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#FEF2F2";
-                  e.currentTarget.style.color = "#9F1239";
-                  e.currentTarget.style.borderColor = "#FECDD3";
-                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(220, 38, 38, 0.16)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(220, 38, 38, 0.08)"}
               >
-                <LogOut size={16} /> Sign Out
+                <LogOut size={16} />
+                <span>Sign Out</span>
               </button>
             ) : (
               <button
@@ -351,20 +349,20 @@ export default function FloatingAccountMenu() {
                   navigate("/login");
                 }}
                 style={{
-                  width: "100%",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "0.55rem",
-                  padding: "0.65rem 0.8rem",
+                  gap: "0.5rem",
+                  width: "100%",
+                  padding: "0.65rem 0.75rem",
                   borderRadius: "10px",
-                  color: "#fff",
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  background: "linear-gradient(135deg, var(--teal) 0%, #0B746F 100%)",
                   border: "none",
+                  background: "var(--teal)",
+                  color: "#ffffff",
+                  fontSize: "0.88rem",
+                  fontWeight: 800,
                   cursor: "pointer",
-                  boxShadow: "0 4px 12px rgba(14, 140, 134, 0.3)",
+                  boxShadow: "0 4px 12px rgba(14, 140, 134, 0.35)",
                   transition: "all 0.18s ease"
                 }}
               >
@@ -376,37 +374,16 @@ export default function FloatingAccountMenu() {
       )}
 
       {/* Logout Confirmation Dialog */}
-      {showLogoutModal && (
-        <div className="admin-modal-backdrop" onClick={() => !loggingOut && setShowLogoutModal(false)}>
-          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-modal-icon">
-              <LogOut size={36} style={{ color: "var(--teal)" }} />
-            </div>
-            <h2 className="admin-modal-title">Confirm Sign Out</h2>
-            <p className="admin-modal-body">
-              Are you sure you want to log out of your Littora account?
-            </p>
-            <div className="admin-modal-actions">
-              <button
-                className="admin-modal-cancel"
-                onClick={() => setShowLogoutModal(false)}
-                disabled={loggingOut}
-              >
-                Cancel
-              </button>
-              <button
-                id="confirm-logout-btn"
-                className="filter-btn-apply"
-                onClick={handleConfirmLogout}
-                disabled={loggingOut}
-                style={{ padding: "0.55rem 1.25rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
-              >
-                {loggingOut ? "Signing out…" : "Sign Out"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        title="Confirm Sign Out"
+        message="Are you sure you want to log out of your Littora account?"
+        confirmLabel={loggingOut ? "Signing out…" : "Sign Out"}
+        confirmVariant="primary"
+        icon={LogOut}
+        onConfirm={handleConfirmLogout}
+        onCancel={() => !loggingOut && setShowLogoutModal(false)}
+      />
     </div>
   );
 }
