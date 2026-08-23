@@ -29,14 +29,14 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
           return (
             <div
               key={row.id}
-              className="gallery-card"
+              className="gallery-card gallery-tile"
               role="button"
               tabIndex={0}
               aria-label={`Analysis from ${formattedDate}, score ${row.pollution_score || 0}`}
               onClick={() => setModalItem(row)}
               onKeyDown={(e) => e.key === "Enter" && setModalItem(row)}
             >
-              {/* Media-first Thumbnail + Clean Overlays */}
+              {/* Full-bleed Thumbnail + Scrim Overlay */}
               <div className="gallery-thumb-wrap">
                 {row.image_url ? (
                   <img
@@ -49,8 +49,11 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
                   <div className="gallery-thumb-placeholder">—</div>
                 )}
 
-                {/* Top overlay: severity badge + delete button */}
-                <div className="gallery-thumb-overlay-top">
+                {/* Subtle gradient scrim */}
+                <div className="gallery-tile-scrim" />
+
+                {/* Top overlay: severity badge (top-left) + delete button (top-right) */}
+                <div className="gallery-tile-header">
                   <span className={`severity-overlay severity-${(row.severity || "low").toLowerCase()}`}>
                     {row.severity || "Low"}
                   </span>
@@ -58,34 +61,33 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
                     <button
                       type="button"
                       className="gallery-delete-btn"
-                      onClick={(e) => { e.stopPropagation(); onDeleteRequest(row.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteRequest(row.id);
+                      }}
                       disabled={deletingId === row.id}
                       title="Delete Analysis"
                       aria-label="Delete Analysis"
                     >
-                      {deletingId === row.id
-                        ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
-                        : <Trash2 size={13} />
-                      }
+                      {deletingId === row.id ? (
+                        <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                      ) : (
+                        <Trash2 size={13} />
+                      )}
                     </button>
                   )}
                 </div>
 
-                {/* Bottom overlay: date */}
-                <div className="gallery-thumb-overlay-bottom">
-                  <span className="gallery-pill">{formattedDate}</span>
-                </div>
-              </div>
-
-              {/* Card Footer: Location & Item Count */}
-              <div className="gallery-card-footer">
-                <div className="gallery-card-meta">
-                  <span className="gallery-card-loc" title={row.location_label || "Location unavailable"}>
+                {/* Bottom caption overlay: Location (bottom-left) + Date · X waste items */}
+                <div className="gallery-tile-footer">
+                  <div className="gallery-tile-loc" title={row.location_label || "Location unavailable"}>
                     {row.location_label || "Location unavailable"}
-                  </span>
-                  <span className="gallery-card-count">
-                    {itemCountText}
-                  </span>
+                  </div>
+                  <div className="gallery-tile-sub">
+                    <span>{formattedDate}</span>
+                    <span className="gallery-tile-dot">·</span>
+                    <span>{itemCountText}</span>
+                  </div>
                 </div>
               </div>
             </div>

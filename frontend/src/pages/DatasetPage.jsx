@@ -1,8 +1,11 @@
 import { useState, useMemo } from "react";
 import axios from "axios";
-import { Download, Search, Filter, Database, MapPin, FileSpreadsheet, ExternalLink } from "lucide-react";
+import { Download, Search, Filter, Database, MapPin, FileSpreadsheet, ExternalLink, Sparkles, Layers } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import SectionHeader from "../components/ui/SectionHeader.jsx";
+import MetricCard from "../components/ui/MetricCard.jsx";
+import Badge from "../components/ui/Badge.jsx";
 import { API_BASE } from "../utils/wasteUtils.js";
 import { downloadBlob, downloadJson } from "../utils/downloadUtils.js";
 
@@ -141,6 +144,7 @@ export default function DatasetPage() {
 
   return (
     <div className="page-container">
+      {/* Header */}
       <div className="page-heading">
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <Database size={22} style={{ color: "var(--teal)" }} />
@@ -149,6 +153,42 @@ export default function DatasetPage() {
         <p>
           Browse and export research-ready coastal waste datasets with GIS coordinates and Roboflow training data.
         </p>
+      </div>
+
+      {/* Dataset Metrics */}
+      <div className="kpi-stats-grid" style={{ marginBottom: "2rem" }}>
+        <MetricCard
+          label="Catalog Records"
+          value={(stats.totalAnalyses || 0).toLocaleString()}
+          icon={<Database size={18} />}
+          subtext="Telemetry Points"
+        />
+        <MetricCard
+          label="Training Images"
+          value="9,403"
+          icon={<Sparkles size={18} />}
+          subtext="YOLO Annotations"
+        />
+        <MetricCard
+          label="Debris Items"
+          value={(stats.totalWasteAllTime || 0).toLocaleString()}
+          icon={<Layers size={18} />}
+          subtext="Classified Objects"
+        />
+        <MetricCard
+          label="Export Formats"
+          value="4"
+          icon={<FileSpreadsheet size={18} />}
+          subtext="GeoJSON, CSV, JSON, YOLO"
+        />
+      </div>
+
+      {/* Section Header & Toolbar */}
+      <div style={{ marginBottom: "1rem" }}>
+        <SectionHeader
+          title="Available Datasets"
+          subtitle="Machine-learning annotations and geospatial feature collections"
+        />
       </div>
 
       <div style={{ display: "flex", gap: "0.65rem", marginBottom: "1.5rem", alignItems: "center", flexWrap: "wrap" }}>
@@ -165,12 +205,12 @@ export default function DatasetPage() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-          <Filter size={14} style={{ color: "var(--muted)" }} />
+          <Filter size={14} style={{ color: "var(--text-muted)" }} />
           <select
             className="filter-select"
             value={formatFilter}
             onChange={(e) => setFormatFilter(e.target.value)}
-            style={{ padding: "0.4rem 0.8rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--ink)", fontSize: "0.85rem" }}
+            style={{ padding: "0.4rem 0.8rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: "0.85rem" }}
           >
             <option value="ALL">All Formats</option>
             <option value="ROBOFLOW">Roboflow / YOLO</option>
@@ -181,6 +221,7 @@ export default function DatasetPage() {
         </div>
       </div>
 
+      {/* Table Card */}
       <div className="history">
         <table>
           <thead>
@@ -196,7 +237,7 @@ export default function DatasetPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "var(--muted)" }}>
+                <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
                   No matching datasets found.
                 </td>
               </tr>
@@ -204,20 +245,20 @@ export default function DatasetPage() {
               filtered.map((d) => (
                 <tr key={d.id}>
                   <td>
-                    <div style={{ fontWeight: 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                    <div style={{ fontWeight: 600, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.45rem" }}>
                       {d.format === "GEOJSON" && <MapPin size={14} style={{ color: "var(--teal)" }} />}
                       {d.format === "CSV" && <FileSpreadsheet size={14} style={{ color: "#F59E0B" }} />}
                       {d.format === "ROBOFLOW" && <Database size={14} style={{ color: "var(--teal)" }} />}
                       <span>{d.name}</span>
                     </div>
                     {d.description && (
-                      <div style={{ fontSize: "0.74rem", color: "var(--muted)", marginTop: "2px" }}>
+                      <div style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginTop: "2px" }}>
                         {d.description}
                       </div>
                     )}
                   </td>
                   <td>{d.records.toLocaleString()}</td>
-                  <td style={{ color: "var(--muted)" }}>{d.size}</td>
+                  <td style={{ color: "var(--text-muted)" }}>{d.size}</td>
                   <td>
                     <span
                       className="waste-badge"
@@ -227,20 +268,21 @@ export default function DatasetPage() {
                             ? "rgba(14, 140, 134, 0.15)"
                             : d.format === "ROBOFLOW"
                             ? "rgba(168, 85, 247, 0.15)"
-                            : "var(--sand-dark)",
+                            : "var(--bg)",
                         color:
                           d.format === "GEOJSON"
                             ? "var(--teal)"
                             : d.format === "ROBOFLOW"
                             ? "#9333EA"
-                            : "var(--ink)",
+                            : "var(--text-primary)",
                         fontWeight: 700,
+                        border: "1px solid var(--border)"
                       }}
                     >
                       {d.format}
                     </span>
                   </td>
-                  <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>{d.updated}</td>
+                  <td style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>{d.updated}</td>
                   <td>
                     {d.isExternal ? (
                       <a
@@ -248,33 +290,20 @@ export default function DatasetPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="export-btn"
-                        style={{
-                          fontSize: "0.73rem",
-                          padding: "0.35rem 0.75rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "0.35rem",
-                          textDecoration: "none",
-                        }}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", textDecoration: "none" }}
                       >
-                        <ExternalLink size={13} />
-                        Open
+                        <ExternalLink size={13} /> View on Roboflow
                       </a>
                     ) : (
                       <button
+                        type="button"
                         className="export-btn"
-                        style={{
-                          fontSize: "0.73rem",
-                          padding: "0.35rem 0.75rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "0.35rem",
-                        }}
-                        disabled={downloadingId === d.id}
                         onClick={() => handleDownload(d)}
+                        disabled={downloadingId === d.id}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
                       >
                         <Download size={13} />
-                        {downloadingId === d.id ? "Exporting…" : "Export"}
+                        {downloadingId === d.id ? "Downloading..." : "Export"}
                       </button>
                     )}
                   </td>

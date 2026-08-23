@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, BarChart3, ScanLine, TrendingUp } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth }  from "../context/AuthContext.jsx";
+import SectionHeader from "../components/ui/SectionHeader.jsx";
 import StatCards          from "../components/StatCards.jsx";
 import TrendChart         from "../components/TrendChart.jsx";
 import WasteBreakdownChart from "../components/WasteBreakdownChart.jsx";
@@ -103,8 +104,11 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="section-header-badge">
-          <h2>{sectionTitle}</h2>
+        <div style={{ marginBottom: "1.25rem" }}>
+          <SectionHeader
+            title={sectionTitle}
+            subtitle={user ? "Real-time coastal waste telemetry and breakdown" : "Preview metrics available in guest mode"}
+          />
         </div>
 
         {!user ? (
@@ -120,7 +124,7 @@ export default function DashboardPage() {
               avgScore={stats.avgScore}
             />
 
-            <div className="charts-row">
+            <div className="charts-row" style={{ marginTop: "1.5rem" }}>
               <TrendChart history={stats.history} />
               <WasteBreakdownChart aggregateDetections={stats.aggregateDetections} />
             </div>

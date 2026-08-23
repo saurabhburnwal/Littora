@@ -1,4 +1,5 @@
 import { ScanLine, Trash2, Activity, ShieldCheck } from "lucide-react";
+import MetricCard from "./ui/MetricCard.jsx";
 
 export default function StatCards({
   totalAnalyses     = 0,
@@ -9,49 +10,30 @@ export default function StatCards({
 
   return (
     <div className="stat-cards">
-      <div className="stat-card">
-        <div className="stat-card-header">
-          <span className="stat-card-label">Total Detections</span>
-          <ScanLine size={20} className="stat-card-icon" color="var(--teal)" />
-        </div>
-        <span className="stat-card-value">{totalAnalyses.toLocaleString()}</span>
-        <div className="stat-card-delta positive">
-          <span>Live Database Analyses</span>
-        </div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-card-header">
-          <span className="stat-card-label">Total Waste Items</span>
-          <Trash2 size={20} className="stat-card-icon" color="var(--clay)" />
-        </div>
-        <span className="stat-card-value">{totalWasteAllTime.toLocaleString()}</span>
-        <div className="stat-card-delta positive">
-          <span>Aggregated Objects</span>
-        </div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-card-header">
-          <span className="stat-card-label">Avg. Waste / Image</span>
-          <Activity size={20} className="stat-card-icon" color="var(--amber)" />
-        </div>
-        <span className="stat-card-value">{avgWastePerScan}</span>
-        <div className="stat-card-delta positive">
-          <span>Objects Per Upload</span>
-        </div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-card-header">
-          <span className="stat-card-label">Pollution Severity Index</span>
-          <ShieldCheck size={20} className="stat-card-icon" color="var(--rose)" />
-        </div>
-        <span className="stat-card-value">{avgScore}</span>
-        <div className="stat-card-delta positive">
-          <span>Mean Risk Score</span>
-        </div>
-      </div>
+      <MetricCard
+        label="Total Detections"
+        value={totalAnalyses.toLocaleString()}
+        icon={<ScanLine size={18} />}
+        subtext="Live Database Analyses"
+      />
+      <MetricCard
+        label="Total Waste Items"
+        value={totalWasteAllTime.toLocaleString()}
+        icon={<Trash2 size={18} />}
+        subtext="Aggregated Objects"
+      />
+      <MetricCard
+        label="Avg. Waste / Image"
+        value={avgWastePerScan}
+        icon={<Activity size={18} />}
+        subtext="Objects Per Upload"
+      />
+      <MetricCard
+        label="Pollution Severity Index"
+        value={avgScore}
+        icon={<ShieldCheck size={18} />}
+        subtext="Mean Risk Score"
+      />
     </div>
   );
 }

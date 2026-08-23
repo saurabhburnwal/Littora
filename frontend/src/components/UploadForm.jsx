@@ -184,26 +184,19 @@ export default function UploadForm({
         hidden
       />
 
-      {/* Multi AI Model Selector Section (Admin Only) */}
+      {/* Multi AI Model Selector Section (Admin Only - Collapsible) */}
       {isAdmin && (
-        <div className="model-selector-card" style={{
-          margin: "0.85rem 0",
-          padding: "0.85rem 1rem",
-          borderRadius: "12px",
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>
+        <details className="model-selector-details">
+          <summary className="model-selector-summary">
+            <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
               <Cpu size={15} style={{ color: "var(--teal)" }} />
-              <span>AI Inference Model</span>
-            </label>
+              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-primary)" }}>AI Inference Model</span>
+            </div>
 
             <span style={{
               fontSize: "0.72rem",
               fontWeight: 700,
-              padding: "0.2rem 0.55rem",
+              padding: "0.18rem 0.55rem",
               borderRadius: "20px",
               background: "rgba(14, 140, 134, 0.12)",
               color: "var(--teal)",
@@ -212,12 +205,12 @@ export default function UploadForm({
               alignItems: "center",
               gap: "0.3rem"
             }}>
-              <Sparkles size={11} /> {activeModelDetails?.badge || "Active"}
+              <Sparkles size={11} /> {activeModelDetails?.name || activeModelDetails?.badge || "Active"}
             </span>
-          </div>
+          </summary>
 
-          <div>
-            <div style={{ fontSize: "0.74rem", color: "var(--muted)", marginBottom: "0.6rem" }}>
+          <div className="model-selector-content">
+            <div style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginBottom: "0.6rem" }}>
               <strong>System Admin Control:</strong> Select model for system-wide inference across all users.
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.5rem" }}>
@@ -235,9 +228,9 @@ export default function UploadForm({
                       alignItems: "flex-start",
                       padding: "0.55rem 0.75rem",
                       borderRadius: "10px",
-                      border: isSelected ? "2px solid var(--teal)" : "2px solid var(--border-lt)",
+                      border: isSelected ? "2px solid var(--teal)" : "2px solid var(--border)",
                       background: isSelected ? "rgba(14, 140, 134, 0.08)" : "var(--card-bg)",
-                      color: isSelected ? "var(--ink)" : "var(--muted)",
+                      color: isSelected ? "var(--text-primary)" : "var(--text-muted)",
                       cursor: updatingModel ? "wait" : "pointer",
                       textAlign: "left",
                       transition: "all 0.18s ease",
@@ -247,7 +240,7 @@ export default function UploadForm({
                     <div style={{
                       fontWeight: 700,
                       fontSize: "0.8rem",
-                      color: isSelected ? "var(--teal)" : "var(--ink)",
+                      color: isSelected ? "var(--teal)" : "var(--text-primary)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
@@ -266,7 +259,7 @@ export default function UploadForm({
               })}
             </div>
           </div>
-        </div>
+        </details>
       )}
 
       {/* Beach Location Selector */}

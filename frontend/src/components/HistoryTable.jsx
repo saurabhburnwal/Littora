@@ -122,6 +122,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
       <table>
         <thead>
           <tr>
+            <th style={{ width: "56px" }}>Photo</th>
             <th
               className="th-sortable"
               onClick={() => toggleSort("date")}
@@ -176,6 +177,23 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
 
             return (
               <tr key={row.id}>
+                <td>
+                  {row.image_url ? (
+                    <img
+                      src={row.image_url}
+                      alt="Beach analysis thumbnail"
+                      className="thumb"
+                      loading="lazy"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => (onViewRequest ? onViewRequest(row) : setSelectedRow(row))}
+                      title="Click to view detection"
+                    />
+                  ) : (
+                    <div className="thumb-placeholder" title="No image">
+                      —
+                    </div>
+                  )}
+                </td>
                 <td>
                   <span className="td-date">{formatDate(row.created_at)}</span>
                 </td>

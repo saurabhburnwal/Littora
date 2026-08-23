@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Clock, Users, Waves, ShieldAlert, Sparkles, MapPin } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
+import SectionHeader from "../components/ui/SectionHeader.jsx";
+import Badge from "../components/ui/Badge.jsx";
 import { normalizeSeverity } from "../utils/wasteUtils.js";
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -88,23 +90,30 @@ export default function CleanupPage() {
   return (
     <div className="page-container">
       <div className="page-heading">
-        <h1>Cleanup Recommendations</h1>
-        <p>AI-powered recommendations calculated dynamically from real-time database scans &amp; pollution analytics.</p>
+        <div>
+          <h1>Cleanup Recommendations</h1>
+          <p>AI-powered recommendations calculated dynamically from real-time database scans &amp; pollution analytics.</p>
+        </div>
       </div>
 
       <div className="cards-grid-2">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
-            <p className="section-title" style={{ margin: 0 }}>Recommended Actions</p>
-            <span style={{ fontSize: '0.73rem', color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}>
-              <Sparkles size={13} /> Live Database Powered
-            </span>
+          <div style={{ marginBottom: "1rem" }}>
+            <SectionHeader
+              title="Recommended Actions"
+              subtitle="Prioritized cleanup interventions based on live database telemetry"
+              action={
+                <span style={{ fontSize: "0.73rem", color: "var(--teal)", display: "inline-flex", alignItems: "center", gap: "0.25rem", fontWeight: 600 }}>
+                  <Sparkles size={13} /> Live Database Powered
+                </span>
+              }
+            />
           </div>
 
           {recommendations.length === 0 ? (
-            <div className="full-card" style={{ textAlign: "center", padding: "2.5rem 1.5rem", color: "var(--muted)" }}>
+            <div className="full-card" style={{ textAlign: "center", padding: "2.5rem 1.5rem", color: "var(--text-muted)" }}>
               <ShieldAlert size={36} style={{ color: "var(--teal)", marginBottom: "0.5rem" }} />
-              <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 600 }}>
+              <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)" }}>
                 No pollution records found. Upload a scan to generate recommendations.
               </p>
             </div>
@@ -137,7 +146,7 @@ export default function CleanupPage() {
                       {r.priority}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>
                     <MapPin size={12} />
                     <span>{r.location}</span>
                   </div>
@@ -154,10 +163,16 @@ export default function CleanupPage() {
         </div>
 
         <div>
-          <p className="section-title">Suggested Cleanup Schedule</p>
-          <div className="full-card">
+          <div style={{ marginBottom: "1rem" }}>
+            <SectionHeader
+              title="Suggested Cleanup Schedule"
+              subtitle="Intervention timeline for local municipal teams"
+            />
+          </div>
+
+          <div className="full-card" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
             {upcomingCleanups.length === 0 ? (
-              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: 0 }}>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: 0 }}>
                 No high-priority cleanups currently scheduled. All coastal sites report optimal baseline scores.
               </p>
             ) : (
@@ -168,13 +183,13 @@ export default function CleanupPage() {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    padding: "0.6rem 0",
-                    borderBottom: i < upcomingCleanups.length - 1 ? "1px solid var(--border-lt)" : "none",
+                    padding: "0.75rem 0",
+                    borderBottom: i < upcomingCleanups.length - 1 ? "1px solid var(--border)" : "none",
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: "0.86rem", color: "var(--ink)" }}>{c.beach}</div>
-                    <div style={{ fontSize: "0.74rem", color: "var(--muted)" }}>{c.date}</div>
+                    <div style={{ fontWeight: 600, fontSize: "0.86rem", color: "var(--text-primary)" }}>{c.beach}</div>
+                    <div style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginTop: "2px" }}>{c.date}</div>
                   </div>
                   <span className={`priority-badge priority-${c.priority}`}>{c.priority}</span>
                 </div>

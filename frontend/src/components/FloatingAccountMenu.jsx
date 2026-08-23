@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { LogOut, LogIn, Settings, Clock, Shield, ChevronDown, ChevronRight, TrendingUp, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import ConfirmModal from "./ConfirmModal.jsx";
+import Badge from "./ui/Badge.jsx";
 
 export default function FloatingAccountMenu() {
   const { user, logout, isAdmin } = useAuth();
@@ -48,7 +49,7 @@ export default function FloatingAccountMenu() {
     : "G";
 
   return (
-    <div className="floating-account-menu-container" ref={menuRef} style={{ position: "relative", zIndex: 1000 }}>
+    <div className="floating-account-menu-container" ref={menuRef}>
       {/* Floating Trigger Button */}
       <button
         type="button"
@@ -56,203 +57,69 @@ export default function FloatingAccountMenu() {
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Account Menu"
         aria-expanded={isOpen}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.55rem",
-          padding: "0.45rem 0.85rem",
-          borderRadius: "30px",
-          background: "var(--surface-elevated, #ffffff)",
-          border: "1px solid var(--border-strong, #bca88e)",
-          boxShadow: "0 6px 22px rgba(0,0,0,0.18)",
-          cursor: "pointer",
-          transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-          color: "var(--text-primary, #0f172a)",
-        }}
       >
-        <div style={{
-          width: "30px",
-          height: "30px",
-          borderRadius: "50%",
-          background: user
-            ? "linear-gradient(135deg, var(--teal) 0%, #0B746F 100%)"
-            : "rgba(14, 140, 134, 0.15)",
-          color: user ? "#fff" : "var(--teal)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontWeight: 800,
-          fontSize: "0.85rem",
-          boxShadow: user ? "0 2px 8px rgba(14, 140, 134, 0.4)" : "none",
-        }}>
+        <div className={`floating-account-avatar ${!user ? "guest" : ""}`}>
           {user ? initial : <User size={15} />}
         </div>
 
-        <span style={{
-          fontSize: "0.88rem",
-          fontWeight: 800,
-          maxWidth: "135px",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          color: "var(--text-primary, #0f172a)",
-          letterSpacing: "-0.01em"
-        }}>
+        <span className="floating-account-name">
           {displayName}
         </span>
 
         <ChevronDown
           size={14}
-          style={{
-            color: "var(--text-primary, #0f172a)",
-            opacity: 0.85,
-            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
-          }}
+          className={`floating-account-chevron ${isOpen ? "open" : ""}`}
         />
       </button>
 
       {/* Popover Card */}
       {isOpen && (
-        <div className="account-dropdown-card" style={{
-          position: "absolute",
-          top: "calc(100% + 10px)",
-          right: 0,
-          width: "275px",
-          background: "var(--surface-elevated, #ffffff)",
-          border: "1px solid var(--border-strong, #bca88e)",
-          borderRadius: "16px",
-          boxShadow: "0 20px 48px -8px rgba(0, 0, 0, 0.32)",
-          padding: "0.95rem",
-          animation: "fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)",
-          zIndex: 1001,
-        }}>
+        <div className="account-dropdown-card">
           {/* Header Profile Section */}
-          <div style={{
-            padding: "0.6rem 0.6rem 0.85rem",
-            borderBottom: "1px solid var(--border-lt)"
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <div style={{
-                width: "42px",
-                height: "42px",
-                borderRadius: "50%",
-                background: user
-                  ? "linear-gradient(135deg, var(--teal) 0%, #095E5A 100%)"
-                  : "rgba(14, 140, 134, 0.15)",
-                color: user ? "#fff" : "var(--teal)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 800,
-                fontSize: "1.1rem",
-                boxShadow: user ? "0 4px 12px rgba(14, 140, 134, 0.35)" : "none",
-                flexShrink: 0,
-              }}>
+          <div className="account-dropdown-header">
+            <div className="account-dropdown-profile">
+              <div className={`account-dropdown-avatar ${!user ? "guest" : ""}`}>
                 {user ? initial : <User size={20} />}
               </div>
 
-              <div style={{ overflow: "hidden", flex: 1 }}>
-                <div style={{
-                  fontWeight: 800,
-                  fontSize: "0.95rem",
-                  color: "var(--text-primary, #0f172a)",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap"
-                }}>
+              <div className="account-dropdown-info">
+                <div className="account-dropdown-display-name">
                   {displayName}
                 </div>
-                <div style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 600,
-                  color: "var(--text-secondary, #475569)",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  marginTop: "2px"
-                }}>
+                <div className="account-dropdown-email">
                   {user ? user.email : "Guest Visitor"}
                 </div>
               </div>
             </div>
 
             {/* Role Badge */}
-            <div style={{ marginTop: "0.65rem" }}>
+            <div className="account-dropdown-role-wrap">
               {user && isAdminUser ? (
-                <span style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  padding: "0.28rem 0.7rem",
-                  borderRadius: "20px",
-                  background: "var(--amber-light, #FEF3C7)",
-                  color: "#92400E",
-                  border: "1px solid #F59E0B",
-                  fontSize: "0.73rem",
-                  fontWeight: 800,
-                  letterSpacing: "0.02em"
-                }}>
-                  <Shield size={12} style={{ color: "#B45309" }} /> Administrator
-                </span>
+                <Badge variant="role" type="admin" icon={<Shield size={12} />}>
+                  Administrator
+                </Badge>
               ) : user ? (
-                <span style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  padding: "0.28rem 0.7rem",
-                  borderRadius: "20px",
-                  background: "var(--primary-light, #D6F2EF)",
-                  color: "#095E5A",
-                  border: "1px solid #0E8C86",
-                  fontSize: "0.73rem",
-                  fontWeight: 800,
-                  letterSpacing: "0.02em"
-                }}>
-                  <User size={12} style={{ color: "#0E8C86" }} /> Account Member
-                </span>
+                <Badge variant="role" type="member" icon={<User size={12} />}>
+                  Account Member
+                </Badge>
               ) : (
-                <span style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  padding: "0.28rem 0.7rem",
-                  borderRadius: "20px",
-                  background: "#F1F5F9",
-                  color: "#475569",
-                  border: "1px solid #CBD5E1",
-                  fontSize: "0.73rem",
-                  fontWeight: 700
-                }}>
-                  <User size={12} /> Preview Guest
-                </span>
+                <Badge variant="role" type="guest" icon={<User size={12} />}>
+                  Preview Guest
+                </Badge>
               )}
             </div>
           </div>
 
           {/* Navigation Links */}
-          <div style={{ padding: "0.5rem 0", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+          <div className="account-dropdown-links">
             <Link
               to="/settings"
               onClick={() => setIsOpen(false)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                padding: "0.65rem 0.75rem",
-                borderRadius: "10px",
-                color: "var(--text-primary, #0f172a)",
-                fontSize: "0.88rem",
-                fontWeight: 700,
-                textDecoration: "none",
-                transition: "all 0.15s ease",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              className="account-dropdown-link"
             >
-              <Settings size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+              <Settings size={16} className="account-dropdown-link-icon" />
               <span>Account Settings</span>
-              <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+              <ChevronRight size={14} className="account-dropdown-link-arrow" />
             </Link>
 
             {user && (
@@ -260,83 +127,36 @@ export default function FloatingAccountMenu() {
                 <Link
                   to="/history"
                   onClick={() => setIsOpen(false)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "0.65rem 0.75rem",
-                    borderRadius: "10px",
-                    color: "var(--text-primary, #0f172a)",
-                    fontSize: "0.88rem",
-                    fontWeight: 700,
-                    textDecoration: "none",
-                    transition: "all 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  className="account-dropdown-link"
                 >
-                  <Clock size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+                  <Clock size={16} className="account-dropdown-link-icon" />
                   <span>Detection History</span>
-                  <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+                  <ChevronRight size={14} className="account-dropdown-link-arrow" />
                 </Link>
 
                 <Link
                   to="/trends"
                   onClick={() => setIsOpen(false)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "0.65rem 0.75rem",
-                    borderRadius: "10px",
-                    color: "var(--text-primary, #0f172a)",
-                    fontSize: "0.88rem",
-                    fontWeight: 700,
-                    textDecoration: "none",
-                    transition: "all 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--sand, #F1E8D8)"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  className="account-dropdown-link"
                 >
-                  <TrendingUp size={16} style={{ color: "var(--primary, #0E8C86)", opacity: 0.9 }} />
+                  <TrendingUp size={16} className="account-dropdown-link-icon" />
                   <span>Historical Trends</span>
-                  <ChevronRight size={14} style={{ marginLeft: "auto", color: "var(--text-muted)", opacity: 0.7 }} />
+                  <ChevronRight size={14} className="account-dropdown-link-arrow" />
                 </Link>
               </>
             )}
           </div>
 
           {/* Footer Action */}
-          <div style={{
-            padding: "0.6rem 0.6rem 0.2rem",
-            borderTop: "1px solid var(--border-lt)",
-            marginTop: "0.25rem"
-          }}>
+          <div className="account-dropdown-footer">
             {user ? (
               <button
                 type="button"
+                className="account-dropdown-logout-btn"
                 onClick={() => {
                   setIsOpen(false);
                   setShowLogoutModal(true);
                 }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.6rem",
-                  width: "100%",
-                  padding: "0.65rem 0.75rem",
-                  borderRadius: "10px",
-                  border: "none",
-                  background: "rgba(220, 38, 38, 0.08)",
-                  color: "#dc2626",
-                  fontSize: "0.88rem",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "all 0.15s ease"
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(220, 38, 38, 0.16)"}
-                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(220, 38, 38, 0.08)"}
               >
                 <LogOut size={16} />
                 <span>Sign Out</span>
@@ -344,26 +164,10 @@ export default function FloatingAccountMenu() {
             ) : (
               <button
                 type="button"
+                className="account-dropdown-login-btn"
                 onClick={() => {
                   setIsOpen(false);
                   navigate("/login");
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                  width: "100%",
-                  padding: "0.65rem 0.75rem",
-                  borderRadius: "10px",
-                  border: "none",
-                  background: "var(--teal)",
-                  color: "#ffffff",
-                  fontSize: "0.88rem",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  boxShadow: "0 4px 12px rgba(14, 140, 134, 0.35)",
-                  transition: "all 0.18s ease"
                 }}
               >
                 <LogIn size={15} /> Sign In / Register

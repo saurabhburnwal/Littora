@@ -98,7 +98,7 @@ export default function UploadPage() {
         <p>Upload or capture a beach photo to detect waste using AI.</p>
       </div>
 
-      <div className="upload-layout">
+      <div className={`upload-layout${!result ? " before-analysis" : " has-result"}`}>
         {/* Left — upload form & feature image with bounding boxes */}
         <div className="upload-pane">
           <div className="upload-card">

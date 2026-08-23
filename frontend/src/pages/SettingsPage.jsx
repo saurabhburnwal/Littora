@@ -12,10 +12,14 @@ import {
   CheckCircle,
   AlertTriangle,
   X,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import SectionHeader from "../components/ui/SectionHeader.jsx";
+import Badge from "../components/ui/Badge.jsx";
 import { supabase } from "../lib/supabase.js";
 import { API_BASE } from "../utils/constants.js";
 import { downloadJson } from "../utils/downloadUtils.js";
@@ -29,7 +33,7 @@ export default function SettingsPage() {
     itemsPerPage, setItemsPerPage,
     notifications, setNotifications,
   } = useSettings();
-  const { getToken, logout, user } = useAuth();
+  const { getToken, logout, user, isAdmin, isGuest } = useAuth();
 
   // --- Pending (unsaved) local state ---
   const [pendingTheme,       setPendingTheme]       = useState(theme);
@@ -115,11 +119,20 @@ export default function SettingsPage() {
       {/* ── Header ── */}
       <div className="page-heading">
         <div>
-          <h1>Settings</h1>
-          <p>Manage your preferences, notifications and account.</p>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <h1 style={{ margin: 0 }}>Settings</h1>
+            {user ? (
+              <Badge variant="role" type={isAdmin ? "admin" : "member"}>
+                {isAdmin ? "Admin" : "Member"}
+              </Badge>
+            ) : (
+              <Badge variant="role" type="guest">Guest</Badge>
+            )}
+          </div>
+          <p>Manage your preferences, notifications and account configuration.</p>
         </div>
         {hasChanges && (
-          <div style={{ fontSize: "0.78rem", color: "var(--amber)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <div style={{ fontSize: "0.78rem", color: "var(--amber)", display: "flex", alignItems: "center", gap: "0.4rem", fontWeight: 600 }}>
             <AlertTriangle size={14} /> Unsaved changes
           </div>
         )}
@@ -129,9 +142,9 @@ export default function SettingsPage() {
         <div className="guest-preview-banner" style={{
           background: "linear-gradient(135deg, rgba(47, 111, 94, 0.12) 0%, rgba(212, 146, 75, 0.12) 100%)",
           border: "1px solid var(--border)",
-          borderRadius: "14px",
+          borderRadius: "var(--radius-lg)",
           padding: "1.25rem 1.5rem",
-          marginBottom: "1.5rem",
+          marginBottom: "1.75rem",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -139,10 +152,10 @@ export default function SettingsPage() {
           gap: "1rem"
         }}>
           <div>
-            <h4 style={{ margin: "0 0 0.25rem", fontSize: "1rem", fontWeight: 700, color: "var(--ink)" }}>
+            <h4 style={{ margin: "0 0 0.25rem", fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>
               👋 Guest Preferences Mode
             </h4>
-            <p style={{ margin: 0, fontSize: "0.86rem", color: "var(--muted)" }}>
+            <p style={{ margin: 0, fontSize: "0.86rem", color: "var(--text-muted)" }}>
               Theme, language, and display settings are saved locally in your browser. Sign in to sync preferences across devices, export data, and manage account settings.
             </p>
           </div>
@@ -156,14 +169,14 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
         {/* ── LEFT COLUMN ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
           {/* General Settings */}
           <div className="settings-section">
             <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Globe size={15} /> General Settings
+              <Globe size={15} style={{ color: "var(--teal)" }} /> General Settings
             </div>
 
             {/* Theme */}
@@ -269,13 +282,13 @@ export default function SettingsPage() {
         </div>
 
         {/* ── RIGHT COLUMN ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {user ? (
             <>
               {/* Notification Preferences */}
               <div className="settings-section">
                 <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Bell size={15} /> Notification Preferences
+                  <Bell size={15} style={{ color: "var(--teal)" }} /> Notification Preferences
                 </div>
 
                 {[
@@ -305,7 +318,7 @@ export default function SettingsPage() {
               {/* Data & Privacy */}
               <div className="settings-section">
                 <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Trash2 size={15} /> Data &amp; Privacy
+                  <Trash2 size={15} style={{ color: "var(--rose, #ef4444)" }} /> Data &amp; Privacy
                 </div>
 
                 {/* Export */}
@@ -334,15 +347,15 @@ export default function SettingsPage() {
                 {/* Delete Account */}
                 <div className="settings-row">
                   <div style={{ flex: 1, paddingRight: "1rem" }}>
-                    <div className="settings-row-label" style={{ color: "var(--rose)" }}>Delete Account</div>
+                    <div className="settings-row-label" style={{ color: "var(--rose, #ef4444)" }}>Delete Account</div>
                     <div className="settings-row-desc">Sign out and request permanent account deletion</div>
                   </div>
                   <button
                     id="settings-delete-btn"
                     style={{
                       background: "transparent",
-                      border: "1.5px solid var(--rose)",
-                      color: "var(--rose)",
+                      border: "1.5px solid var(--rose, #ef4444)",
+                      color: "var(--rose, #ef4444)",
                       borderRadius: "8px",
                       padding: "0.35rem 0.85rem",
                       fontSize: "0.78rem",
@@ -371,10 +384,10 @@ export default function SettingsPage() {
               }}>
                 <Bell size={24} strokeWidth={1.8} />
               </div>
-              <h3 style={{ fontSize: "1.05rem", fontWeight: 700, margin: "0 0 0.5rem", color: "var(--ink)" }}>
+              <h3 style={{ fontSize: "1.05rem", fontWeight: 700, margin: "0 0 0.5rem", color: "var(--text-primary)" }}>
                 Account &amp; Notification Settings
               </h3>
-              <p style={{ margin: "0 auto 1.25rem", fontSize: "0.85rem", color: "var(--muted)", maxWidth: "340px" }}>
+              <p style={{ margin: "0 auto 1.25rem", fontSize: "0.85rem", color: "var(--text-muted)", maxWidth: "340px" }}>
                 Notification preferences and data export features are available to signed-in accounts. Sign in to enable email notifications and export your detection data.
               </p>
               <button
@@ -404,7 +417,7 @@ export default function SettingsPage() {
               <strong>This cannot be undone.</strong>
             </p>
             {deleteError && (
-              <p style={{ color: "var(--rose)", fontSize: "0.82rem", marginBottom: "1rem" }}>{deleteError}</p>
+              <p style={{ color: "var(--rose, #ef4444)", fontSize: "0.82rem", marginBottom: "1rem" }}>{deleteError}</p>
             )}
             <div className="admin-modal-actions">
               <button

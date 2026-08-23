@@ -1,6 +1,6 @@
 # Littora Frontend — React 18 + Vite Web Application
 
-The frontend of **Littora** is a responsive, feature-rich Single Page Application (SPA) built with **React 18**, **Vite**, and **Vanilla CSS tokens** with full dark-mode and theme customization.
+The frontend of **Littora** is a responsive, feature-rich Single Page Application (SPA) built with **React 18**, **Vite**, and **pure CSS custom design tokens** with full dark-mode and theme customization.
 
 ---
 
@@ -9,6 +9,12 @@ The frontend of **Littora** is a responsive, feature-rich Single Page Applicatio
 - **Dual Theme Engine**:
   - **Earth Theme**: Warm sand tones (`#f7f2e8`), watercolor botanical artwork accents.
   - **Dark Theme**: High-contrast dark mode (`#0a0f1e` deep navy, `#00d4aa` glowing cyan).
+- **Progressive Disclosure Detection History (`/history`)**:
+  - **Full-Bleed Image Tile Gallery**: Clean 3-column media-first photography archive with subtle scrim gradients, top-left severity badges, top-right delete action, and bottom metadata captions (`Location`, `Date · X waste items`).
+  - **Single-Row Simplified Toolbar**: `[ Search detections... ] [ Filters ]` with compact multi-criteria popover filter panel (Severity score tiers `0–10`, `11–30`, `31–60`, `>60`, Waste Types, Date ranges, Beach Locations) and active filter chips with `Clear all`.
+  - **Refined KPI Summary Cards**: 4 clean summary metrics (`Detection Sessions`, `Waste Items`, `Avg. Severity Score` with tier indicator, `Unique Contributors`) with generous whitespace.
+  - **Two-Pane Detection Details Lightbox (`AnalysisLightbox`)**: Full-size uncropped annotated image with YOLO bounding boxes on the left, and concise metadata (Location, Date, Severity Score, Action Status, Detected Waste list with confidence %, primary `View on Map` button and secondary `···` menu for `Download Photo` & `Export JSON`) on the right.
+  - **Structured Analysis Records Table**: Sortable tabular view with `Photo` thumbnail preview, `Date`, `Location`, `Top Waste Type`, `Confidence`, `Score`, `Severity`, `User` (for admin view), `Actions`, and `Export CSV`.
 - **Auth & Guest Access Control**:
   - Integrated with **Supabase Auth** via `<AuthProvider>`.
   - Implements **Standard Supabase Sliding Sessions** (seamless background token rotation without artificial hard cutoffs).
@@ -40,8 +46,11 @@ frontend/
 │   │   ├── AuthRequiredModal.jsx    → Sign-in prompt dialog for guest visitors
 │   │   ├── Sidebar.jsx              → Collapsable navigation sidebar
 │   │   ├── UploadForm.jsx           → Drag & drop file upload with beach location presets
-│   │   ├── ResultPanel.jsx          → AI detection results & waste breakdown charts
-│   │   ├── HistoryTable.jsx         → Filterable table of past analyses
+│   │   ├── ResultPanel.jsx          → AI detection results & progressive disclosure details
+│   │   ├── PhotoGallery.jsx         → Full-bleed image tile gallery
+│   │   ├── HistoryTable.jsx         → Filterable table of past analyses with photo previews
+│   │   ├── AnalysisLightbox.jsx     → Two-pane annotated image & metadata lightbox
+│   │   ├── BoundingBoxImage.jsx     → Uncropped image frame with YOLO overlays
 │   │   ├── PollutionMap.jsx         → Interactive Leaflet map with hotspot markers
 │   │   ├── StatCards.jsx            → Metric cards for total waste & pollution score
 │   │   └── ProtectedRoute.jsx       → Route wrapper enforcing role access
@@ -53,14 +62,17 @@ frontend/
 │   ├── pages/         → Page views:
 │   │   ├── DashboardPage.jsx     → Hero banner, feature cards & analytics summary
 │   │   ├── UploadPage.jsx        → AI waste detection view
-│   │   ├── HistoryPage.jsx       → User-scoped past detection history
+│   │   ├── HistoryPage.jsx       → Detection history with progressive disclosure
 │   │   ├── TrendsPage.jsx        → Seasonal trends & day/time pollution heatmaps
 │   │   ├── MapPage.jsx           → Interactive beach pollution map view
 │   │   ├── ReportsPage.jsx       → Report generator & PDF exporter
+│   │   ├── DatasetPage.jsx       → Dataset explorer and training distribution
+│   │   ├── CleanupPage.jsx       → Cleanup recommendations and priority rankings
 │   │   ├── SettingsPage.jsx      → Preferences & account management
 │   │   └── LoginPage.jsx         → Sign in / Sign up tabbed form
 │   ├── utils/         → Helper utilities:
-│   │   ├── wasteUtils.js         → Centralized waste type, severity, recyclable & detection normalizer
+│   │   ├── wasteUtils.js         → Centralized waste type, severity, & detection normalizer
+│   │   ├── downloadUtils.js      → CSV / JSON export and photo download helpers
 │   │   └── generatePdfReport.js  → Optimized PDF report rendering engine
 │   ├── index.css      → Global CSS design system, utility tokens & grid layouts
 │   └── main.jsx       → React root mount point
@@ -91,8 +103,7 @@ npm test -- --run
 # Generate coverage report
 npm run test:coverage
 ```
-- **Passing**: **161 / 161 tests** across 23 test suites (100% pass rate)
-- **Context Coverage**: **96.2%**
+- **Passing**: **186 / 186 tests** across 26 test suites (100% pass rate)
 
 ### 4. Production Build
 ```bash
