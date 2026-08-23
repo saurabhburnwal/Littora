@@ -45,14 +45,14 @@ export default function DatasetPage() {
       },
       {
         id: "roboflow-v2",
-        name: "Littora Beach Waste YOLOv8 Training Dataset",
-        records: 24820,
-        size: "2.1 GB",
+        name: "Littora Beach Waste YOLO Training Dataset",
+        records: 9403,
+        size: "1.4 GB",
         format: "ROBOFLOW",
         updated: "Latest (v2)",
         isExternal: true,
         externalUrl: ROBOFLOW_URL,
-        description: "Official Roboflow workspace with 24,820 annotated images, augmentations, and YOLOv8 exports.",
+        description: "Official Roboflow workspace with 9,403 annotated training images (3,933 raw images) formatted for YOLOv8, YOLOv11, and YOLOv26.",
       },
     ];
 
