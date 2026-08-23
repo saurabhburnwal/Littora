@@ -36,8 +36,10 @@ dataset/train/
 dataset/valid/
 dataset/test/
 
-# OS / editor
+# OS / editor / local agents
 .DS_Store
 .vscode/
 .idea/
 *.log
+.agents/
+
