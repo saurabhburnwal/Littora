@@ -26,6 +26,9 @@ The dataset combines 5 open-source Roboflow / YOLOv8 packages:
 | `beach litter.v1i.yolov8` | Dedicated beach litter imagery | YOLOv8 |
 | `aluminum can.v10i.yolov8` | Focused aluminum beverage can detection set | YOLOv8 |
 
+**Official Project Workspace**: [Littora Beach Waste YOLOv8 Dataset on Roboflow](https://app.roboflow.com/kuhelis-workspace-kt5yi/littora-beach-waste-1/2)
+
+
 ---
 
 ## Merging & Processing Workflow

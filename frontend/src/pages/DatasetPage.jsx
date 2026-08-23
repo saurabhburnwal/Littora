@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import axios from "axios";
-import { Download, Search, Filter, Database, MapPin, FileSpreadsheet } from "lucide-react";
+import { Download, Search, Filter, Database, MapPin, FileSpreadsheet, ExternalLink } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+const ROBOFLOW_URL = "https://app.roboflow.com/kuhelis-workspace-kt5yi/littora-beach-waste-1/2";
 
 export default function DatasetPage() {
   const { stats } = useStats();
@@ -42,30 +43,66 @@ export default function DatasetPage() {
         filename: "littora_marine_litter_dataset.csv",
         description: "Tabular dataset with coordinates, severity metrics, and debris counts.",
       },
+      {
+        id: "roboflow-v2",
+        name: "Littora Beach Waste YOLOv8 Training Dataset",
+        records: 24820,
+        size: "2.1 GB",
+        format: "ROBOFLOW",
+        updated: "Latest (v2)",
+        isExternal: true,
+        externalUrl: ROBOFLOW_URL,
+        description: "Official Roboflow workspace with 24,820 annotated images, augmentations, and YOLOv8 exports.",
+      },
     ];
 
     if (isAdmin) {
       return [
         ...baseList,
-        { id: "all-json", name: "Global Coastal Waste JSON Export", records: userRecordsCount, size: `${(userRecordsCount * 0.22).toFixed(1)} MB`, format: "JSON", updated: "Today", isServerEndpoint: false, filename: "global_waste_dump.json" },
-        { id: "zip-v2", name: "Public Training Dataset v2", records: 24820, size: "2.1 GB", format: "ZIP", updated: "15 Jun 2026", isServerEndpoint: false, filename: "training_v2.zip" },
+        {
+          id: "all-json",
+          name: "Global Coastal Waste JSON Export",
+          records: userRecordsCount,
+          size: `${(userRecordsCount * 0.22).toFixed(1)} MB`,
+          format: "JSON",
+          updated: "Today",
+          isServerEndpoint: false,
+          filename: "global_waste_dump.json",
+          description: "Raw JSON dump of all platform analyses and detections.",
+        },
       ];
     } else {
       return [
         ...baseList,
-        { id: "my-json", name: `Detection History Export (${userEmail})`, records: userRecordsCount, size: `${(userRecordsCount * 0.18).toFixed(1)} MB`, format: "JSON", updated: "Today", isServerEndpoint: false, filename: "my_history.json" },
+        {
+          id: "my-json",
+          name: `Detection History Export (${userEmail})`,
+          records: userRecordsCount,
+          size: `${(userRecordsCount * 0.18).toFixed(1)} MB`,
+          format: "JSON",
+          updated: "Today",
+          isServerEndpoint: false,
+          filename: "my_history.json",
+          description: "Personal scan history and detection breakdown.",
+        },
       ];
     }
   }, [stats.totalAnalyses, user, isAdmin]);
 
   const filtered = datasets.filter((d) => {
-    const matchesSearch = d.name.toLowerCase().includes(search.toLowerCase()) ||
+    const matchesSearch =
+      d.name.toLowerCase().includes(search.toLowerCase()) ||
       (d.description && d.description.toLowerCase().includes(search.toLowerCase()));
     const matchesFormat = formatFilter === "ALL" || d.format === formatFilter;
     return matchesSearch && matchesFormat;
   });
 
   const handleDownload = async (dataset) => {
+    if (dataset.isExternal) {
+      window.open(dataset.externalUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     setDownloadingId(dataset.id);
     try {
       if (dataset.isServerEndpoint) {
@@ -128,8 +165,8 @@ export default function DatasetPage() {
         </div>
         <p>
           {isAdmin
-            ? "Admin View — Export global coastal research datasets in GeoJSON, CSV, and JSON formats."
-            : "Browse and export research-ready coastal waste datasets with GIS coordinates."}
+            ? "Admin View — Export global coastal research datasets in GeoJSON, CSV, and Roboflow training packages."
+            : "Browse and export research-ready coastal waste datasets with GIS coordinates and Roboflow training data."}
         </p>
       </div>
 
@@ -155,10 +192,10 @@ export default function DatasetPage() {
             style={{ padding: "0.4rem 0.8rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--ink)", fontSize: "0.85rem" }}
           >
             <option value="ALL">All Formats</option>
+            <option value="ROBOFLOW">Roboflow / YOLO</option>
             <option value="GEOJSON">GeoJSON</option>
             <option value="CSV">CSV</option>
             <option value="JSON">JSON</option>
-            <option value="ZIP">ZIP</option>
           </select>
         </div>
       </div>
@@ -189,6 +226,7 @@ export default function DatasetPage() {
                     <div style={{ fontWeight: 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: "0.45rem" }}>
                       {d.format === "GEOJSON" && <MapPin size={14} style={{ color: "var(--teal)" }} />}
                       {d.format === "CSV" && <FileSpreadsheet size={14} style={{ color: "#F59E0B" }} />}
+                      {d.format === "ROBOFLOW" && <Database size={14} style={{ color: "var(--teal)" }} />}
                       <span>{d.name}</span>
                     </div>
                     {d.description && (
@@ -203,8 +241,18 @@ export default function DatasetPage() {
                     <span
                       className="waste-badge"
                       style={{
-                        background: d.format === "GEOJSON" ? "rgba(14, 140, 134, 0.15)" : "var(--sand-dark)",
-                        color: d.format === "GEOJSON" ? "var(--teal)" : "var(--ink)",
+                        background:
+                          d.format === "GEOJSON"
+                            ? "rgba(14, 140, 134, 0.15)"
+                            : d.format === "ROBOFLOW"
+                            ? "rgba(168, 85, 247, 0.15)"
+                            : "var(--sand-dark)",
+                        color:
+                          d.format === "GEOJSON"
+                            ? "var(--teal)"
+                            : d.format === "ROBOFLOW"
+                            ? "#9333EA"
+                            : "var(--ink)",
                         fontWeight: 700,
                       }}
                     >
@@ -213,15 +261,41 @@ export default function DatasetPage() {
                   </td>
                   <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>{d.updated}</td>
                   <td>
-                    <button
-                      className="export-btn"
-                      style={{ fontSize: "0.73rem", padding: "0.35rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
-                      disabled={downloadingId === d.id}
-                      onClick={() => handleDownload(d)}
-                    >
-                      <Download size={13} />
-                      {downloadingId === d.id ? "Downloading…" : `Export ${d.format}`}
-                    </button>
+                    {d.isExternal ? (
+                      <a
+                        href={d.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="export-btn"
+                        style={{
+                          fontSize: "0.73rem",
+                          padding: "0.35rem 0.75rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.35rem",
+                          textDecoration: "none",
+                        }}
+                      >
+                        <ExternalLink size={13} />
+                        Open in Roboflow
+                      </a>
+                    ) : (
+                      <button
+                        className="export-btn"
+                        style={{
+                          fontSize: "0.73rem",
+                          padding: "0.35rem 0.75rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.35rem",
+                        }}
+                        disabled={downloadingId === d.id}
+                        onClick={() => handleDownload(d)}
+                      >
+                        <Download size={13} />
+                        {downloadingId === d.id ? "Downloading…" : `Export ${d.format}`}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
