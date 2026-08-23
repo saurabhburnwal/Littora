@@ -277,7 +277,7 @@ export default function DatasetPage() {
                         }}
                       >
                         <ExternalLink size={13} />
-                        Open in Roboflow
+                        Open
                       </a>
                     ) : (
                       <button
@@ -293,7 +293,7 @@ export default function DatasetPage() {
                         onClick={() => handleDownload(d)}
                       >
                         <Download size={13} />
-                        {downloadingId === d.id ? "Downloading…" : `Export ${d.format}`}
+                        {downloadingId === d.id ? "Exporting…" : "Export"}
                       </button>
                     )}
                   </td>
