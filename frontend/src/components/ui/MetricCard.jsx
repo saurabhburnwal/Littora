@@ -1,5 +1,3 @@
-import PropTypes from "prop-types";
-
 /**
  * Standardized MetricCard component for displaying key metric summaries,
  * KPI stats, severity score averages, and trend indicators across the platform.
@@ -64,14 +62,3 @@ export default function MetricCard({
     </div>
   );
 }
-
-MetricCard.propTypes = {
-  label: PropTypes.node.isRequired,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.node]).isRequired,
-  icon: PropTypes.node,
-  tier: PropTypes.string,
-  supportingText: PropTypes.node,
-  trend: PropTypes.oneOfType([PropTypes.node, PropTypes.object]),
-  className: PropTypes.string,
-  onClick: PropTypes.func,
-};

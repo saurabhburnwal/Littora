@@ -1,5 +1,3 @@
-import PropTypes from "prop-types";
-
 /**
  * Standardized SectionHeader component for consistent section headings,
  * subtitles, and right-aligned action controls across the Littora application.
@@ -23,10 +21,3 @@ export default function SectionHeader({ title, subtitle, action, className = "" 
     </div>
   );
 }
-
-SectionHeader.propTypes = {
-  title: PropTypes.node,
-  subtitle: PropTypes.node,
-  action: PropTypes.node,
-  className: PropTypes.string,
-};

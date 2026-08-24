@@ -33,7 +33,7 @@ export default function SettingsPage() {
     itemsPerPage, setItemsPerPage,
     notifications, setNotifications,
   } = useSettings();
-  const { getToken, logout, user, isAdmin, isGuest } = useAuth();
+  const { getToken, logout, user, isAdmin } = useAuth();
 
   // --- Pending (unsaved) local state ---
   const [pendingTheme,       setPendingTheme]       = useState(theme);

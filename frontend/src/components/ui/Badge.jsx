@@ -1,5 +1,3 @@
-import PropTypes from "prop-types";
-
 /**
  * Standardized Badge component for severity ratings, waste categories,
  * user roles, and status indicators.
@@ -45,13 +43,3 @@ export default function Badge({
     </span>
   );
 }
-
-Badge.propTypes = {
-  variant: PropTypes.oneOf(["severity", "waste", "role", "status", "default"]),
-  type: PropTypes.string,
-  size: PropTypes.oneOf(["compact", "standard"]),
-  overlay: PropTypes.bool,
-  icon: PropTypes.node,
-  children: PropTypes.node,
-  className: PropTypes.string,
-};

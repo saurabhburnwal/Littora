@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import PropTypes from "prop-types";
 import { Search, SlidersHorizontal, ChevronDown, X } from "lucide-react";
 
 /**
@@ -58,120 +57,145 @@ export default function FilterToolbar({
   }, [isOpen]);
 
   const handleClearSearch = () => {
-    if (onSearchChange) onSearchChange("");
+    if (onSearchChange) {
+      onSearchChange("");
+    }
   };
+
+  const hasActiveFilters = (activeFilterCount > 0 || (activeChips && activeChips.length > 0));
 
   return (
     <div className={`filter-toolbar-root ${className}`.trim()}>
-      <div className="filter-toolbar-main">
-        {/* Left: Search Input */}
-        <div className="filter-search-wrap">
-          <Search size={16} className="filter-search-icon" aria-hidden="true" />
-          <input
-            type="text"
-            className="filter-search-input"
-            placeholder={searchPlaceholder}
-            value={searchQuery}
-            onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-            aria-label={searchPlaceholder}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              className="filter-search-clear"
-              onClick={handleClearSearch}
-              aria-label="Clear search query"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
-
-        {/* Right: Filters Button + Popover */}
-        <div className="filter-actions-wrap">
-          {children && (
-            <div className="filter-popover-anchor" ref={triggerWrapRef}>
+      {/* ── Top Bar: Search Input, Filters Trigger, and Extra Controls ── */}
+      <div className="filter-toolbar-bar">
+        {/* Search Input */}
+        {onSearchChange && (
+          <div className="filter-search-box">
+            <Search size={16} className="filter-search-icon" aria-hidden="true" />
+            <input
+              type="text"
+              className="filter-search-input"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
+            />
+            {searchQuery && (
               <button
                 type="button"
-                className={`filter-trigger-btn ${isOpen || activeFilterCount > 0 ? "active" : ""}`}
-                onClick={() => setIsOpen((prev) => !prev)}
-                aria-expanded={isOpen}
-                aria-haspopup="dialog"
-                aria-label="Toggle filters"
+                className="filter-search-clear-btn"
+                onClick={handleClearSearch}
+                aria-label="Clear search query"
               >
-                <SlidersHorizontal size={15} aria-hidden="true" />
-                <span>Filters</span>
-                {activeFilterCount > 0 && (
-                  <span className="filter-count-badge">{activeFilterCount}</span>
-                )}
-                <ChevronDown
-                  size={14}
-                  className={`filter-chevron ${isOpen ? "open" : ""}`}
-                  aria-hidden="true"
-                />
+                <X size={14} />
               </button>
+            )}
+          </div>
+        )}
 
-              {/* Popover Filter Panel */}
-              {isOpen && (
-                <div
-                  className="filter-popover-panel"
-                  role="dialog"
-                  aria-label="Filter options"
-                >
-                  <div className="filter-popover-header">
-                    <span className="filter-popover-title">Filters</span>
-                    {activeFilterCount > 0 && onClearAll && (
-                      <button
-                        type="button"
-                        className="filter-popover-reset"
-                        onClick={onClearAll}
-                      >
-                        Reset All
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="filter-popover-body">{children}</div>
-                </div>
+        {/* Filter Popover Trigger */}
+        {children && (
+          <div className="filter-popover-wrapper" ref={triggerWrapRef}>
+            <button
+              type="button"
+              className={`filter-trigger-btn ${isOpen ? "is-open" : ""} ${hasActiveFilters ? "has-active" : ""}`}
+              onClick={() => setIsOpen((prev) => !prev)}
+              aria-expanded={isOpen}
+              aria-haspopup="dialog"
+              aria-label="Toggle filters panel"
+            >
+              <SlidersHorizontal size={15} className="filter-trigger-icon" />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span className="filter-count-badge">{activeFilterCount}</span>
               )}
-            </div>
-          )}
+              <ChevronDown size={14} className={`filter-chevron ${isOpen ? "is-rotated" : ""}`} />
+            </button>
 
-          {extraActions && <div className="filter-extra-actions">{extraActions}</div>}
-        </div>
+            {/* Floating Popover Panel */}
+            {isOpen && (
+              <div
+                className="filter-popover-panel"
+                role="dialog"
+                aria-label="Filter options"
+              >
+                <div className="filter-popover-header">
+                  <div className="filter-popover-title-wrap">
+                    <SlidersHorizontal size={14} style={{ color: "var(--teal)" }} />
+                    <span className="filter-popover-title">Filter Criteria</span>
+                  </div>
+                  {onClearAll && (
+                    <button
+                      type="button"
+                      className="filter-clear-link"
+                      onClick={() => {
+                        onClearAll();
+                        setIsOpen(false);
+                      }}
+                    >
+                      Reset filters
+                    </button>
+                  )}
+                </div>
+
+                <div className="filter-popover-content">
+                  {children}
+                </div>
+
+                <div className="filter-popover-footer">
+                  <button
+                    type="button"
+                    className="filter-apply-btn"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Optional Extra Actions on the Right */}
+        {extraActions && (
+          <div className="filter-toolbar-extra">
+            {extraActions}
+          </div>
+        )}
       </div>
 
-      {/* Active Filter Chips Row */}
-      {activeChips && activeChips.length > 0 && (
-        <div className="filter-chips-row" aria-label="Active filters">
-          <span className="active-filters-label">Active filters:</span>
-          {activeChips.map((chip) => (
-            <span key={chip.id || chip.label} className="filter-chip">
-              <span>{chip.label}</span>
-              {chip.onRemove && (
-                <button
-                  type="button"
-                  className="filter-chip-remove"
-                  onClick={chip.onRemove}
-                  aria-label={`Remove filter ${chip.label}`}
-                >
-                  <X size={12} />
-                </button>
-              )}
-            </span>
-          ))}
+      {/* ── Active Filter Chips Row ── */}
+      {hasActiveFilters && (
+        <div className="filter-active-chips-row" role="region" aria-label="Active filters">
+          <div className="filter-chips-list">
+            {activeChips.map((chip) => (
+              <span key={chip.id || chip.label} className="filter-active-chip">
+                <span className="filter-chip-text">{chip.label}</span>
+                {chip.onRemove && (
+                  <button
+                    type="button"
+                    className="filter-chip-remove-btn"
+                    onClick={chip.onRemove}
+                    aria-label={`Remove filter ${chip.label}`}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
 
           {onClearAll && (
             <button
               type="button"
-              className="filter-chip-clear-all"
+              className="filter-clear-all-btn"
               onClick={onClearAll}
             >
               Clear all
             </button>
           )}
 
-          {resultsCount !== undefined && (
+          {typeof resultsCount === "number" && (
             <span className="active-results-count">
               {resultsCount} {resultsCount === 1 ? "detection" : "detections"}
             </span>
@@ -181,21 +205,3 @@ export default function FilterToolbar({
     </div>
   );
 }
-
-FilterToolbar.propTypes = {
-  searchQuery: PropTypes.string,
-  onSearchChange: PropTypes.func,
-  searchPlaceholder: PropTypes.string,
-  activeFilterCount: PropTypes.number,
-  activeChips: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string,
-      label: PropTypes.string.isRequired,
-      onRemove: PropTypes.func,
-    })
-  ),
-  onClearAll: PropTypes.func,
-  children: PropTypes.node,
-  extraActions: PropTypes.node,
-  className: PropTypes.string,
-};

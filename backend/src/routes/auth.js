@@ -4,7 +4,7 @@ import { supabase } from "../services/supabaseClient.js";
 
 const router = Router();
 
-export const authLimiter = rateLimit({
+const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 30, // limit each IP to 30 login requests per windowMs
   standardHeaders: true,

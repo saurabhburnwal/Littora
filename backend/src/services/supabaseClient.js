@@ -22,7 +22,7 @@ export const supabase = createClient(supabaseUrl, supabaseSecretKey, {
 });
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "beach-waste-images";
-export const SUPPORTED_WASTE_TYPES = new Set(["bottle", "can", "bag", "wrapper"]);
+const SUPPORTED_WASTE_TYPES = new Set(["bottle", "can", "bag", "wrapper"]);
 
 /**
  * Uploads an image buffer to Supabase Storage and returns its public URL.
