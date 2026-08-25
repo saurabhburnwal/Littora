@@ -31,7 +31,6 @@ describe("MetricCard component", () => {
     );
     const tierBadge = screen.getByText("Moderate");
     expect(tierBadge).toBeInTheDocument();
-    expect(tierBadge).toHaveClass("tier-moderate");
   });
 
   it("renders supporting text and trend indicator", () => {

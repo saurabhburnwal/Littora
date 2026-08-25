@@ -103,6 +103,7 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
       <section
         ref={containerRef}
         className={`analysis-lightbox ${isDragging ? "is-resizing" : ""}`}
+        data-testid="lightbox-container"
         onClick={(event) => event.stopPropagation()}
       >
         <button
@@ -117,6 +118,7 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
         {/* LEFT: Image / BoundingBoxImage Stage */}
         <div
           className="analysis-lightbox-stage"
+          data-testid="lightbox-stage"
           style={{ flex: `0 0 ${splitPercent}%`, width: `${splitPercent}%`, maxWidth: `${splitPercent}%` }}
         >
           <div className="analysis-lightbox-media">
@@ -150,6 +152,7 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
         {/* RIGHT: Detection Metadata Panel */}
         <aside
           className="analysis-lightbox-details"
+          data-testid="lightbox-details"
           style={{ flex: `0 0 ${100 - splitPercent}%`, width: `${100 - splitPercent}%`, maxWidth: `${100 - splitPercent}%` }}
         >
           <ResultPanel result={toResultShape(item)} showUser={showUser} />

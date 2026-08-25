@@ -21,16 +21,11 @@ export default function Badge({
   className = "",
   ...rest
 }) {
-  const normType = typeof type === "string" ? type.toLowerCase().trim() : "";
-  const normVariant = typeof variant === "string" ? variant.toLowerCase().trim() : "default";
-
   // Derive class names
   const classes = [
-    "badge-root",
-    `badge-${normVariant}`,
-    normType ? `badge-${normVariant}-${normType}` : "",
-    size === "compact" ? "badge-compact" : "badge-standard",
-    overlay ? "badge-overlay" : "",
+    "inline-flex items-center gap-1.5 font-bold rounded-pill leading-none whitespace-nowrap tracking-wide transition-all duration-150",
+    size === "compact" ? "text-xs" : "text-xs sm:text-sm",
+    overlay ? "backdrop-blur-sm" : "",
     className,
   ]
     .filter(Boolean)
@@ -38,8 +33,8 @@ export default function Badge({
 
   return (
     <span className={classes} {...rest}>
-      {icon && <span className="badge-icon">{icon}</span>}
-      <span className="badge-label">{children || type}</span>
+      {icon && <span className="inline-flex items-center justify-center shrink-0">{icon}</span>}
+      <span className="inline-block leading-tight">{children || type}</span>
     </span>
   );
 }

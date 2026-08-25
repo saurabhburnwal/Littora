@@ -142,6 +142,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
       <div className={`modal-img-container${lightbox ? " modal-img-container--lightbox" : ""}`}>
         <div
           className="modal-image-frame"
+          data-testid="modal-image-frame"
           style={{
             ...(aspectRatio ? { aspectRatio } : {}),
             ...(isFocused ? {
@@ -164,7 +165,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
           />
 
           {visibleBoxes.length > 0 && (
-            <div className="bbox-overlay-layer" aria-label="Detection bounding boxes">
+            <div className="bbox-overlay-layer" data-testid="bbox-overlay" aria-label="Detection bounding boxes">
               {visibleBoxes.map((b, idx) => {
                 const [xmin, ymin, xmax, ymax] = b.box_normalized;
                 const left = Math.max(0, Math.min(100, xmin * 100));
@@ -179,6 +180,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
                   <div
                     key={idx}
                     className="bbox-box"
+                    data-testid="bbox-box"
                     style={{
                       left: `${left}%`,
                       top: `${top}%`,
@@ -201,7 +203,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
 
       {/* Detection-Focus Viewport Toggle (Lightbox Mode) */}
       {lightbox && (
-        <div className="bbox-view-mode-toggle" role="group" aria-label="Image view mode">
+        <div className="bbox-view-mode-toggle" data-testid="bbox-view-mode-toggle" role="group" aria-label="Image view mode">
           <button
             type="button"
             className={`bbox-view-btn ${isFocused ? "active" : ""}`}
@@ -234,7 +236,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
             <span>Detection Settings</span>
             <span className="bbox-summary-hint">{Math.round(minConf * 100)}% threshold</span>
           </summary>
-          <div className="bbox-filter-toolbar" aria-label="Bounding box filters">
+          <div className="bbox-filter-toolbar" data-testid="bbox-filter-toolbar" aria-label="Bounding box filters">
             <div className="bbox-filter-conf">
               <SlidersHorizontal size={14} className="bbox-filter-icon" />
               <label htmlFor="min-conf-slider" className="bbox-filter-label">

@@ -40,10 +40,10 @@ describe("ConfirmModal component", () => {
     expect(screen.getByText("Are you sure you want to log out of your Littora account?")).toBeInTheDocument();
 
     const cancelBtn = screen.getByRole("button", { name: "Cancel" });
-    expect(cancelBtn).toHaveClass("admin-modal-cancel");
+    expect(cancelBtn).toBeInTheDocument();
 
     const confirmBtn = screen.getByRole("button", { name: "Sign Out" });
-    expect(confirmBtn).toHaveClass("admin-modal-primary");
+    expect(confirmBtn).toBeInTheDocument();
 
     // Click confirm
     fireEvent.click(confirmBtn);
@@ -71,8 +71,8 @@ describe("ConfirmModal component", () => {
     );
 
     const deleteBtn = screen.getByRole("button", { name: /delete/i });
-    expect(deleteBtn).toHaveClass("admin-modal-confirm");
-    expect(document.querySelector(".admin-modal-icon-badge--danger")).toBeInTheDocument();
+    expect(deleteBtn).toBeInTheDocument();
+    expect(screen.getByTestId("confirm-modal-icon")).toBeInTheDocument();
   });
 
   it("closes when clicking backdrop", () => {
@@ -87,7 +87,7 @@ describe("ConfirmModal component", () => {
       />
     );
 
-    const backdrop = document.querySelector(".admin-modal-backdrop");
+    const backdrop = screen.getByTestId("confirm-modal-backdrop");
     fireEvent.click(backdrop);
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
@@ -104,7 +104,7 @@ describe("ConfirmModal component", () => {
       />
     );
 
-    const modal = document.querySelector(".admin-modal");
+    const modal = screen.getByText("Confirm Sign Out");
     fireEvent.click(modal);
     expect(onCancel).not.toHaveBeenCalled();
   });
@@ -126,7 +126,7 @@ describe("ConfirmModal component", () => {
   });
 
   it("renders cleanly under Earth and Dark themes", () => {
-    const { container: earthContainer } = render(
+    const { unmount } = render(
       <div data-theme="earth">
         <ConfirmModal
           isOpen={true}
@@ -138,9 +138,10 @@ describe("ConfirmModal component", () => {
         />
       </div>
     );
-    expect(earthContainer.querySelector(".admin-modal-icon-badge--primary")).toBeInTheDocument();
+    expect(screen.getByTestId("confirm-modal-icon")).toBeInTheDocument();
+    unmount();
 
-    const { container: darkContainer } = render(
+    render(
       <div data-theme="dark">
         <ConfirmModal
           isOpen={true}
@@ -152,6 +153,6 @@ describe("ConfirmModal component", () => {
         />
       </div>
     );
-    expect(darkContainer.querySelector(".admin-modal-icon-badge--primary")).toBeInTheDocument();
+    expect(screen.getByTestId("confirm-modal-icon")).toBeInTheDocument();
   });
 });

@@ -25,6 +25,7 @@ export default function DashboardPage() {
   return (
     <div
       className="dashboard-light-container"
+      data-testid="dashboard-container"
       style={{ "--dashboard-image": `url(${dashboardBg})` }}
     >
       {/* ── Hero Banner (Reference Image 1 Aesthetic) ── */}
@@ -124,7 +125,7 @@ export default function DashboardPage() {
               avgScore={stats.avgScore}
             />
 
-            <div className="charts-row charts-row--spaced">
+            <div className="charts-row charts-row--spaced grid grid-cols-1 lg:grid-cols-2 gap-5 px-4 sm:px-8 mb-6">
               <TrendChart history={stats.history} />
               <WasteBreakdownChart aggregateDetections={stats.aggregateDetections} />
             </div>

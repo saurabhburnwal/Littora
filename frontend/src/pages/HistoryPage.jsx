@@ -245,21 +245,25 @@ export default function HistoryPage() {
     (filterLocation !== "all" ? 1 : 0);
 
   return (
-    <div className="page-container">
-      {/* Header */}
-      <div className="page-heading">
+    <div className="page-container history-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="page-heading flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1>Detection History</h1>
-          <p>Review recorded coastal waste detections.</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Detection History</h1>
+          <p className="text-xs sm:text-sm text-text-muted mt-1">
+            {isAdmin
+              ? "Administrator view — review, filter, and inspect beach waste analyses submitted by all contributors."
+              : "Search, filter, and review all previous beach waste analyses and detection images."}
+          </p>
         </div>
-        {isAdmin && (
+        {user && (
           <button
-            className="admin-refresh-btn"
+            type="button"
+            className="refresh-btn flex items-center gap-2 px-3.5 py-2 bg-surface hover:bg-bg-secondary border border-border text-text-primary rounded-pill text-xs font-semibold shadow-sm transition-colors cursor-pointer"
             onClick={loadAnalyses}
             disabled={loading}
             title="Refresh analyses"
           >
-            <RefreshCw size={15} className={loading ? "is-spinning" : ""} />
+            <RefreshCw size={15} className={loading ? "is-spinning animate-spin" : ""} />
             Refresh
           </button>
         )}
@@ -267,7 +271,7 @@ export default function HistoryPage() {
 
       {/* KPI Section */}
       {!loading && !error && history.length > 0 && (
-        <div className="kpi-stats-grid">
+        <div className="kpi-stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             label="Detection Sessions"
             value={history.length}

@@ -246,7 +246,7 @@ describe("HistoryPage — delete feature", () => {
     const deleteBtns = screen.getAllByRole("button", { name: /delete analysis/i });
     fireEvent.click(deleteBtns[0]);
 
-    const backdrop = document.querySelector(".admin-modal-backdrop");
+    const backdrop = screen.getByTestId("confirm-modal-backdrop");
     fireEvent.click(backdrop);
 
     expect(screen.queryByText(/delete this analysis\?/i)).not.toBeInTheDocument();

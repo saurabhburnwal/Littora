@@ -14,8 +14,8 @@ describe("BoundingBoxImage component", () => {
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute("src", "https://example.com/beach.jpg");
     expect(img).toHaveClass("modal-img-full");
-    expect(document.querySelector(".bbox-overlay-layer")).toBeNull();
-    expect(document.querySelector(".bbox-filter-toolbar")).toBeNull();
+    expect(screen.queryByTestId("bbox-overlay")).toBeNull();
+    expect(screen.queryByTestId("bbox-filter-toolbar")).toBeNull();
   });
 
   it("renders bounding box overlays when boxes array is provided", () => {
@@ -40,15 +40,15 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    const overlay = document.querySelector(".bbox-overlay-layer");
+    const overlay = screen.getByTestId("bbox-overlay");
     expect(overlay).toBeInTheDocument();
 
-    const boxes = document.querySelectorAll(".bbox-box");
+    const boxes = screen.getAllByTestId("bbox-box");
     expect(boxes).toHaveLength(2);
 
     expect(screen.getByText(/bottle 94%/i)).toBeInTheDocument();
     expect(screen.getByText(/can 88%/i)).toBeInTheDocument();
-    expect(document.querySelector(".bbox-filter-toolbar")).toBeInTheDocument();
+    expect(screen.getByTestId("bbox-filter-toolbar")).toBeInTheDocument();
   });
 
   it("toggles category visibility when clicking category chips", () => {
@@ -73,19 +73,19 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    expect(document.querySelectorAll(".bbox-box")).toHaveLength(2);
+    expect(screen.getAllByTestId("bbox-box")).toHaveLength(2);
 
     // Click "Bottle" chip to hide bottles
     const bottleChip = screen.getByTitle(/hide bottle detections/i);
     fireEvent.click(bottleChip);
 
-    expect(document.querySelectorAll(".bbox-box")).toHaveLength(1);
+    expect(screen.getAllByTestId("bbox-box")).toHaveLength(1);
     expect(screen.queryByText(/bottle 90%/i)).toBeNull();
     expect(screen.getByText(/bag 85%/i)).toBeInTheDocument();
 
     // Click again to show bottles
     fireEvent.click(bottleChip);
-    expect(document.querySelectorAll(".bbox-box")).toHaveLength(2);
+    expect(screen.getAllByTestId("bbox-box")).toHaveLength(2);
   });
 
   it("filters boxes when adjusting confidence threshold slider", () => {
@@ -111,14 +111,14 @@ describe("BoundingBoxImage component", () => {
     );
 
     // Initial default threshold is 25%, so both boxes (30% and 80%) show
-    expect(document.querySelectorAll(".bbox-box")).toHaveLength(2);
+    expect(screen.getAllByTestId("bbox-box")).toHaveLength(2);
 
     // Change confidence threshold to 50%
     const slider = screen.getByLabelText(/minimum detection confidence/i);
     fireEvent.change(slider, { target: { value: "50" } });
 
     // Now only the 80% can box should be visible
-    expect(document.querySelectorAll(".bbox-box")).toHaveLength(1);
+    expect(screen.getAllByTestId("bbox-box")).toHaveLength(1);
     expect(screen.getByText(/can 80%/i)).toBeInTheDocument();
     expect(screen.queryByText(/bottle 30%/i)).toBeNull();
   });
@@ -139,7 +139,7 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    const boxes = document.querySelectorAll(".bbox-box");
+    const boxes = screen.getAllByTestId("bbox-box");
     expect(boxes).toHaveLength(1);
     expect(screen.getByText(/glass 95%/i)).toBeInTheDocument();
   });
@@ -162,7 +162,7 @@ describe("BoundingBoxImage component", () => {
     const focusBtn = screen.getByRole("button", { name: /focus detections/i });
     expect(focusBtn).toBeDisabled();
 
-    const frame = document.querySelector(".modal-image-frame");
+    const frame = screen.getByTestId("modal-image-frame");
     expect(frame).toHaveStyle({ transform: "none" });
   });
 
@@ -187,7 +187,7 @@ describe("BoundingBoxImage component", () => {
     const focusBtn = screen.getByRole("button", { name: /focus detections/i });
     expect(focusBtn).toHaveAttribute("aria-pressed", "true");
 
-    const frame = document.querySelector(".modal-image-frame");
+    const frame = screen.getByTestId("modal-image-frame");
     expect(frame.style.transform).toContain("scale(");
     // Origin should be centered near ~45% x 50%
     expect(frame.style.transformOrigin).toBeTruthy();
@@ -216,11 +216,11 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    const frame = document.querySelector(".modal-image-frame");
+    const frame = screen.getByTestId("modal-image-frame");
     expect(frame.style.transform).toContain("scale(");
 
     // Both bounding boxes must be rendered inside frame
-    const renderedBoxes = document.querySelectorAll(".bbox-box");
+    const renderedBoxes = screen.getAllByTestId("bbox-box");
     expect(renderedBoxes).toHaveLength(2);
   });
 
@@ -242,7 +242,7 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    const frame = document.querySelector(".modal-image-frame");
+    const frame = screen.getByTestId("modal-image-frame");
     expect(frame.style.transform).toContain("scale(");
     // Origin must be non-negative and valid
     expect(parseFloat(frame.style.transformOrigin)).toBeGreaterThanOrEqual(0);
@@ -266,7 +266,7 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    const frame = document.querySelector(".modal-image-frame");
+    const frame = screen.getByTestId("modal-image-frame");
     expect(frame).toHaveStyle({ transform: "none" });
 
     const focusBtn = screen.getByRole("button", { name: /focus detections/i });
@@ -291,7 +291,7 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    const frame = document.querySelector(".modal-image-frame");
+    const frame = screen.getByTestId("modal-image-frame");
     const focusBtn = screen.getByRole("button", { name: /focus detections/i });
     const fullBtn = screen.getByRole("button", { name: /full image/i });
 
@@ -329,7 +329,7 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    const box = document.querySelector(".bbox-box");
+    const box = screen.getByTestId("bbox-box");
     expect(box).toHaveStyle({
       left: "15%",
       top: "25%",
@@ -348,7 +348,7 @@ describe("BoundingBoxImage component", () => {
     ];
 
     // Earth theme container
-    const { container: earthContainer } = render(
+    const { unmount } = render(
       <div data-theme="earth">
         <BoundingBoxImage
           src="https://example.com/beach.jpg"
@@ -358,10 +358,11 @@ describe("BoundingBoxImage component", () => {
         />
       </div>
     );
-    expect(earthContainer.querySelector(".bbox-view-mode-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("bbox-view-mode-toggle")).toBeInTheDocument();
+    unmount();
 
     // Dark theme container
-    const { container: darkContainer } = render(
+    render(
       <div data-theme="dark">
         <BoundingBoxImage
           src="https://example.com/beach.jpg"
@@ -371,6 +372,6 @@ describe("BoundingBoxImage component", () => {
         />
       </div>
     );
-    expect(darkContainer.querySelector(".bbox-view-mode-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("bbox-view-mode-toggle")).toBeInTheDocument();
   });
 });

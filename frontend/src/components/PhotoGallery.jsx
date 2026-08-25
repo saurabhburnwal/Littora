@@ -7,8 +7,8 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
 
   if (!items || items.length === 0) {
     return (
-      <div className="gallery-grid">
-        <div className="gallery-empty">
+      <div className="gallery-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="gallery-empty col-span-full flex items-center justify-center p-12 text-center text-text-muted text-sm bg-surface border border-dashed border-border rounded-2xl">
           <p>No photos match the selected filter.</p>
         </div>
       </div>
@@ -17,7 +17,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
 
   return (
     <>
-      <div className="gallery-grid">
+      <div className="gallery-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {items.map((row) => {
           const formattedDate = row.created_at
             ? new Date(row.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
@@ -29,7 +29,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
           return (
             <div
               key={row.id}
-              className="gallery-card gallery-tile"
+              className="gallery-card gallery-tile relative rounded-2xl overflow-hidden cursor-pointer border border-border bg-surface shadow-sm hover:shadow-lg transition-all duration-200 group"
               role="button"
               tabIndex={0}
               aria-label={`Analysis from ${formattedDate}, score ${row.pollution_score || 0}`}
@@ -37,30 +37,30 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
               onKeyDown={(e) => e.key === "Enter" && setModalItem(row)}
             >
               {/* Full-bleed Thumbnail + Scrim Overlay */}
-              <div className="gallery-thumb-wrap">
+              <div className="gallery-thumb-wrap relative aspect-4/3 w-full overflow-hidden bg-bg-secondary">
                 {row.image_url ? (
                   <img
                     src={row.image_url}
                     alt={`Beach photo — ${row.severity || "Low"} severity`}
-                    className="gallery-thumb"
+                    className="gallery-thumb w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     loading="lazy"
                   />
                 ) : (
-                  <div className="gallery-thumb-placeholder">—</div>
+                  <div className="gallery-thumb-placeholder flex items-center justify-center w-full h-full text-text-muted font-bold text-lg">—</div>
                 )}
 
                 {/* Subtle gradient scrim */}
-                <div className="gallery-tile-scrim" />
+                <div className="gallery-tile-scrim absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                 {/* Top overlay: severity badge (top-left) + delete button (top-right) */}
-                <div className="gallery-tile-header">
-                  <span className={`severity-overlay severity-${(row.severity || "low").toLowerCase()}`}>
+                <div className="gallery-tile-header absolute top-2.5 inset-x-2.5 flex items-center justify-between z-10">
+                  <span className={`severity-overlay severity-${(row.severity || "low").toLowerCase()} px-2.5 py-0.5 rounded-pill text-xs font-bold text-white backdrop-blur-sm`}>
                     {row.severity || "Low"}
                   </span>
                   {onDeleteRequest && (
                     <button
                       type="button"
-                      className="gallery-delete-btn"
+                      className="gallery-delete-btn p-1.5 rounded-full bg-black/50 hover:bg-rose-600 text-white backdrop-blur-sm transition-colors cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDeleteRequest(row.id);
@@ -70,7 +70,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
                       aria-label="Delete Analysis"
                     >
                       {deletingId === row.id ? (
-                        <Loader2 size={13} className="is-spinning" />
+                        <Loader2 size={13} className="is-spinning animate-spin" />
                       ) : (
                         <Trash2 size={13} />
                       )}
@@ -79,11 +79,11 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
                 </div>
 
                 {/* Bottom caption overlay: Location (bottom-left) + Date · X waste items */}
-                <div className="gallery-tile-footer">
-                  <div className="gallery-tile-loc" title={row.location_label || "Location unavailable"}>
+                <div className="gallery-tile-footer absolute bottom-2.5 inset-x-2.5 text-white z-10 flex flex-col gap-0.5">
+                  <div className="gallery-tile-loc font-display text-sm font-bold truncate drop-shadow-sm" title={row.location_label || "Location unavailable"}>
                     {row.location_label || "Location unavailable"}
                   </div>
-                  <div className="gallery-tile-sub">
+                  <div className="gallery-tile-sub flex items-center gap-1 text-[11px] text-white/80 font-medium">
                     <span>{formattedDate}</span>
                     <span className="gallery-tile-dot">·</span>
                     <span>{itemCountText}</span>

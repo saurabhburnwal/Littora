@@ -328,12 +328,13 @@ export default function LoginPage() {
                     {password.length > 0 && (() => {
                       const pwInfo = calculatePasswordStrength(password);
                       return (
-                        <div className="pw-strength-wrap">
+                        <div className="pw-strength-wrap" data-testid="pw-strength-wrap">
                           <div className="pw-strength-bar">
                             {[1, 2, 3, 4].map((i) => (
                               <div
                                 key={i}
                                 className="pw-strength-seg"
+                                data-testid="pw-strength-seg"
                                 style={{
                                   background: pwInfo.score >= i
                                     ? pwInfo.color

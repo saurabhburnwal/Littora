@@ -28,29 +28,29 @@ describe("GuestLockScreen component", () => {
 
     const signinBtn = screen.getByRole("button", { name: /sign in to access/i });
     expect(signinBtn).toBeInTheDocument();
-    expect(signinBtn).toHaveClass("guest-lock-cta-btn");
 
     fireEvent.click(signinBtn);
     expect(mockNavigate).toHaveBeenCalledWith("/login");
   });
 
   it("renders cleanly under Earth and Dark theme containers", () => {
-    const { container: earthContainer } = render(
+    const { unmount } = render(
       <MemoryRouter>
         <div data-theme="earth">
           <GuestLockScreen title="Earth Theme Locked" />
         </div>
       </MemoryRouter>
     );
-    expect(earthContainer.querySelector(".guest-lock-icon-wrap")).toBeInTheDocument();
+    expect(screen.getByTestId("guest-lock-icon")).toBeInTheDocument();
+    unmount();
 
-    const { container: darkContainer } = render(
+    render(
       <MemoryRouter>
         <div data-theme="dark">
           <GuestLockScreen title="Dark Theme Locked" />
         </div>
       </MemoryRouter>
     );
-    expect(darkContainer.querySelector(".guest-lock-icon-wrap")).toBeInTheDocument();
+    expect(screen.getByTestId("guest-lock-icon")).toBeInTheDocument();
   });
 });

@@ -84,7 +84,7 @@ describe("ResultPanel component", () => {
   it("renders 'Severe' severity and 'Urgent intervention' correctly", () => {
     renderResultPanel({ ...baseResult, pollution_score: 75, severity: "Severe" });
     const badge = screen.getByText("Severe");
-    expect(badge).toHaveClass("severity-severe");
+    expect(badge).toBeInTheDocument();
     expect(screen.getByText("Urgent intervention")).toBeInTheDocument();
   });
 });

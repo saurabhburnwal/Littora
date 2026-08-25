@@ -7,7 +7,6 @@ describe("SectionHeader component", () => {
     render(<SectionHeader title="Photo Gallery" />);
     const heading = screen.getByRole("heading", { level: 2, name: /photo gallery/i });
     expect(heading).toBeInTheDocument();
-    expect(heading).toHaveClass("section-header-title");
   });
 
   it("renders subtitle when provided", () => {
@@ -18,7 +17,6 @@ describe("SectionHeader component", () => {
       />
     );
     expect(screen.getByText("Cataloged detection scans and pollution assessments")).toBeInTheDocument();
-    expect(screen.getByText("Cataloged detection scans and pollution assessments")).toHaveClass("section-header-subtitle");
   });
 
   it("renders action element on the right when provided", () => {
@@ -38,7 +36,6 @@ describe("SectionHeader component", () => {
         className="custom-margin"
       />
     );
-    expect(container.firstChild).toHaveClass("section-header-root");
     expect(container.firstChild).toHaveClass("custom-margin");
   });
 

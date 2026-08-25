@@ -98,18 +98,18 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
   }
 
   return (
-    <div className="history">
-      <div className="table-header-row">
+    <div className="history bg-surface border border-border rounded-2xl shadow-md overflow-hidden">
+      <div className="table-header-row flex items-center justify-between p-4 sm:p-5 border-b border-border/60 flex-wrap gap-3">
         <div>
-          <span className="table-title">Analysis Records</span>
-          <span className="table-count">
+          <span className="table-title font-display text-base font-bold text-text-primary mr-2">Analysis Records</span>
+          <span className="table-count text-xs text-text-muted font-medium">
             {sorted.length} {sorted.length === 1 ? "entry" : "entries"}
           </span>
         </div>
         <div className="history-header-actions">
           <button
             type="button"
-            className="export-btn"
+            className="export-btn flex items-center gap-1.5 px-3 py-1.5 bg-primary-light text-primary hover:bg-primary hover:text-white rounded-pill text-xs font-semibold transition-colors cursor-pointer"
             onClick={handleExportCSV}
             title="Export filtered records to CSV"
           >

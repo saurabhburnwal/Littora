@@ -117,21 +117,21 @@ export default function UploadForm({
   const boxes = result?.boxes || [];
 
   return (
-    <form className="upload-form" onSubmit={handleSubmit}>
+    <form className="upload-form flex flex-col gap-4 max-w-xl mx-auto" onSubmit={handleSubmit}>
       <label
         htmlFor="image-input"
-        className={`upload-label${previewUrl ? " has-preview" : ""}${dragging ? " drag-over" : ""}`}
+        className={`upload-label ${previewUrl ? "has-preview" : ""} ${dragging ? "drag-over border-primary bg-primary/5" : ""} relative flex flex-col items-center justify-center min-h-[220px] p-6 border-2 border-dashed border-border hover:border-primary/60 rounded-2xl bg-surface transition-all duration-200 cursor-pointer overflow-hidden`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         {previewUrl ? (
-          <div className="upload-preview-container">
-            <img src={previewUrl} alt="Selected beach photo" className="upload-preview" />
+          <div className="upload-preview-container relative w-full flex items-center justify-center">
+            <img src={previewUrl} alt="Selected beach photo" className="upload-preview max-h-90 w-auto rounded-xl object-contain" />
 
             {/* Bounding box overlays */}
             {boxes.length > 0 && (
-              <div className="bbox-overlay-layer">
+              <div className="bbox-overlay-layer absolute inset-0">
                 {boxes.map((b, idx) => {
                   const norm = b.box_normalized || [0, 0, 0, 0];
                   const xmin = norm[0] * 100;
@@ -144,7 +144,7 @@ export default function UploadForm({
                   return (
                     <div
                       key={idx}
-                      className="bbox-box"
+                      className="bbox-box absolute border-2 pointer-events-none transition-all"
                       style={{
                         left: `${xmin}%`,
                         top: `${ymin}%`,
@@ -154,7 +154,7 @@ export default function UploadForm({
                         boxShadow: `0 0 10px ${color}80, inset 0 0 8px ${color}25`,
                       }}
                     >
-                      <span className="bbox-label" style={{ backgroundColor: color }}>
+                      <span className="bbox-label absolute bottom-full left-0 px-1.5 py-0.5 text-[10px] font-bold text-white rounded-t leading-none" style={{ backgroundColor: color }}>
                         {label}
                       </span>
                     </div>
@@ -164,14 +164,14 @@ export default function UploadForm({
             )}
           </div>
         ) : (
-          <div className="upload-placeholder">
-            <div className="upload-icon-wrap">
+          <div className="upload-placeholder flex flex-col items-center justify-center text-center gap-2">
+            <div className="upload-icon-wrap w-14 h-14 rounded-full bg-primary-light/50 text-primary flex items-center justify-center mb-1">
               <UploadCloud size={24} strokeWidth={1.8} />
             </div>
-            <span className="upload-label-text">
+            <span className="upload-label-text font-display text-sm font-bold text-text-primary">
               Drag &amp; drop or click to browse
             </span>
-            <span className="upload-hint">Supports: JPG, PNG, JPEG (Max 10MB)</span>
+            <span className="upload-hint text-xs text-text-muted">Supports: JPG, PNG, JPEG (Max 10MB)</span>
           </div>
         )}
       </label>
@@ -186,23 +186,23 @@ export default function UploadForm({
 
       {/* Multi AI Model Selector Section (Admin Only - Collapsible) */}
       {isAdmin && (
-        <details className="model-selector-details">
-          <summary className="model-selector-summary">
-            <div className="upload-model-header-title">
-              <Cpu size={15} className="upload-model-icon" />
+        <details className="model-selector-details bg-surface border border-border rounded-xl p-3.5">
+          <summary className="model-selector-summary flex items-center justify-between cursor-pointer font-semibold text-xs text-text-primary">
+            <div className="upload-model-header-title flex items-center gap-2">
+              <Cpu size={15} className="upload-model-icon text-primary" />
               <span className="upload-model-label">AI Inference Model</span>
             </div>
 
-            <span className="upload-model-badge">
+            <span className="upload-model-badge inline-flex items-center gap-1 px-2.5 py-0.5 rounded-pill bg-primary-light text-primary text-[11px] font-bold">
               <Sparkles size={11} /> {activeModelDetails?.name || activeModelDetails?.badge || "Active"}
             </span>
           </summary>
 
-          <div className="model-selector-content">
-            <div className="upload-model-desc">
-              <strong>System Admin Control:</strong> Select model for system-wide inference across all users.
+          <div className="model-selector-content pt-3 mt-3 border-t border-border/50 space-y-2">
+            <div className="upload-model-desc text-xs text-text-muted">
+              <strong className="text-text-primary">System Admin Control:</strong> Select model for system-wide inference across all users.
             </div>
-            <div className="upload-model-grid">
+            <div className="upload-model-grid grid grid-cols-1 sm:grid-cols-2 gap-2">
               {availableModels.map((m) => {
                 const isSelected = activeModel === m.id;
                 return (
@@ -211,13 +211,13 @@ export default function UploadForm({
                     type="button"
                     disabled={updatingModel}
                     onClick={() => onUpdateModel && onUpdateModel(m.id)}
-                    className={`upload-model-option ${isSelected ? "upload-model-option--selected" : ""}`}
+                    className={`upload-model-option p-2.5 rounded-xl border text-left transition-all cursor-pointer ${isSelected ? "upload-model-option--selected border-primary bg-primary/10" : "border-border hover:bg-bg-secondary"}`}
                   >
-                    <div className="upload-model-opt-header">
+                    <div className="upload-model-opt-header flex items-center justify-between font-bold text-xs text-text-primary">
                       <span>{m.name}</span>
-                      {isSelected && <Check size={13} className="upload-model-check" />}
+                      {isSelected && <Check size={13} className="upload-model-check text-primary" />}
                     </div>
-                    <div className="upload-model-params">
+                    <div className="upload-model-params text-[11px] text-text-muted mt-0.5">
                       {m.tag} • {m.params}
                     </div>
                   </button>
@@ -229,16 +229,16 @@ export default function UploadForm({
       )}
 
       {/* Beach Location Selector */}
-      <div className="beach-selector-container">
-        <div className="beach-selector-header">
-          <label className="beach-selector-label">
-            <MapPin size={14} className="beach-selector-pin" /> Target Beach Location:
+      <div className="beach-selector-container bg-surface border border-border rounded-xl p-3.5 flex flex-col gap-2">
+        <div className="beach-selector-header flex items-center justify-between">
+          <label className="beach-selector-label flex items-center gap-1.5 text-xs font-semibold text-text-primary">
+            <MapPin size={14} className="beach-selector-pin text-primary" /> Target Beach Location:
           </label>
         </div>
 
         {exifCoords && selectedBeach === "auto" && (
-          <div className="upload-gps-badge">
-            <Navigation size={13} className="upload-gps-icon" />
+          <div className="upload-gps-badge flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary-light text-primary text-xs font-medium">
+            <Navigation size={13} className="upload-gps-icon shrink-0" />
             <span>Photo EXIF GPS: <strong>{exifCoords.latitude.toFixed(4)}, {exifCoords.longitude.toFixed(4)}</strong></span>
           </div>
         )}
@@ -246,7 +246,7 @@ export default function UploadForm({
         <select
           value={selectedBeach}
           onChange={(e) => setSelectedBeach(e.target.value)}
-          className="settings-select beach-selector-select"
+          className="settings-select beach-selector-select w-full px-3 py-2 bg-surface border border-border rounded-lg text-xs font-medium text-text-primary focus:outline-none focus:border-primary"
         >
           <option value="auto">
             {exifCoords ? "Photo EXIF GPS (Auto-detected)" : "Device GPS (Auto-detect)"}
@@ -263,15 +263,15 @@ export default function UploadForm({
         </select>
       </div>
 
-      <button type="submit" className="upload-btn" disabled={!file || isBusy}>
+      <button type="submit" className="upload-btn flex items-center justify-center gap-2 w-full py-3 px-6 bg-primary hover:bg-primary-hover active:bg-primary-active disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-pill shadow-md transition-all cursor-pointer" disabled={!file || isBusy}>
         <UploadCloud size={18} strokeWidth={2} />
         {btnLabel}
       </button>
 
-      <div className="upload-divider">Or capture image</div>
+      <div className="upload-divider text-center text-xs text-text-muted my-1">Or capture image</div>
       <button
         type="button"
-        className="camera-btn"
+        className="camera-btn flex items-center justify-center gap-2 w-full py-2.5 px-6 bg-surface hover:bg-bg-secondary border border-border text-text-primary font-medium text-xs rounded-pill transition-colors cursor-pointer"
         onClick={() => alert('Camera capture coming soon!')}
       >
         <Camera size={16} strokeWidth={1.8} />

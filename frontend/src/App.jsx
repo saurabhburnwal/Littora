@@ -18,7 +18,7 @@ const SettingsPage     = lazy(() => import("./pages/SettingsPage.jsx"));
 
 function PageLoader() {
   return (
-    <div className="page-loader-fallback">
+    <div className="page-loader-fallback flex items-center justify-center min-h-[400px] text-text-muted font-medium text-sm">
       Loading...
     </div>
   );
@@ -46,20 +46,20 @@ function AppShell({ children }) {
   };
 
   return (
-    <div className={`app-shell${isCollapsed ? " collapsed" : ""}`}>
+    <div className={`app-shell ${isCollapsed ? "collapsed grid-cols-[72px_1fr]" : "grid-cols-[250px_1fr]"} grid min-h-screen transition-[grid-template-columns] duration-250 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         isCollapsed={isCollapsed}
         onToggleCollapse={toggleCollapse}
       />
-      <div className="content-area">
+      <div className="content-area flex flex-col min-h-screen overflow-x-hidden bg-bg-primary">
         {/* Floating Account Icon in Top Right */}
-        <div className="floating-account-menu-fixed">
+        <div className="floating-account-menu-fixed fixed top-4 right-4 z-40">
           <FloatingAccountMenu />
         </div>
 
-        <main className="main-content">
+        <main className="main-content flex-1">
           <Suspense fallback={<PageLoader />}>
             {children}
           </Suspense>

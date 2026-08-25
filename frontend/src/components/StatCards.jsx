@@ -9,7 +9,7 @@ export default function StatCards({
   const avgWastePerScan = totalAnalyses > 0 ? (totalWasteAllTime / totalAnalyses).toFixed(1) : "0.0";
 
   return (
-    <div className="stat-cards">
+    <div className="stat-cards grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <MetricCard
         label="Total Detections"
         value={totalAnalyses.toLocaleString()}

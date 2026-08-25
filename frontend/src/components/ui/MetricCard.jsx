@@ -28,35 +28,35 @@ export default function MetricCard({
 
   return (
     <div
-      className={`metric-card-root ${onClick ? "metric-card-clickable" : ""} ${className}`.trim()}
+      className={`bg-surface border border-border rounded-xl p-4 flex flex-col justify-between shadow-sm transition-all duration-200 ${onClick ? "cursor-pointer hover:border-primary/50 hover:shadow-md" : ""} ${className}`.trim()}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
-      <div className="metric-card-header">
-        {icon && <div className="metric-card-icon">{icon}</div>}
-        <span className="metric-card-label">{label}</span>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="font-sans text-xs font-semibold text-text-muted uppercase tracking-wider">{label}</span>
+        {icon && <div className="text-primary shrink-0">{icon}</div>}
       </div>
 
-      <div className="metric-card-body">
-        <div className="metric-card-value-row">
-          <span className="metric-card-value">{value}</span>
+      <div className="flex-1 flex flex-col justify-between">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="font-display text-2xl font-bold text-text-primary tracking-tight">{value}</span>
           {tier && (
-            <span className={`metric-card-tier tier-${tierKey}`}>
+            <span className="px-2 py-0.5 rounded-pill text-xs font-bold">
               {tier}
             </span>
           )}
         </div>
 
         {(finalSupportingText || trend) && (
-          <div className="metric-card-footer">
+          <div className="flex items-center gap-2 flex-wrap mt-2 pt-1 text-xs">
             {trend && (
-              <span className="metric-card-trend">
+              <span className="font-semibold text-status-success">
                 {typeof trend === "object" && trend.value ? trend.value : trend}
               </span>
             )}
             {finalSupportingText && (
-              <span className="metric-card-subtext">{finalSupportingText}</span>
+              <span className="text-text-muted font-medium">{finalSupportingText}</span>
             )}
           </div>
         )}

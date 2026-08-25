@@ -12,12 +12,12 @@ export default function SectionHeader({ title, subtitle, action, className = "" 
   if (!title && !subtitle && !action) return null;
 
   return (
-    <div className={`section-header-root ${className}`.trim()}>
-      <div className="section-header-content">
-        {title && <h2 className="section-header-title">{title}</h2>}
-        {subtitle && <p className="section-header-subtitle">{subtitle}</p>}
+    <div className={`flex items-start justify-between gap-4 mb-4 pb-1.5 ${className}`.trim()}>
+      <div className="flex-1 min-w-0">
+        {title && <h2 className="font-display text-lg font-bold text-text-primary tracking-tight">{title}</h2>}
+        {subtitle && <p className="text-xs sm:text-sm text-text-muted mt-0.5">{subtitle}</p>}
       </div>
-      {action && <div className="section-header-action">{action}</div>}
+      {action && <div className="flex items-center gap-2 shrink-0">{action}</div>}
     </div>
   );
 }

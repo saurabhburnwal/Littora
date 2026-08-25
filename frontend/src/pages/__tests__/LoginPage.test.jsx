@@ -258,11 +258,11 @@ describe("LoginPage — signup flow", () => {
     openSignup();
     fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: "weak" } });
     // "weak" password (only 4 chars) → strength score=0 → label is empty string from STRENGTH_LABELS[0]
-    // So instead check that the strength bar segments render
-    const segs = document.querySelectorAll(".pw-strength-seg");
+    // Check that the strength bar segments render
+    const segs = screen.getAllByTestId("pw-strength-seg");
     expect(segs.length).toBe(4);
     // pw-strength-wrap should be visible now that password.length > 0
-    expect(document.querySelector(".pw-strength-wrap")).toBeInTheDocument();
+    expect(screen.getByTestId("pw-strength-wrap")).toBeInTheDocument();
   });
 
   it("shows 'Strong' strength label for a complex password", () => {

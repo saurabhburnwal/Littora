@@ -18,10 +18,10 @@ export default function WasteBreakdownChart({ aggregateDetections }) {
   }, [aggregateDetections]);
 
   return (
-    <div className="chart-card">
-      <p className="chart-card-title">Waste Composition</p>
+    <div className="bg-surface border border-border rounded-xl p-4 sm:p-5 shadow-sm">
+      <p className="font-display text-sm font-bold text-text-primary mb-3">Waste Composition</p>
       {total === 0 ? (
-        <div className="chart-empty">
+        <div className="flex items-center justify-center h-55 text-xs text-text-muted font-medium text-center">
           No waste data yet — upload a photo to populate this chart.
         </div>
       ) : (

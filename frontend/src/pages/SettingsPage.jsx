@@ -370,24 +370,24 @@ export default function SettingsPage() {
 
       {/* ── Delete Confirmation Modal ── */}
       {deleteModal && (
-        <div className="admin-modal-backdrop" onClick={() => !deleting && setDeleteModal(false)}>
-          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-modal-icon">
-              <AlertTriangle size={36} className="admin-modal-alert-icon" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]" onClick={() => !deleting && setDeleteModal(false)} role="dialog" aria-modal="true" aria-label="Delete account confirmation">
+          <div className="bg-surface border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-12 rounded-xl bg-rose-500/15 text-rose-500 flex items-center justify-center mb-4">
+              <AlertTriangle size={28} />
             </div>
-            <h2 className="admin-modal-title">Delete your account?</h2>
-            <p className="admin-modal-body">
+            <h2 className="font-display text-lg font-bold text-text-primary mb-2">Delete your account?</h2>
+            <p className="text-sm text-text-muted leading-relaxed mb-6">
               This will sign you out immediately. To permanently delete your account and all data,
               please contact the system administrator after signing out.
               <br /><br />
-              <strong>This cannot be undone.</strong>
+              <strong className="text-rose-500">This cannot be undone.</strong>
             </p>
             {deleteError && (
-              <p className="settings-delete-error">{deleteError}</p>
+              <p className="text-xs text-rose-500 bg-rose-500/10 p-3 rounded-lg mb-4">{deleteError}</p>
             )}
-            <div className="admin-modal-actions">
+            <div className="flex items-center justify-end gap-3 pt-2">
               <button
-                className="admin-modal-cancel"
+                className="px-4 py-2.5 rounded-pill text-sm font-semibold text-text-secondary hover:bg-bg-secondary transition-colors flex items-center gap-1.5 cursor-pointer"
                 onClick={() => setDeleteModal(false)}
                 disabled={deleting}
               >
@@ -395,7 +395,7 @@ export default function SettingsPage() {
               </button>
               <button
                 id="settings-confirm-delete-btn"
-                className="admin-modal-delete"
+                className="px-5 py-2.5 rounded-pill text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
                 onClick={handleDeleteAccount}
                 disabled={deleting}
               >

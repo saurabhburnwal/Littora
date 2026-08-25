@@ -104,12 +104,12 @@ describe("Sidebar component", () => {
 
   it("shows backdrop when sidebar is open", () => {
     renderSidebar({ isOpen: true });
-    expect(document.querySelector(".sidebar-backdrop")).toBeInTheDocument();
+    expect(screen.getByTestId("sidebar-backdrop")).toBeInTheDocument();
   });
 
   it("hides backdrop when sidebar is closed", () => {
     renderSidebar({ isOpen: false });
-    expect(document.querySelector(".sidebar-backdrop")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("sidebar-backdrop")).not.toBeInTheDocument();
   });
 
   it("renders collapsed class when isCollapsed=true and calls onToggleCollapse", async () => {

@@ -84,17 +84,17 @@ describe("AnalysisLightbox — Resizable Split Pane Invariants", () => {
     expect(splitter).toBeInTheDocument();
     expect(splitter).toHaveAttribute("aria-valuenow", "60");
 
-    const stage = document.querySelector(".analysis-lightbox-stage");
+    const stage = screen.getByTestId("lightbox-stage");
     expect(stage).toHaveStyle({ width: "60%" });
 
-    const details = document.querySelector(".analysis-lightbox-details");
+    const details = screen.getByTestId("lightbox-details");
     expect(details).toHaveStyle({ width: "40%" });
   });
 
   it("2 & 3. handles dragging divider left and right", () => {
     render(<AnalysisLightbox item={mockItem} onClose={vi.fn()} />);
 
-    const lightboxSection = document.querySelector(".analysis-lightbox");
+    const lightboxSection = screen.getByTestId("lightbox-container");
     // Mock getBoundingClientRect for the container
     vi.spyOn(lightboxSection, "getBoundingClientRect").mockReturnValue({
       left: 100,
@@ -130,7 +130,7 @@ describe("AnalysisLightbox — Resizable Split Pane Invariants", () => {
   it("4. enforces minimum image width limit (45%)", () => {
     render(<AnalysisLightbox item={mockItem} onClose={vi.fn()} />);
 
-    const lightboxSection = document.querySelector(".analysis-lightbox");
+    const lightboxSection = screen.getByTestId("lightbox-container");
     vi.spyOn(lightboxSection, "getBoundingClientRect").mockReturnValue({
       left: 0,
       top: 0,
@@ -151,14 +151,14 @@ describe("AnalysisLightbox — Resizable Split Pane Invariants", () => {
     fireEvent.mouseUp(document);
 
     expect(splitter).toHaveAttribute("aria-valuenow", "45");
-    const stage = document.querySelector(".analysis-lightbox-stage");
+    const stage = screen.getByTestId("lightbox-stage");
     expect(stage).toHaveStyle({ width: "45%" });
   });
 
   it("5. enforces maximum image width limit (70%)", () => {
     render(<AnalysisLightbox item={mockItem} onClose={vi.fn()} />);
 
-    const lightboxSection = document.querySelector(".analysis-lightbox");
+    const lightboxSection = screen.getByTestId("lightbox-container");
     vi.spyOn(lightboxSection, "getBoundingClientRect").mockReturnValue({
       left: 0,
       top: 0,
@@ -179,7 +179,7 @@ describe("AnalysisLightbox — Resizable Split Pane Invariants", () => {
     fireEvent.mouseUp(document);
 
     expect(splitter).toHaveAttribute("aria-valuenow", "70");
-    const stage = document.querySelector(".analysis-lightbox-stage");
+    const stage = screen.getByTestId("lightbox-stage");
     expect(stage).toHaveStyle({ width: "70%" });
   });
 
@@ -239,7 +239,7 @@ describe("AnalysisLightbox — Resizable Split Pane Invariants", () => {
     render(<AnalysisLightbox item={mockItem} onClose={vi.fn()} />);
 
     // Check bounding boxes exist
-    expect(document.querySelectorAll(".bbox-box")).toHaveLength(2);
+    expect(screen.getAllByTestId("bbox-box")).toHaveLength(2);
 
     const focusBtn = screen.getByRole("button", { name: /focus detections/i });
     const fullBtn = screen.getByRole("button", { name: /full image/i });
