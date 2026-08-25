@@ -70,7 +70,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
                       aria-label="Delete Analysis"
                     >
                       {deletingId === row.id ? (
-                        <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                        <Loader2 size={13} className="is-spinning" />
                       ) : (
                         <Trash2 size={13} />
                       )}

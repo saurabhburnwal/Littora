@@ -121,7 +121,7 @@ export default function FilterToolbar({
               >
                 <div className="filter-popover-header">
                   <div className="filter-popover-title-wrap">
-                    <SlidersHorizontal size={14} style={{ color: "var(--teal)" }} />
+                    <SlidersHorizontal size={14} className="filter-popover-title-icon" />
                     <span className="filter-popover-title">Filter Criteria</span>
                   </div>
                   {onClearAll && (

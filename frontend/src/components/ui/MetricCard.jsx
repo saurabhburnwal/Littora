@@ -18,11 +18,13 @@ export default function MetricCard({
   icon,
   tier,
   supportingText,
+  subtext,
   trend,
   className = "",
   onClick,
 }) {
   const tierKey = typeof tier === "string" ? tier.toLowerCase().trim() : "";
+  const finalSupportingText = supportingText || subtext;
 
   return (
     <div
@@ -46,15 +48,15 @@ export default function MetricCard({
           )}
         </div>
 
-        {(supportingText || trend) && (
+        {(finalSupportingText || trend) && (
           <div className="metric-card-footer">
             {trend && (
               <span className="metric-card-trend">
                 {typeof trend === "object" && trend.value ? trend.value : trend}
               </span>
             )}
-            {supportingText && (
-              <span className="metric-card-subtext">{supportingText}</span>
+            {finalSupportingText && (
+              <span className="metric-card-subtext">{finalSupportingText}</span>
             )}
           </div>
         )}

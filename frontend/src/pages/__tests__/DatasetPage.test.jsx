@@ -59,4 +59,16 @@ describe("DatasetPage component", () => {
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/search datasets/i)).toBeInTheDocument();
   });
+
+  it("renders View action button for Roboflow dataset and Export buttons for downloadable datasets", async () => {
+    renderDataset();
+    await vi.waitFor(() => {
+      const viewLink = screen.getByRole("link", { name: /view/i });
+      expect(viewLink).toBeInTheDocument();
+      expect(viewLink).toHaveAttribute("href", expect.stringContaining("roboflow.com"));
+      expect(viewLink).toHaveAttribute("target", "_blank");
+    });
+    const exportButtons = screen.getAllByRole("button", { name: /export/i });
+    expect(exportButtons.length).toBeGreaterThanOrEqual(2);
+  });
 });

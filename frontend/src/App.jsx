@@ -18,10 +18,7 @@ const SettingsPage     = lazy(() => import("./pages/SettingsPage.jsx"));
 
 function PageLoader() {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      minHeight: '300px', color: 'var(--muted)', fontSize: '0.88rem'
-    }}>
+    <div className="page-loader-fallback">
       Loading...
     </div>
   );
@@ -56,14 +53,9 @@ function AppShell({ children }) {
         isCollapsed={isCollapsed}
         onToggleCollapse={toggleCollapse}
       />
-      <div className="content-area" style={{ position: "relative" }}>
+      <div className="content-area">
         {/* Floating Account Icon in Top Right */}
-        <div style={{
-          position: "fixed",
-          top: "1.25rem",
-          right: "1.5rem",
-          zIndex: 1000
-        }}>
+        <div className="floating-account-menu-fixed">
           <FloatingAccountMenu />
         </div>
 

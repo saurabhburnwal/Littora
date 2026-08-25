@@ -145,7 +145,7 @@ export default function ResultPanel({ result, showUser = false }) {
             View on Map
           </Link>
         ) : (
-          <div style={{ flex: 1 }} />
+          <div className="flex-spacer" />
         )}
 
         <div className="detail-more-menu-wrap" ref={menuRef}>

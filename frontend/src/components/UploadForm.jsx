@@ -188,32 +188,21 @@ export default function UploadForm({
       {isAdmin && (
         <details className="model-selector-details">
           <summary className="model-selector-summary">
-            <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-              <Cpu size={15} style={{ color: "var(--teal)" }} />
-              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-primary)" }}>AI Inference Model</span>
+            <div className="upload-model-header-title">
+              <Cpu size={15} className="upload-model-icon" />
+              <span className="upload-model-label">AI Inference Model</span>
             </div>
 
-            <span style={{
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              padding: "0.18rem 0.55rem",
-              borderRadius: "20px",
-              background: "rgba(14, 140, 134, 0.12)",
-              color: "var(--teal)",
-              border: "1px solid rgba(14, 140, 134, 0.25)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.3rem"
-            }}>
+            <span className="upload-model-badge">
               <Sparkles size={11} /> {activeModelDetails?.name || activeModelDetails?.badge || "Active"}
             </span>
           </summary>
 
           <div className="model-selector-content">
-            <div style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginBottom: "0.6rem" }}>
+            <div className="upload-model-desc">
               <strong>System Admin Control:</strong> Select model for system-wide inference across all users.
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.5rem" }}>
+            <div className="upload-model-grid">
               {availableModels.map((m) => {
                 const isSelected = activeModel === m.id;
                 return (
@@ -222,36 +211,13 @@ export default function UploadForm({
                     type="button"
                     disabled={updatingModel}
                     onClick={() => onUpdateModel && onUpdateModel(m.id)}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "flex-start",
-                      padding: "0.55rem 0.75rem",
-                      borderRadius: "10px",
-                      border: isSelected ? "2px solid var(--teal)" : "2px solid var(--border)",
-                      background: isSelected ? "rgba(14, 140, 134, 0.08)" : "var(--card-bg)",
-                      color: isSelected ? "var(--text-primary)" : "var(--text-muted)",
-                      cursor: updatingModel ? "wait" : "pointer",
-                      textAlign: "left",
-                      transition: "all 0.18s ease",
-                      whiteSpace: "nowrap",
-                    }}
+                    className={`upload-model-option ${isSelected ? "upload-model-option--selected" : ""}`}
                   >
-                    <div style={{
-                      fontWeight: 700,
-                      fontSize: "0.8rem",
-                      color: isSelected ? "var(--teal)" : "var(--text-primary)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "100%",
-                      whiteSpace: "nowrap",
-                      gap: "0.3rem"
-                    }}>
+                    <div className="upload-model-opt-header">
                       <span>{m.name}</span>
-                      {isSelected && <Check size={13} style={{ color: "var(--teal)", flexShrink: 0 }} />}
+                      {isSelected && <Check size={13} className="upload-model-check" />}
                     </div>
-                    <div style={{ fontSize: "0.68rem", opacity: 0.8, marginTop: "2px", whiteSpace: "nowrap" }}>
+                    <div className="upload-model-params">
                       {m.tag} • {m.params}
                     </div>
                   </button>
@@ -263,28 +229,16 @@ export default function UploadForm({
       )}
 
       {/* Beach Location Selector */}
-      <div className="beach-selector-container" style={{ margin: "0.85rem 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", fontWeight: 600, color: "var(--muted)" }}>
-            <MapPin size={14} style={{ color: "var(--teal)" }} /> Target Beach Location:
+      <div className="beach-selector-container">
+        <div className="beach-selector-header">
+          <label className="beach-selector-label">
+            <MapPin size={14} className="beach-selector-pin" /> Target Beach Location:
           </label>
         </div>
 
         {exifCoords && selectedBeach === "auto" && (
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.45rem",
-            padding: "0.45rem 0.75rem",
-            borderRadius: "8px",
-            background: "rgba(14, 140, 134, 0.12)",
-            border: "1px solid rgba(14, 140, 134, 0.3)",
-            color: "var(--teal)",
-            fontSize: "0.76rem",
-            fontWeight: 600,
-            marginBottom: "0.6rem"
-          }}>
-            <Navigation size={13} style={{ flexShrink: 0 }} />
+          <div className="upload-gps-badge">
+            <Navigation size={13} className="upload-gps-icon" />
             <span>Photo EXIF GPS: <strong>{exifCoords.latitude.toFixed(4)}, {exifCoords.longitude.toFixed(4)}</strong></span>
           </div>
         )}
@@ -292,8 +246,7 @@ export default function UploadForm({
         <select
           value={selectedBeach}
           onChange={(e) => setSelectedBeach(e.target.value)}
-          className="settings-select"
-          style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "8px" }}
+          className="settings-select beach-selector-select"
         >
           <option value="auto">
             {exifCoords ? "Photo EXIF GPS (Auto-detected)" : "Device GPS (Auto-detect)"}
@@ -326,12 +279,12 @@ export default function UploadForm({
       </button>
 
       {selectedBeach === "auto" && locStatus === "denied" && (
-        <p className="loc-note" style={{ color: "var(--muted)" }}>
+        <p className="loc-note loc-note--muted">
           Location access denied — uploaded without coordinates.
         </p>
       )}
       {selectedBeach === "auto" && locStatus === "granted" && (
-        <p className="loc-note" style={{ color: "var(--teal)" }}>
+        <p className="loc-note loc-note--teal">
           Location attached to this photo.
         </p>
       )}

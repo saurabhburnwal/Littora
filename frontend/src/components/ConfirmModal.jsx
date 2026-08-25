@@ -68,7 +68,7 @@ export default function ConfirmModal({
             onClick={onConfirm}
             autoFocus
           >
-            {!isPrimary && <Trash2 size={13} style={{ marginRight: 2 }} />}
+            {!isPrimary && <Trash2 size={13} className="confirm-btn-icon" />}
             {confirmLabel}
           </button>
         </div>

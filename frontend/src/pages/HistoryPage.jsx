@@ -259,7 +259,7 @@ export default function HistoryPage() {
             disabled={loading}
             title="Refresh analyses"
           >
-            <RefreshCw size={15} style={{ animation: loading ? "spin 1s linear infinite" : "none" }} />
+            <RefreshCw size={15} className={loading ? "is-spinning" : ""} />
             Refresh
           </button>
         )}
@@ -291,28 +291,28 @@ export default function HistoryPage() {
       {/* Loading state */}
       {loading && (
         <div className="result-placeholder">
-          <div className="login-spinner" style={{ margin: "0 auto" }} />
+          <div className="login-spinner login-spinner--centered" />
           <p>{isAdmin ? "Loading all analyses…" : "Loading your analyses…"}</p>
         </div>
       )}
 
       {/* Error state */}
       {!loading && error && (
-        <div className="admin-error-banner" style={{ marginBottom: "1.5rem" }}>
+        <div className="admin-error-banner admin-error-banner--spaced">
           {error}
         </div>
       )}
 
       {/* Empty state */}
       {!loading && !error && history.length === 0 && (
-        <div className="result-placeholder" style={{ marginTop: "3rem" }}>
+        <div className="result-placeholder result-placeholder--spaced">
           <ImageOff size={48} strokeWidth={1.2} />
           {isAdmin ? (
             <p>No analyses have been uploaded by any user yet.</p>
           ) : (
             <>
               <p>You haven&apos;t uploaded any photos yet.</p>
-              <p style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
+              <p className="history-empty-hint">
                 Head to <strong>Detect Waste</strong> to upload your first beach photo.
               </p>
             </>
@@ -408,7 +408,7 @@ export default function HistoryPage() {
           </FilterToolbar>
 
           {/* Photo gallery */}
-          <section style={{ marginBottom: "2rem" }}>
+          <section className="history-gallery-section">
             <SectionHeader
               title="Photo Gallery"
               subtitle="Visual detection catalog and photo inspection"

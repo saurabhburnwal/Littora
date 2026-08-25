@@ -147,10 +147,8 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
             ...(isFocused ? {
               transformOrigin: `${focusViewport.originX}% ${focusViewport.originY}%`,
               transform: `scale(${focusViewport.scale})`,
-              transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
             } : {
               transform: "none",
-              transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
             }),
           }}
         >
@@ -238,8 +236,8 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
           </summary>
           <div className="bbox-filter-toolbar" aria-label="Bounding box filters">
             <div className="bbox-filter-conf">
-              <SlidersHorizontal size={14} style={{ color: "var(--teal)", flexShrink: 0 }} />
-              <label htmlFor="min-conf-slider" style={{ fontSize: "0.76rem", fontWeight: 600 }}>
+              <SlidersHorizontal size={14} className="bbox-filter-icon" />
+              <label htmlFor="min-conf-slider" className="bbox-filter-label">
                 Confidence: <strong>{Math.round(minConf * 100)}%</strong>
               </label>
               <input
@@ -266,12 +264,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
                     type="button"
                     onClick={() => toggleCategory(cat)}
                     className={`bbox-chip ${isHidden ? "bbox-chip--off" : ""}`}
-                    style={{
-                      "--chip-color": color,
-                      borderColor: isHidden ? "var(--border)" : color,
-                      color: isHidden ? "var(--muted)" : color,
-                      background: isHidden ? "transparent" : `${color}15`,
-                    }}
+                    style={{ "--chip-color": color }}
                     title={isHidden ? `Show ${cat} detections` : `Hide ${cat} detections`}
                   >
                     {isHidden ? <EyeOff size={11} /> : <Eye size={11} />}

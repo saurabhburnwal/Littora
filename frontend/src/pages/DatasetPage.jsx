@@ -146,9 +146,9 @@ export default function DatasetPage() {
     <div className="page-container">
       {/* Header */}
       <div className="page-heading">
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-          <Database size={22} style={{ color: "var(--teal)" }} />
-          <h1 style={{ margin: 0 }}>Data Explorer</h1>
+        <div className="dataset-heading-title">
+          <Database size={22} className="dataset-heading-icon" />
+          <h1>Data Explorer</h1>
         </div>
         <p>
           Browse and export research-ready coastal waste datasets with GIS coordinates and Roboflow training data.
@@ -156,7 +156,7 @@ export default function DatasetPage() {
       </div>
 
       {/* Dataset Metrics */}
-      <div className="kpi-stats-grid" style={{ marginBottom: "2rem" }}>
+      <div className="kpi-stats-grid">
         <MetricCard
           label="Catalog Records"
           value={(stats.totalAnalyses || 0).toLocaleString()}
@@ -184,33 +184,31 @@ export default function DatasetPage() {
       </div>
 
       {/* Section Header & Toolbar */}
-      <div style={{ marginBottom: "1rem" }}>
+      <div className="section-header-wrap">
         <SectionHeader
           title="Available Datasets"
           subtitle="Machine-learning annotations and geospatial feature collections"
         />
       </div>
 
-      <div style={{ display: "flex", gap: "0.65rem", marginBottom: "1.5rem", alignItems: "center", flexWrap: "wrap" }}>
+      <div className="dataset-toolbar">
         <div className="search-box">
           <Search size={14} className="search-icon" />
           <input
-            className="search-input"
+            className="search-input dataset-search-input"
             type="text"
             placeholder="Search datasets..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ width: "260px" }}
           />
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-          <Filter size={14} style={{ color: "var(--text-muted)" }} />
+        <div className="dataset-filter-group">
+          <Filter size={14} className="dataset-filter-icon" />
           <select
-            className="filter-select"
+            className="filter-select dataset-filter-select"
             value={formatFilter}
             onChange={(e) => setFormatFilter(e.target.value)}
-            style={{ padding: "0.4rem 0.8rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: "0.85rem" }}
           >
             <option value="ALL">All Formats</option>
             <option value="ROBOFLOW">Roboflow / YOLO</option>
@@ -237,7 +235,7 @@ export default function DatasetPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+                <td colSpan={6} className="history-empty-state">
                   No matching datasets found.
                 </td>
               </tr>
@@ -245,62 +243,50 @@ export default function DatasetPage() {
               filtered.map((d) => (
                 <tr key={d.id}>
                   <td>
-                    <div style={{ fontWeight: 600, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.45rem" }}>
-                      {d.format === "GEOJSON" && <MapPin size={14} style={{ color: "var(--teal)" }} />}
-                      {d.format === "CSV" && <FileSpreadsheet size={14} style={{ color: "#F59E0B" }} />}
-                      {d.format === "ROBOFLOW" && <Database size={14} style={{ color: "var(--teal)" }} />}
+                    <div className="dataset-title-row">
+                      {d.format === "GEOJSON" && <MapPin size={14} className="dataset-icon--geojson" />}
+                      {d.format === "CSV" && <FileSpreadsheet size={14} className="dataset-icon--csv" />}
+                      {d.format === "ROBOFLOW" && <Database size={14} className="dataset-icon--roboflow" />}
                       <span>{d.name}</span>
                     </div>
                     {d.description && (
-                      <div style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                      <div className="dataset-desc">
                         {d.description}
                       </div>
                     )}
                   </td>
                   <td>{d.records.toLocaleString()}</td>
-                  <td style={{ color: "var(--text-muted)" }}>{d.size}</td>
+                  <td className="dataset-table-size">{d.size}</td>
                   <td>
                     <span
-                      className="waste-badge"
-                      style={{
-                        background:
-                          d.format === "GEOJSON"
-                            ? "rgba(14, 140, 134, 0.15)"
-                            : d.format === "ROBOFLOW"
-                            ? "rgba(168, 85, 247, 0.15)"
-                            : "var(--bg)",
-                        color:
-                          d.format === "GEOJSON"
-                            ? "var(--teal)"
-                            : d.format === "ROBOFLOW"
-                            ? "#9333EA"
-                            : "var(--text-primary)",
-                        fontWeight: 700,
-                        border: "1px solid var(--border)"
-                      }}
+                      className={`waste-badge ${
+                        d.format === "GEOJSON"
+                          ? "waste-badge--geojson"
+                          : d.format === "ROBOFLOW"
+                          ? "waste-badge--roboflow"
+                          : "waste-badge--default"
+                      }`}
                     >
                       {d.format}
                     </span>
                   </td>
-                  <td style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>{d.updated}</td>
+                  <td className="dataset-table-updated">{d.updated}</td>
                   <td>
                     {d.isExternal ? (
                       <a
                         href={d.externalUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="export-btn"
-                        style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", textDecoration: "none" }}
+                        className="export-btn dataset-action-btn"
                       >
-                        <ExternalLink size={13} /> View on Roboflow
+                        <ExternalLink size={13} /> View
                       </a>
                     ) : (
                       <button
                         type="button"
-                        className="export-btn"
+                        className="export-btn dataset-action-btn"
                         onClick={() => handleDownload(d)}
                         disabled={downloadingId === d.id}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
                       >
                         <Download size={13} />
                         {downloadingId === d.id ? "Downloading..." : "Export"}

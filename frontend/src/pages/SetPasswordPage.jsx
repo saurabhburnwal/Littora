@@ -85,8 +85,8 @@ export default function SetPasswordPage() {
         </div>
       </div>
 
-      <div className="login-card-wrap" style={{ maxWidth: 480 }}>
-        <div className="login-card" style={{ borderRight: "none" }}>
+      <div className="login-card-wrap login-card-wrap--narrow">
+        <div className="login-card login-card--flat-right">
           {/* Brand */}
           <div className="login-brand">
             <img src={logo} alt="Littora" className="login-logo" />
@@ -98,9 +98,9 @@ export default function SetPasswordPage() {
 
           {done ? (
             /* ── Success state ── */
-            <div style={{ textAlign: "center", padding: "1.5rem 0" }}>
-              <CheckCircle size={52} style={{ color: "#22c55e", marginBottom: "1rem" }} />
-              <h1 className="login-heading" style={{ fontSize: "1.3rem" }}>
+            <div className="setpass-success-wrap">
+              <CheckCircle size={52} className="setpass-success-icon" />
+              <h1 className="login-heading login-heading--success">
                 Password set successfully!
               </h1>
               <p className="login-subheading">
@@ -109,9 +109,9 @@ export default function SetPasswordPage() {
             </div>
           ) : (
             <>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem" }}>
-                <KeyRound size={22} style={{ color: "#e6a545" }} />
-                <h1 className="login-heading" style={{ margin: 0 }}>
+              <div className="setpass-header-row">
+                <KeyRound size={22} className="setpass-header-icon" />
+                <h1 className="login-heading login-heading--flush">
                   {isInvite ? "Set your password" : "Reset your password"}
                 </h1>
               </div>
@@ -122,13 +122,8 @@ export default function SetPasswordPage() {
               </p>
 
               {!sessionReady && (
-                <div style={{
-                  display: "flex", alignItems: "center", gap: "0.6rem",
-                  background: "rgba(230,165,69,0.1)", border: "1px solid rgba(230,165,69,0.25)",
-                  borderRadius: 10, padding: "0.75rem 1rem", marginBottom: "1rem",
-                  color: "#e6a545", fontSize: "0.83rem"
-                }}>
-                  <span className="login-spinner" style={{ borderTopColor: "#e6a545", borderColor: "rgba(230,165,69,0.3)" }} />
+                <div className="setpass-verifying-banner">
+                  <span className="login-spinner setpass-verifying-spinner" />
                   Verifying your invite link…
                 </div>
               )}
@@ -189,16 +184,13 @@ export default function SetPasswordPage() {
                 {password.length > 0 && (() => {
                   const pwInfo = calculatePasswordStrength(password);
                   return (
-                    <div style={{ display: "flex", gap: "4px", marginTop: "-0.5rem" }}>
+                    <div className="setpass-strength-wrap">
                       {[1, 2, 3, 4].map((i) => (
                         <div
                           key={i}
+                          className="setpass-strength-seg"
                           style={{
-                            flex: 1,
-                            height: 4,
-                            borderRadius: 2,
                             background: pwInfo.score >= i ? pwInfo.color : "rgba(255,255,255,0.1)",
-                            transition: "background 0.25s",
                           }}
                         />
                       ))}

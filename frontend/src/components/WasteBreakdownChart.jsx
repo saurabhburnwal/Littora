@@ -32,22 +32,15 @@ export default function WasteBreakdownChart({ aggregateDetections }) {
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#ddd3bf"
+              stroke="var(--border-lt)"
               vertical={false}
             />
-            <XAxis dataKey="type" tick={{ fontSize: 11, fill: "#6b7a72" }} />
+            <XAxis dataKey="type" tick={{ fontSize: 11, fill: "var(--muted)" }} />
             <YAxis
               allowDecimals={false}
-              tick={{ fontSize: 11, fill: "#6b7a72" }}
+              tick={{ fontSize: 11, fill: "var(--muted)" }}
             />
-            <Tooltip
-              contentStyle={{
-                background:   "#fff",
-                border:       "1px solid #ddd3bf",
-                borderRadius: 8,
-                fontSize:     13,
-              }}
-            />
+            <Tooltip />
             <Bar dataKey="count" radius={[4, 4, 0, 0]} name="Items detected">
               {chartData.map((entry) => (
                 <Cell

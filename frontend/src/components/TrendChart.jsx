@@ -51,16 +51,7 @@ export default function TrendChart({ history }) {
               axisLine={{ stroke: "var(--border-lt)" }}
               tickLine={false}
             />
-            <Tooltip
-              contentStyle={{
-                background:   "var(--card-bg)",
-                border:       "1px solid var(--border-lt)",
-                borderRadius: 10,
-                boxShadow:    "0 8px 24px rgba(0,0,0,0.12)",
-                fontSize:     12,
-                color:        "var(--ink)",
-              }}
-            />
+            <Tooltip />
             <Area
               type="monotone"
               dataKey="score"

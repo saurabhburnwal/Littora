@@ -1,4 +1,76 @@
 /**
+ * Isolated PDF report styling definitions for deterministic off-screen rendering.
+ * These styles are intentionally isolated from application theme/stylesheet rules
+ * so that html2canvas generates consistent, print-ready reports in any environment.
+ */
+export const PDF_STYLES = {
+  // Page container
+  page: "padding: 32px 40px; background: #ffffff;",
+
+  // Header Banner
+  header: "display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0d9488; padding-bottom: 20px; margin-bottom: 24px;",
+  brandTitle: "font-size: 26px; font-weight: 800; color: #0d9488; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;",
+  brandSubtitle: "font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;",
+  headerMeta: "text-align: right;",
+  reportTypeBadge: "display: inline-block; background: #ccfbf1; color: #0f766e; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;",
+  timestamp: "font-size: 11px; color: #94a3b8; margin-top: 6px;",
+
+  // Report Metadata Card
+  metaCard: "background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; justify-content: space-between; font-size: 13px;",
+  metaLabel: "color: #64748b; font-weight: 500;",
+  metaValue: "color: #0f172a;",
+
+  // Section Headers
+  section: "margin-bottom: 28px;",
+  sectionTitle: "font-size: 14px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px 0; border-left: 4px solid #0d9488; padding-left: 8px;",
+
+  // KPI Grid & Metric Cards
+  kpiGrid: "display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;",
+  kpiCardDetections: "background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; text-align: center;",
+  kpiValDetections: "font-size: 22px; font-weight: 800; color: #166534;",
+  kpiLabelDetections: "font-size: 11px; font-weight: 600; color: #15803d; text-transform: uppercase; margin-top: 2px;",
+  kpiCardWaste: "background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px; text-align: center;",
+  kpiValWaste: "font-size: 22px; font-weight: 800; color: #075985;",
+  kpiLabelWaste: "font-size: 11px; font-weight: 600; color: #0369a1; text-transform: uppercase; margin-top: 2px;",
+  kpiCardLocations: "background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 14px; text-align: center;",
+  kpiValLocations: "font-size: 22px; font-weight: 800; color: #854d0e;",
+  kpiLabelLocations: "font-size: 11px; font-weight: 600; color: #a16207; text-transform: uppercase; margin-top: 2px;",
+  kpiCardScore: "background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 14px; text-align: center;",
+  kpiValScore: "font-size: 22px; font-weight: 800; color: #6b21a8;",
+  kpiLabelScore: "font-size: 11px; font-weight: 600; color: #7e22ce; text-transform: uppercase; margin-top: 2px;",
+
+  // Table Structure & Headers
+  table: "width: 100%; border-collapse: collapse; font-size: 13px;",
+  tableHeadRow: "background: #f1f5f9; color: #475569; text-align: left;",
+  tableThLeft: "padding: 10px 12px; border-radius: 6px 0 0 6px; font-weight: 600;",
+  tableThMid: "padding: 10px 12px; font-weight: 600;",
+  tableThRight: "padding: 10px 12px; border-radius: 0 6px 6px 0; text-align: right; font-weight: 600;",
+  tableRow: "border-bottom: 1px solid #f1f5f9;",
+  tableCellName: "padding: 10px 12px; font-weight: 600; color: #1e293b;",
+  tableCellBadge: "padding: 10px 12px;",
+  tableCellCount: "padding: 10px 12px; text-align: right; font-weight: 700; color: #1e293b;",
+
+  // Severity Badges
+  badgeLow: "display: inline-block; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;",
+  badgeModerate: "display: inline-block; background: #fef9c3; color: #a16207; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;",
+  badgeHigh: "display: inline-block; background: #ffedd5; color: #c2410c; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;",
+  badgeSevere: "display: inline-block; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;",
+
+  // Waste Categories
+  wasteGrid: "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;",
+  wasteItem: "display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;",
+  wasteItemEmpty: "grid-column: span 2; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; text-align: center; color: #64748b;",
+
+  // Action Recommendations Box
+  recsBox: "margin-bottom: 32px; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 16px;",
+  recsTitle: "font-size: 13px; font-weight: 700; color: #0f766e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 0;",
+  recsList: "margin: 0; padding-left: 20px; color: #134e4a; font-size: 12px; line-height: 1.6;",
+
+  // Document Footer
+  footer: "border-top: 1px solid #e2e8f0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #94a3b8;",
+};
+
+/**
  * Generates and downloads a styled PDF report for Littora Beach Waste Detection.
  * @param {string} reportType - "daily" | "weekly" | "monthly" | "custom"
  * @param {object} stats - Analytics data from StatsContext
@@ -40,12 +112,12 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
   const formatWasteName = (t) => String(t || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   const wasteCategoryHtml = wasteEntries.length > 0
     ? wasteEntries.map(([type, count]) => `
-        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+        <div style="${PDF_STYLES.wasteItem}">
           <span>📦 ${formatWasteName(type)}</span>
           <strong>${count.toLocaleString()}</strong>
         </div>
       `).join("")
-    : `<div style="grid-column: span 2; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; text-align: center; color: #64748b;">No waste items recorded.</div>`;
+    : `<div style="${PDF_STYLES.wasteItemEmpty}">No waste items recorded.</div>`;
 
   // Temporary off-screen container for rendering styled HTML template
   const container = document.createElement("div");
@@ -60,118 +132,118 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
   container.style.boxSizing = "border-box";
 
   container.innerHTML = `
-    <div style="padding: 32px 40px; background: #ffffff;">
+    <div style="${PDF_STYLES.page}">
       <!-- Header Banner -->
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0d9488; padding-bottom: 20px; margin-bottom: 24px;">
+      <div style="${PDF_STYLES.header}">
         <div>
-          <div style="font-size: 26px; font-weight: 800; color: #0d9488; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;">
+          <div style="${PDF_STYLES.brandTitle}">
             LITTORA
           </div>
-          <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
+          <div style="${PDF_STYLES.brandSubtitle}">
             AI Beach Waste Detection & Monitoring System
           </div>
         </div>
-        <div style="text-align: right;">
-          <div style="display: inline-block; background: #ccfbf1; color: #0f766e; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">
+        <div style="${PDF_STYLES.headerMeta}">
+          <div style="${PDF_STYLES.reportTypeBadge}">
             ${reportType} Report
           </div>
-          <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">
+          <div style="${PDF_STYLES.timestamp}">
             Generated: ${timestamp}
           </div>
         </div>
       </div>
 
       <!-- Report Metadata -->
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; justify-content: space-between; font-size: 13px;">
+      <div style="${PDF_STYLES.metaCard}">
         <div>
-          <span style="color: #64748b; font-weight: 500;">Report Scope:</span> 
-          <strong style="color: #0f172a;">${reportTitle}</strong>
+          <span style="${PDF_STYLES.metaLabel}">Report Scope:</span> 
+          <strong style="${PDF_STYLES.metaValue}">${reportTitle}</strong>
         </div>
         <div>
-          <span style="color: #64748b; font-weight: 500;">Generated For:</span> 
-          <strong style="color: #0f172a;">${user?.email || "Authenticated User"}</strong>
+          <span style="${PDF_STYLES.metaLabel}">Generated For:</span> 
+          <strong style="${PDF_STYLES.metaValue}">${user?.email || "Authenticated User"}</strong>
         </div>
       </div>
 
       <!-- Summary KPI Grid -->
-      <div style="margin-bottom: 28px;">
-        <h3 style="font-size: 14px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px 0; border-left: 4px solid #0d9488; padding-left: 8px;">
+      <div style="${PDF_STYLES.section}">
+        <h3 style="${PDF_STYLES.sectionTitle}">
           1. Summary Metrics
         </h3>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; text-align: center;">
-            <div style="font-size: 22px; font-weight: 800; color: #166534;">${totalDetections}</div>
-            <div style="font-size: 11px; font-weight: 600; color: #15803d; text-transform: uppercase; margin-top: 2px;">Analyses Performed</div>
+        <div style="${PDF_STYLES.kpiGrid}">
+          <div style="${PDF_STYLES.kpiCardDetections}">
+            <div style="${PDF_STYLES.kpiValDetections}">${totalDetections}</div>
+            <div style="${PDF_STYLES.kpiLabelDetections}">Analyses Performed</div>
           </div>
-          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px; text-align: center;">
-            <div style="font-size: 22px; font-weight: 800; color: #075985;">${totalWaste}</div>
-            <div style="font-size: 11px; font-weight: 600; color: #0369a1; text-transform: uppercase; margin-top: 2px;">Total Waste Items</div>
+          <div style="${PDF_STYLES.kpiCardWaste}">
+            <div style="${PDF_STYLES.kpiValWaste}">${totalWaste}</div>
+            <div style="${PDF_STYLES.kpiLabelWaste}">Total Waste Items</div>
           </div>
-          <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 14px; text-align: center;">
-            <div style="font-size: 22px; font-weight: 800; color: #854d0e;">${locationsCount}</div>
-            <div style="font-size: 11px; font-weight: 600; color: #a16207; text-transform: uppercase; margin-top: 2px;">Beaches Monitored</div>
+          <div style="${PDF_STYLES.kpiCardLocations}">
+            <div style="${PDF_STYLES.kpiValLocations}">${locationsCount}</div>
+            <div style="${PDF_STYLES.kpiLabelLocations}">Beaches Monitored</div>
           </div>
-          <div style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 14px; text-align: center;">
-            <div style="font-size: 22px; font-weight: 800; color: #6b21a8;">${avgScore} / 10</div>
-            <div style="font-size: 11px; font-weight: 600; color: #7e22ce; text-transform: uppercase; margin-top: 2px;">Avg Pollution Index</div>
+          <div style="${PDF_STYLES.kpiCardScore}">
+            <div style="${PDF_STYLES.kpiValScore}">${avgScore} / 10</div>
+            <div style="${PDF_STYLES.kpiLabelScore}">Avg Pollution Index</div>
           </div>
         </div>
       </div>
 
       <!-- Severity Distribution -->
-      <div style="margin-bottom: 28px;">
-        <h3 style="font-size: 14px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px 0; border-left: 4px solid #0d9488; padding-left: 8px;">
+      <div style="${PDF_STYLES.section}">
+        <h3 style="${PDF_STYLES.sectionTitle}">
           2. Pollution Severity Breakdown
         </h3>
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <table style="${PDF_STYLES.table}">
           <thead>
-            <tr style="background: #f1f5f9; color: #475569; text-align: left;">
-              <th style="padding: 10px 12px; border-radius: 6px 0 0 6px; font-weight: 600;">Severity Level</th>
-              <th style="padding: 10px 12px; font-weight: 600;">Status Indicator</th>
-              <th style="padding: 10px 12px; border-radius: 0 6px 6px 0; text-align: right; font-weight: 600;">Count</th>
+            <tr style="${PDF_STYLES.tableHeadRow}">
+              <th style="${PDF_STYLES.tableThLeft}">Severity Level</th>
+              <th style="${PDF_STYLES.tableThMid}">Status Indicator</th>
+              <th style="${PDF_STYLES.tableThRight}">Count</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px 12px; font-weight: 600; color: #1e293b;">Low</td>
-              <td style="padding: 10px 12px;"><span style="display: inline-block; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Minimal Risk</span></td>
-              <td style="padding: 10px 12px; text-align: right; font-weight: 700; color: #1e293b;">${lowCount}</td>
+            <tr style="${PDF_STYLES.tableRow}">
+              <td style="${PDF_STYLES.tableCellName}">Low</td>
+              <td style="${PDF_STYLES.tableCellBadge}"><span style="${PDF_STYLES.badgeLow}">Minimal Risk</span></td>
+              <td style="${PDF_STYLES.tableCellCount}">${lowCount}</td>
             </tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px 12px; font-weight: 600; color: #1e293b;">Moderate</td>
-              <td style="padding: 10px 12px;"><span style="display: inline-block; background: #fef9c3; color: #a16207; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Monitor Closely</span></td>
-              <td style="padding: 10px 12px; text-align: right; font-weight: 700; color: #1e293b;">${modCount}</td>
+            <tr style="${PDF_STYLES.tableRow}">
+              <td style="${PDF_STYLES.tableCellName}">Moderate</td>
+              <td style="${PDF_STYLES.tableCellBadge}"><span style="${PDF_STYLES.badgeModerate}">Monitor Closely</span></td>
+              <td style="${PDF_STYLES.tableCellCount}">${modCount}</td>
             </tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px 12px; font-weight: 600; color: #1e293b;">High</td>
-              <td style="padding: 10px 12px;"><span style="display: inline-block; background: #ffedd5; color: #c2410c; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Cleanup Priority</span></td>
-              <td style="padding: 10px 12px; text-align: right; font-weight: 700; color: #1e293b;">${highCount}</td>
+            <tr style="${PDF_STYLES.tableRow}">
+              <td style="${PDF_STYLES.tableCellName}">High</td>
+              <td style="${PDF_STYLES.tableCellBadge}"><span style="${PDF_STYLES.badgeHigh}">Cleanup Priority</span></td>
+              <td style="${PDF_STYLES.tableCellCount}">${highCount}</td>
             </tr>
             <tr>
-              <td style="padding: 10px 12px; font-weight: 600; color: #1e293b;">Severe</td>
-              <td style="padding: 10px 12px;"><span style="display: inline-block; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Urgent Action Required</span></td>
-              <td style="padding: 10px 12px; text-align: right; font-weight: 700; color: #1e293b;">${severeCount}</td>
+              <td style="${PDF_STYLES.tableCellName}">Severe</td>
+              <td style="${PDF_STYLES.tableCellBadge}"><span style="${PDF_STYLES.badgeSevere}">Urgent Action Required</span></td>
+              <td style="${PDF_STYLES.tableCellCount}">${severeCount}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <!-- Waste Categories -->
-      <div style="margin-bottom: 28px;">
-        <h3 style="font-size: 14px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px 0; border-left: 4px solid #0d9488; padding-left: 8px;">
+      <div style="${PDF_STYLES.section}">
+        <h3 style="${PDF_STYLES.sectionTitle}">
           3. Waste Category Counts
         </h3>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+        <div style="${PDF_STYLES.wasteGrid}">
           ${wasteCategoryHtml}
         </div>
       </div>
 
       <!-- Recommended Action Items -->
-      <div style="margin-bottom: 32px; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 16px;">
-        <h3 style="font-size: 13px; font-weight: 700; color: #0f766e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 0;">
+      <div style="${PDF_STYLES.recsBox}">
+        <h3 style="${PDF_STYLES.recsTitle}">
           💡 Actionable Recommendations
         </h3>
-        <ul style="margin: 0; padding-left: 20px; color: #134e4a; font-size: 12px; line-height: 1.6;">
+        <ul style="${PDF_STYLES.recsList}">
           <li>Prioritize community cleanup drives at beaches exhibiting High or Severe pollution indices.</li>
           <li>Deploy additional waste disposal & recycling bins in areas with high plastic bottle counts.</li>
           <li>Maintain automated surveillance schedules to monitor trend dynamics over time.</li>
@@ -179,7 +251,7 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
       </div>
 
       <!-- Document Footer -->
-      <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #94a3b8;">
+      <div style="${PDF_STYLES.footer}">
         <div>Littora Coastal Monitoring & AI Waste Detection Platform</div>
         <div>Confidential & System Generated</div>
       </div>
@@ -213,3 +285,4 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
     document.body.removeChild(container);
   }
 }
+

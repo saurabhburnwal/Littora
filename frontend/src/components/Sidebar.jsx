@@ -42,7 +42,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
         <div className="sidebar-logo">
           {!isCollapsed ? (
             <>
-              <div className="sidebar-logo-brand" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <div className="sidebar-logo-brand">
                 <img src={logo} alt="Littora Logo" className="sidebar-logo-img" />
                 <div>
                   <div className="sidebar-wordmark">LITTORA</div>
@@ -62,8 +62,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
               )}
             </>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem", width: "100%" }}>
-              <img src={logo} alt="Littora Logo" className="sidebar-logo-img" style={{ width: "34px", height: "34px" }} />
+            <div className="sidebar-collapsed-brand">
+              <img src={logo} alt="Littora Logo" className="sidebar-logo-img" />
               {onToggleCollapse && (
                 <button
                   type="button"
@@ -87,22 +87,17 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
               return (
                 <div
                   key={to}
-                  className="nav-item"
+                  className="nav-item nav-item--locked"
                   title={isCollapsed ? `${label} (Sign in required)` : "Sign in required"}
                   onClick={() => navigate("/login")}
-                  style={{
-                    opacity: 0.42,
-                    cursor: "pointer",
-                    position: "relative",
-                  }}
                   role="button"
                   aria-label={`${label} — sign in required`}
                 >
                   <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
                   {!isCollapsed && (
                     <>
-                      <span style={{ flex: 1 }}>{label}</span>
-                      <Lock size={12} strokeWidth={2} style={{ opacity: 0.7, flexShrink: 0 }} />
+                      <span className="nav-item-label">{label}</span>
+                      <Lock size={12} strokeWidth={2} className="nav-item-lock-icon" />
                     </>
                   )}
                 </div>

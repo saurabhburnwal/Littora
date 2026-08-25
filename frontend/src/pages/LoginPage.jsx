@@ -409,48 +409,19 @@ export default function LoginPage() {
               )}
 
               {/* Guest option */}
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                margin: "1.25rem 0 1rem",
-                color: "var(--text-muted)",
-                fontSize: "0.8rem",
-              }}>
-                <div style={{ flex: 1, height: "1px", background: "var(--border-lt, rgba(0,0,0,0.1))" }} />
+              <div className="login-divider">
+                <div className="login-divider-line" />
                 <span>or explore without an account</span>
-                <div style={{ flex: 1, height: "1px", background: "var(--border-lt, rgba(0,0,0,0.1))" }} />
+                <div className="login-divider-line" />
               </div>
 
               <button
                 type="button"
                 id="continue-as-guest-btn"
+                className="login-guest-btn"
                 onClick={() => navigate("/")}
-                style={{
-                  width: "100%",
-                  padding: "0.68rem 1rem",
-                  borderRadius: "10px",
-                  background: "var(--card-bg, #ffffff)",
-                  border: "1px solid var(--border-strong, #bca88e)",
-                  color: "var(--text-primary, #0f172a)",
-                  fontSize: "0.88rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.55rem",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                  transition: "all 0.18s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "var(--sand, #F1E8D8)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "var(--card-bg, #ffffff)";
-                }}
               >
-                <Compass size={17} style={{ color: "var(--teal)" }} /> Continue as Guest
+                <Compass size={17} className="icon--teal" /> Continue as Guest
               </button>
             </>
           )}

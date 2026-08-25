@@ -240,7 +240,7 @@ export default function TrendsPage() {
   const avgItemsPerPhoto = totalDetections > 0 ? (totalWasteItems / totalDetections).toFixed(1) : "0.0";
 
   return (
-    <div className="page-container" style={{ maxWidth: "1280px", margin: "0 auto" }}>
+    <div className="page-container">
       {/* Header */}
       <div className="page-heading">
         <div>
@@ -250,7 +250,7 @@ export default function TrendsPage() {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="kpi-stats-grid" style={{ marginBottom: "1.75rem" }}>
+      <div className="kpi-stats-grid">
         <MetricCard
           label="Total Detections"
           value={totalDetections.toLocaleString()}
@@ -278,20 +278,9 @@ export default function TrendsPage() {
       </div>
 
       {/* Filter Toolbar Card */}
-      <div className="filter-bar-card" style={{
-        display: "flex",
-        alignItems: "flex-end",
-        gap: "1rem",
-        flexWrap: "wrap",
-        padding: "1rem 1.25rem",
-        background: "var(--card-bg)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius-lg)",
-        boxShadow: "var(--shadow-sm)",
-        marginBottom: "2rem"
-      }}>
-        <div className="filter-group" style={{ flex: 1, minWidth: "160px" }}>
-          <label className="filter-group-label" htmlFor="trend-date-select" style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text-muted)", marginBottom: "0.35rem", display: "block" }}>
+      <div className="filter-bar-card">
+        <div className="filter-group">
+          <label className="filter-group-label" htmlFor="trend-date-select">
             Date Range
           </label>
           <select
@@ -299,7 +288,6 @@ export default function TrendsPage() {
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
             className="filter-popover-select"
-            style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--text-primary)" }}
           >
             <option value="all">All Time</option>
             <option value="last30">Last 30 Days</option>
@@ -308,8 +296,8 @@ export default function TrendsPage() {
           </select>
         </div>
 
-        <div className="filter-group" style={{ flex: 1, minWidth: "180px" }}>
-          <label className="filter-group-label" htmlFor="trend-loc-select" style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text-muted)", marginBottom: "0.35rem", display: "block" }}>
+        <div className="filter-group">
+          <label className="filter-group-label" htmlFor="trend-loc-select">
             Beach Location
           </label>
           <select
@@ -317,7 +305,6 @@ export default function TrendsPage() {
             value={beach}
             onChange={(e) => setBeach(e.target.value)}
             className="filter-popover-select"
-            style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--text-primary)" }}
           >
             <option value="all">All Beaches</option>
             {beachOptions.map((b) => (
@@ -326,8 +313,8 @@ export default function TrendsPage() {
           </select>
         </div>
 
-        <div className="filter-group" style={{ flex: 1, minWidth: "160px" }}>
-          <label className="filter-group-label" htmlFor="trend-waste-select" style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text-muted)", marginBottom: "0.35rem", display: "block" }}>
+        <div className="filter-group">
+          <label className="filter-group-label" htmlFor="trend-waste-select">
             Waste Type
           </label>
           <select
@@ -335,7 +322,6 @@ export default function TrendsPage() {
             value={wasteType}
             onChange={(e) => setWasteType(e.target.value)}
             className="filter-popover-select"
-            style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--text-primary)" }}
           >
             <option value="all">All</option>
             {wasteTypeOptions.map((w) => (
@@ -344,13 +330,12 @@ export default function TrendsPage() {
           </select>
         </div>
 
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", paddingBottom: "2px" }}>
+        <div className="filter-actions-wrap">
           {activeFilterCount > 0 && (
             <button
               type="button"
               className="filter-chip-clear-all"
               onClick={handleClear}
-              style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
             >
               Clear Filters
             </button>
@@ -359,12 +344,12 @@ export default function TrendsPage() {
       </div>
 
       {/* PRIMARY SECTION: Detection Activity */}
-      <section style={{ marginBottom: "2.5rem" }}>
+      <section className="trends-section">
         <SectionHeader
           title="Detection Activity"
           subtitle="Chronological volume of detection scans and cataloged debris"
         />
-        <div className="chart-card" style={{ padding: "1.5rem" }}>
+        <div className="chart-card">
           <div className="chart-card-title">Detections &amp; Waste Over Time</div>
           {monthlyData.length === 0 ? (
             <div className="chart-empty">No trend data recorded for selected criteria. Upload scans to populate timeline charts.</div>
@@ -374,16 +359,7 @@ export default function TrendsPage() {
                 <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--text-muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--card-bg)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "10px",
-                    boxShadow: "var(--shadow-md)",
-                    fontSize: "12px",
-                    color: "var(--text-primary)",
-                  }}
-                />
+                <Tooltip />
                 <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px", fontWeight: 600 }} />
                 <Line type="monotone" dataKey="detections" stroke={linePrimary} strokeWidth={2.5} dot={{ r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} name="Detections Count" />
                 <Line type="monotone" dataKey="waste" stroke={lineWaste} strokeWidth={2} dot={{ r: 3, strokeWidth: 0 }} name="Total Waste Items" />
@@ -394,12 +370,12 @@ export default function TrendsPage() {
       </section>
 
       {/* SECONDARY SECTION: Waste Composition & Trends */}
-      <section style={{ marginBottom: "2.5rem" }}>
+      <section className="trends-section">
         <SectionHeader
           title="Waste Composition"
           subtitle="Categorical debris distribution and volume trends"
         />
-        <div className="charts-row" style={{ padding: 0 }}>
+        <div className="charts-row">
           <div className="chart-card">
             <div className="chart-card-title">Waste Category Trend (by Count)</div>
             {wasteTypeData.length === 0 ? (
@@ -410,16 +386,7 @@ export default function TrendsPage() {
                   <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--text-muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: "var(--text-muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--card-bg)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "10px",
-                      boxShadow: "var(--shadow-md)",
-                      fontSize: "12px",
-                      color: "var(--text-primary)",
-                    }}
-                  />
+                  <Tooltip />
                   <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px", fontWeight: 600 }} />
                   {wasteCategoryKeys.map((key, idx) => (
                     <Bar key={key} dataKey={key} stackId="a" fill={PALETTE[idx % PALETTE.length]} radius={[0, 0, 0, 0]} />
@@ -448,16 +415,7 @@ export default function TrendsPage() {
                       <Cell key={entry.name} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--card-bg)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "10px",
-                      boxShadow: "var(--shadow-md)",
-                      fontSize: "12px",
-                      color: "var(--text-primary)",
-                    }}
-                  />
+                  <Tooltip />
                   <Legend wrapperStyle={{ fontSize: "11px", fontWeight: 600, paddingTop: "4px" }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -467,13 +425,13 @@ export default function TrendsPage() {
       </section>
 
       {/* LOCATION & BREAKDOWN SECTION */}
-      <section style={{ marginBottom: "2.5rem" }}>
+      <section className="trends-section">
         <SectionHeader
           title="Location Breakdown"
           subtitle="Top coastal hotspots and detailed catalog table"
         />
-        <div className="charts-row" style={{ padding: 0, marginBottom: "1.5rem" }}>
-          <div className="chart-card" style={{ flex: 1 }}>
+        <div className="charts-row charts-row--spaced">
+          <div className="chart-card chart-card--flex">
             <div className="chart-card-title">Top Locations by Detections</div>
             {topLocationsData.length === 0 ? (
               <div className="chart-empty">No location detections recorded in database.</div>
@@ -483,16 +441,7 @@ export default function TrendsPage() {
                   <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10, fill: "var(--text-muted)", fontWeight: 600 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
                   <YAxis dataKey="beach" type="category" tick={{ fontSize: 10, fill: "var(--text-muted)", fontWeight: 600 }} width={100} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--card-bg)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "10px",
-                      boxShadow: "var(--shadow-md)",
-                      fontSize: "12px",
-                      color: "var(--text-primary)",
-                    }}
-                  />
+                  <Tooltip />
                   <Bar dataKey="detections" fill="var(--teal)" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -500,43 +449,41 @@ export default function TrendsPage() {
           </div>
         </div>
 
-        <div className="full-card" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
-          <div className="full-card-title" style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "1rem" }}>
+        <div className="full-card">
+          <div className="full-card-title">
             Waste Category Breakdown Table
           </div>
           {wasteComposition.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+            <div className="empty-state">
               No waste items recorded in database for selected criteria.
             </div>
           ) : (
             <table>
               <thead>
                 <tr>
-                  <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>Waste Type</th>
-                  <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>Count</th>
-                  <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>Percentage</th>
-                  <th style={{ fontSize: "0.7rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>Status</th>
+                  <th>Waste Type</th>
+                  <th>Count</th>
+                  <th>Percentage</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {wasteComposition.map((w) => (
                   <tr key={w.name}>
-                    <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{w.name}</td>
-                    <td style={{ fontFamily: "var(--font-body)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{w.count.toLocaleString()}</td>
+                    <td>{w.name}</td>
+                    <td>{w.count.toLocaleString()}</td>
                     <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                        <div style={{
-                          height: "6px",
-                          borderRadius: "3px",
-                          width: `${Math.min(parseFloat(w.pct) || 5, 100)}%`,
-                          background: "var(--teal)",
-                          minWidth: "6px",
-                          maxWidth: "120px"
-                        }} />
-                        <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "var(--font-body)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{w.pct}</span>
+                      <div className="trends-bar-track">
+                        <div
+                          className="trends-bar-fill"
+                          style={{
+                            width: `${Math.min(parseFloat(w.pct) || 5, 100)}%`,
+                          }}
+                        />
+                        <span className="trends-pct-text">{w.pct}</span>
                       </div>
                     </td>
-                    <td style={{ color: "var(--teal)", fontWeight: 600, fontSize: "0.78rem" }}>Active Tracking</td>
+                    <td className="trends-status-cell">Active Tracking</td>
                   </tr>
                 ))}
               </tbody>
@@ -546,37 +493,33 @@ export default function TrendsPage() {
       </section>
 
       {/* HEATMAP SECTION: Pollution by Day / Time */}
-      <section style={{ marginBottom: "2rem" }}>
+      <section className="trends-section">
         <SectionHeader
           title="Pollution by Day / Time"
           subtitle="Temporal density heatmap of debris sightings throughout the week"
         />
-        <div className="chart-card" style={{ padding: "1.5rem" }}>
+        <div className="chart-card">
           <div className="chart-card-title">Heatmap — Detections by Day &amp; Time</div>
-          <div style={{ display: "flex", gap: "0.6rem", alignItems: "flex-start", paddingTop: "0.4rem" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", paddingTop: "22px" }}>
+          <div className="heatmap-layout-wrap">
+            <div className="heatmap-days-col">
               {DAYS.map((d) => (
-                <div key={d} style={{ height: "28px", display: "flex", alignItems: "center", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--text-muted)", width: "32px" }}>{d}</div>
+                <div key={d} className="heatmap-day-label">{d}</div>
               ))}
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
+            <div className="heatmap-grid-body">
+              <div className="heatmap-hours-row">
                 {HOURS.map((h) => (
-                  <div key={h} style={{ flex: 1, fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--text-muted)", textAlign: "center" }}>{h}</div>
+                  <div key={h} className="heatmap-hour-label">{h}</div>
                 ))}
               </div>
               {heatmapData.map((row) => (
-                <div key={row.day} style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
+                <div key={row.day} className="heatmap-row">
                   {row.hours.map((cell) => (
                     <div
                       key={cell.hour}
+                      className="heatmap-cell"
                       style={{
-                        flex: 1,
-                        height: "28px",
-                        borderRadius: "6px",
                         background: getHeatmapColor(cell.value, isDark),
-                        border: "1px solid var(--border)",
-                        transition: "transform 0.15s ease",
                       }}
                       title={`${row.day} ${cell.hour}: ${cell.value} detections`}
                     />

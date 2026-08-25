@@ -98,12 +98,12 @@ export default function CleanupPage() {
 
       <div className="cards-grid-2">
         <div>
-          <div style={{ marginBottom: "1rem" }}>
+          <div className="section-header-wrap">
             <SectionHeader
               title="Recommended Actions"
               subtitle="Prioritized cleanup interventions based on live database telemetry"
               action={
-                <span style={{ fontSize: "0.73rem", color: "var(--teal)", display: "inline-flex", alignItems: "center", gap: "0.25rem", fontWeight: 600 }}>
+                <span className="cleanup-live-tag">
                   <Sparkles size={13} /> Live Database Powered
                 </span>
               }
@@ -111,9 +111,9 @@ export default function CleanupPage() {
           </div>
 
           {recommendations.length === 0 ? (
-            <div className="full-card" style={{ textAlign: "center", padding: "2.5rem 1.5rem", color: "var(--text-muted)" }}>
-              <ShieldAlert size={36} style={{ color: "var(--teal)", marginBottom: "0.5rem" }} />
-              <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)" }}>
+            <div className="full-card cleanup-empty-card">
+              <ShieldAlert size={36} className="cleanup-empty-icon" />
+              <p className="cleanup-schedule-name">
                 No pollution records found. Upload a scan to generate recommendations.
               </p>
             </div>
@@ -121,21 +121,7 @@ export default function CleanupPage() {
             recommendations.map((r, i) => (
               <div key={i} className="cleanup-card">
                 <div
-                  className="cleanup-icon"
-                  style={{
-                    background:
-                      r.priority === "high"
-                        ? "rgba(239, 68, 68, 0.12)"
-                        : r.priority === "medium"
-                        ? "rgba(245, 158, 11, 0.12)"
-                        : "rgba(16, 185, 129, 0.12)",
-                    color:
-                      r.priority === "high"
-                        ? "#ef4444"
-                        : r.priority === "medium"
-                        ? "#f59e0b"
-                        : "#10b981",
-                  }}
+                  className={`cleanup-icon cleanup-icon--${r.priority}`}
                 >
                   <Waves size={20} />
                 </div>
@@ -146,7 +132,7 @@ export default function CleanupPage() {
                       {r.priority}
                     </span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                  <div className="cleanup-loc-line">
                     <MapPin size={12} />
                     <span>{r.location}</span>
                   </div>
@@ -163,33 +149,27 @@ export default function CleanupPage() {
         </div>
 
         <div>
-          <div style={{ marginBottom: "1rem" }}>
+          <div className="section-header-wrap">
             <SectionHeader
               title="Suggested Cleanup Schedule"
               subtitle="Intervention timeline for local municipal teams"
             />
           </div>
 
-          <div className="full-card" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
+          <div className="full-card">
             {upcomingCleanups.length === 0 ? (
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: 0 }}>
+              <p className="table-null-dash">
                 No high-priority cleanups currently scheduled. All coastal sites report optimal baseline scores.
               </p>
             ) : (
               upcomingCleanups.map((c, i) => (
                 <div
                   key={i}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "0.75rem 0",
-                    borderBottom: i < upcomingCleanups.length - 1 ? "1px solid var(--border)" : "none",
-                  }}
+                  className={`cleanup-schedule-item ${i < upcomingCleanups.length - 1 ? "cleanup-schedule-item--divided" : ""}`}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: "0.86rem", color: "var(--text-primary)" }}>{c.beach}</div>
-                    <div style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginTop: "2px" }}>{c.date}</div>
+                    <div className="cleanup-schedule-name">{c.beach}</div>
+                    <div className="cleanup-schedule-date">{c.date}</div>
                   </div>
                   <span className={`priority-badge priority-${c.priority}`}>{c.priority}</span>
                 </div>

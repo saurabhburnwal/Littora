@@ -114,7 +114,7 @@ export default function UploadPage() {
               updatingModel={updatingModel}
             />
             {error && (
-              <p className="error" style={{ marginTop: "0.85rem" }}>
+              <p className="error error--spaced">
                 {error}
               </p>
             )}
@@ -128,7 +128,7 @@ export default function UploadPage() {
             {result ? (
               <ResultPanel result={result} />
             ) : (
-              <div className="result-placeholder" style={{ boxShadow: 'none', background: 'transparent', padding: '3rem 1rem' }}>
+              <div className="result-placeholder result-placeholder--transparent">
                 <ImageOff size={44} strokeWidth={1.4} />
                 <p>Your analysis breakdown and charts will appear here after you upload and analyze a photo.</p>
               </div>

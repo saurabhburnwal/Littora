@@ -13,14 +13,14 @@ export default function MapPage() {
 
   return (
     <div className="map-page-container">
-      <div className="map-page-header" style={{ marginBottom: "1.2rem" }}>
+      <div className="map-page-header">
         <h1>Pollution Map</h1>
         <p>
           Geolocated hotspots from submitted beach waste analyses — attach location on upload to populate this map.
         </p>
       </div>
 
-      <div className="map-legend" style={{ marginBottom: "1rem" }}>
+      <div className="map-legend">
         <span className="map-legend-label">Severity Legend:</span>
         {LEGEND.map((l) => (
           <div key={l.label} className="map-legend-item">

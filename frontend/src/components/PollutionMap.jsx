@@ -173,34 +173,23 @@ export default function PollutionMap({ locations: locationsProp }) {
   return (
     <div className="map-card">
       {/* ── Top Bar Controls: Search, Severity Chips, Timeframe & Map Tile Style ── */}
-      <div className="map-top-bar" style={{ display: "flex", flexDirection: "column", gap: "0.75rem", padding: "0.9rem 1.2rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: "0.75rem" }}>
+      <div className="map-top-bar">
+        <div className="map-controls-row">
           {/* Search Input Bar */}
-          <div style={{ position: "relative", minWidth: "240px", flex: "1 1 260px" }}>
-            <Search size={14} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }} />
+          <div className="map-search-wrapper">
+            <Search size={14} className="map-search-icon" />
             <input
               type="text"
               className="map-search-input"
               placeholder="Search beach hotspot or coordinates…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.4rem 0.75rem 0.4rem 2.1rem",
-                borderRadius: "20px",
-                border: "1px solid var(--border)",
-                background: "var(--bg-card)",
-                color: "var(--ink)",
-                fontSize: "0.8rem",
-                outline: "none",
-                transition: "all 0.2s ease"
-              }}
             />
             {searchQuery && (
               <button
                 type="button"
+                className="map-search-clear-btn"
                 onClick={() => setSearchQuery("")}
-                style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--muted)", cursor: "pointer" }}
               >
                 <X size={12} />
               </button>
@@ -208,7 +197,7 @@ export default function PollutionMap({ locations: locationsProp }) {
           </div>
 
           {/* Timeframe Dropdown Switcher */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <div className="map-timeframe-group">
             <span className="map-filter-label"><Calendar size={13} /> Timeframe:</span>
             {["All", "7d", "30d", "90d"].map((tf) => (
               <button
@@ -239,7 +228,7 @@ export default function PollutionMap({ locations: locationsProp }) {
         </div>
 
         {/* Severity Filter Chips with Live Count Badges */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: "0.5rem", paddingTop: "0.4rem", borderTop: "1px solid var(--border-lt)" }}>
+        <div className="map-severity-bar">
           <div className="map-severity-filters">
             <span className="map-filter-label"><Filter size={13} /> Severity:</span>
             {["All", "Low", "Moderate", "High", "Severe"].map((sev) => {
@@ -248,19 +237,11 @@ export default function PollutionMap({ locations: locationsProp }) {
                 <button
                   key={sev}
                   type="button"
-                  className={`map-filter-chip ${filterSeverity === sev ? "active" : ""}`}
+                  className={`map-filter-chip map-severity-chip-inner ${filterSeverity === sev ? "active" : ""}`}
                   onClick={() => setFilterSeverity(sev)}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
                 >
                   <span>{sev}</span>
-                  <span style={{
-                    fontSize: "0.68rem",
-                    padding: "0.1rem 0.45rem",
-                    borderRadius: "10px",
-                    background: filterSeverity === sev ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.08)",
-                    color: filterSeverity === sev ? "#fff" : "inherit",
-                    fontWeight: 800
-                  }}>
+                  <span className={`map-severity-count-badge ${filterSeverity === sev ? "map-severity-count-badge--active" : ""}`}>
                     {count}
                   </span>
                 </button>
@@ -271,9 +252,8 @@ export default function PollutionMap({ locations: locationsProp }) {
           {isFiltered && (
             <button
               type="button"
-              className="map-filter-chip"
+              className="map-filter-chip map-filter-reset-btn"
               onClick={resetFilters}
-              style={{ color: "var(--rose)", borderColor: "var(--rose)", fontSize: "0.75rem" }}
             >
               Reset Filters
             </button>
@@ -289,34 +269,33 @@ export default function PollutionMap({ locations: locationsProp }) {
           </p>
         </div>
       ) : (
-        <div style={{ position: "relative", width: "100%", flex: 1, minHeight: "650px" }}>
+        <div className="map-canvas-container">
           {/* Floating On-Map Stats Overlay */}
           <div className="map-floating-stats">
             <div className="map-stat-item">
-              <MapPin size={13} style={{ color: "#0d9488" }} />
+              <MapPin size={13} className="map-control-icon--gps" />
               <span>Showing <strong>{filteredLocations.length}</strong> / {totalMapped} Hotspots</span>
             </div>
             <div className="map-stat-item">
-              <AlertCircle size={13} style={{ color: "#dc2626" }} />
+              <AlertCircle size={13} className="map-control-icon--hotspot" />
               <span><strong>{criticalCount}</strong> Critical Risks</span>
             </div>
             <div className="map-stat-item">
-              <Compass size={13} style={{ color: "#d97706" }} />
+              <Compass size={13} className="map-control-icon--reset" />
               <span>Peak Score: <strong>{maxScore}</strong></span>
             </div>
           </div>
 
           {filteredLocations.length === 0 ? (
-            <div className="map-empty-state" style={{ height: "100%", minHeight: "450px" }}>
+            <div className="map-empty-state map-empty-state--fill">
               <span>🔍</span>
-              <p style={{ marginTop: "0.5rem" }}>
+              <p className="map-empty-text">
                 No beach hotspots match your active filter criteria.
               </p>
               <button
                 type="button"
-                className="map-filter-chip active"
+                className="map-filter-chip active map-empty-btn"
                 onClick={resetFilters}
-                style={{ marginTop: "1rem" }}
               >
                 Clear Map Filters
               </button>
@@ -325,9 +304,8 @@ export default function PollutionMap({ locations: locationsProp }) {
             <MapContainer
               center={DEFAULT_CENTER}
               zoom={DEFAULT_ZOOM}
-              className="map-container"
+              className="map-container leaflet-map-root"
               scrollWheelZoom={true}
-              style={{ height: "100%", width: "100%" }}
             >
               <AutoFitBounds locations={filteredLocations} />
 
@@ -407,23 +385,6 @@ export default function PollutionMap({ locations: locationsProp }) {
                               e.stopPropagation();
                               e.preventDefault();
                               setSelectedModalLoc(loc);
-                            }}
-                            style={{
-                              marginTop: "0.65rem",
-                              width: "100%",
-                              padding: "0.45rem 0.75rem",
-                              borderRadius: "12px",
-                              background: "var(--teal)",
-                              color: "#ffffff",
-                              border: "none",
-                              fontWeight: 700,
-                              fontSize: "0.78rem",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "0.35rem",
-                              cursor: "pointer",
-                              transition: "all 0.2s ease"
                             }}
                           >
                             <Eye size={14} /> View Analysis Details

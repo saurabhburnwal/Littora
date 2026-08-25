@@ -90,7 +90,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
   if (!history || history.length === 0) {
     return (
       <div className="history">
-        <div className="empty-state" style={{ padding: "2.5rem 1rem", textAlign: "center", color: "var(--muted)" }}>
+        <div className="empty-state history-empty-state">
           No analyses match the selected filter.
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
             {sorted.length} {sorted.length === 1 ? "entry" : "entries"}
           </span>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+        <div className="history-header-actions">
           <button
             type="button"
             className="export-btn"
@@ -122,7 +122,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
       <table>
         <thead>
           <tr>
-            <th style={{ width: "56px" }}>Photo</th>
+            <th className="th-photo-col">Photo</th>
             <th
               className="th-sortable"
               onClick={() => toggleSort("date")}
@@ -166,7 +166,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
               Severity{sortIcon("severity")}
             </th>
             {showUser && <th>User</th>}
-            <th style={{ textAlign: "right", minWidth: "90px" }}>Actions</th>
+            <th className="th-actions-col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -184,7 +184,6 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                       alt="Beach analysis thumbnail"
                       className="thumb"
                       loading="lazy"
-                      style={{ cursor: "pointer" }}
                       onClick={() => (onViewRequest ? onViewRequest(row) : setSelectedRow(row))}
                       title="Click to view detection"
                     />
@@ -208,7 +207,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                       {topWasteLabel}
                     </span>
                   ) : (
-                    <span style={{ color: "var(--muted)" }}>—</span>
+                    <span className="table-null-dash">—</span>
                   )}
                 </td>
                 <td>
@@ -217,7 +216,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                       {confLabel}
                     </span>
                   ) : (
-                    <span style={{ color: "var(--muted)" }}>—</span>
+                    <span className="table-null-dash">—</span>
                   )}
                 </td>
                 <td>{row.pollution_score ?? 0}</td>
@@ -229,9 +228,8 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                 {showUser && (
                   <td>
                     <span
-                      className="admin-card-user"
+                      className="admin-card-user history-user-pill"
                       title={row.user_name ? `${row.user_name} (${row.user_email || ""})` : (row.user_email || row.user_id || "Anonymous")}
-                      style={{ fontSize: "0.78rem", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px" }}
                     >
                       <User size={12} />
                       {row.user_name || row.user_email || (row.user_id ? row.user_id.slice(0, 8) + "…" : "Anon")}
@@ -257,7 +255,7 @@ export default function HistoryTable({ history, showUser = false, onDeleteReques
                         onClick={() => handleDeleteClick(row.id)}
                       >
                         {deletingId === row.id
-                          ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />
+                          ? <Loader2 size={15} className="is-spinning" />
                           : <Trash2 size={15} />}
                       </button>
                     )}

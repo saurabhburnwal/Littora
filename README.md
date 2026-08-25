@@ -81,7 +81,7 @@ Littora/
 │   │   ├── pages/         → Dashboard, Detect, Trends, Map, History, Settings, Reports, Dataset, Cleanup, etc.
 │   │   ├── utils/         → PDF Report Generator, waste utilities, download utilities
 │   │   └── index.css      → Complete pure CSS design system & dark mode tokens
-│   └── package.json       → Vitest unit testing suite (186 tests passing 100%)
+│   └── package.json       → Vitest unit testing suite (233 tests across 32 test files passing 100%)
 ├── backend/                → Node.js / Express API Server (Port 4000) [See backend/README.md]
 │   └── src/
 │       ├── index.js       → Express server & middleware

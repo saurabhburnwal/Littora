@@ -104,7 +104,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div style={{ marginBottom: "1.25rem" }}>
+        <div className="dashboard-metrics-section">
           <SectionHeader
             title={sectionTitle}
             subtitle={user ? "Real-time coastal waste telemetry and breakdown" : "Preview metrics available in guest mode"}
@@ -124,7 +124,7 @@ export default function DashboardPage() {
               avgScore={stats.avgScore}
             />
 
-            <div className="charts-row" style={{ marginTop: "1.5rem" }}>
+            <div className="charts-row charts-row--spaced">
               <TrendChart history={stats.history} />
               <WasteBreakdownChart aggregateDetections={stats.aggregateDetections} />
             </div>

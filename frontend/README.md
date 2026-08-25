@@ -43,7 +43,9 @@ frontend/
 │   ├── assets/        → Theme artwork & images (Earth & Dark navbar assets)
 │   ├── components/    → UI components:
 │   │   ├── FloatingAccountMenu.jsx  → Top-right glassmorphic profile trigger & popover
-│   │   ├── AuthRequiredModal.jsx    → Sign-in prompt dialog for guest visitors
+│   │   ├── GuestLockScreen.jsx      → Locked screen prompt for guest visitors
+│   │   ├── ConfirmModal.jsx         → Reusable action confirmation modal dialog
+│   │   ├── ToastNotification.jsx    → Dynamic status alert notifications
 │   │   ├── Sidebar.jsx              → Collapsable navigation sidebar
 │   │   ├── UploadForm.jsx           → Drag & drop file upload with beach location presets
 │   │   ├── ResultPanel.jsx          → AI detection results & progressive disclosure details
@@ -52,8 +54,11 @@ frontend/
 │   │   ├── AnalysisLightbox.jsx     → Two-pane annotated image & metadata lightbox
 │   │   ├── BoundingBoxImage.jsx     → Uncropped image frame with YOLO overlays
 │   │   ├── PollutionMap.jsx         → Interactive Leaflet map with hotspot markers
-│   │   ├── StatCards.jsx            → Metric cards for total waste & pollution score
-│   │   └── ProtectedRoute.jsx       → Route wrapper enforcing role access
+│   │   ├── StatCards.jsx            → Summary KPI cards for Dashboard
+│   │   ├── TrendChart.jsx           → Trend line visualization
+│   │   ├── WasteBreakdownChart.jsx  → Categorical waste distribution bar chart
+│   │   ├── ProtectedRoute.jsx       → Route wrapper enforcing role access
+│   │   └── ui/                      → Standard UI primitives (Badge, FilterToolbar, MetricCard, SectionHeader)
 │   ├── context/       → Global React contexts:
 │   │   ├── AuthContext.jsx       → Supabase Auth & sliding session state
 │   │   ├── ThemeContext.jsx      → Earth / Dark theme state & tokens

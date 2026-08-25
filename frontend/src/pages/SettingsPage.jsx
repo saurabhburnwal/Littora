@@ -119,8 +119,8 @@ export default function SettingsPage() {
       {/* ── Header ── */}
       <div className="page-heading">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-            <h1 style={{ margin: 0 }}>Settings</h1>
+          <div className="settings-header-wrap">
+            <h1 className="settings-title">Settings</h1>
             {user ? (
               <Badge variant="role" type={isAdmin ? "admin" : "member"}>
                 {isAdmin ? "Admin" : "Member"}
@@ -132,56 +132,44 @@ export default function SettingsPage() {
           <p>Manage your preferences, notifications and account configuration.</p>
         </div>
         {hasChanges && (
-          <div style={{ fontSize: "0.78rem", color: "var(--amber)", display: "flex", alignItems: "center", gap: "0.4rem", fontWeight: 600 }}>
+          <div className="settings-unsaved-warning">
             <AlertTriangle size={14} /> Unsaved changes
           </div>
         )}
       </div>
 
       {!user && (
-        <div className="guest-preview-banner" style={{
-          background: "linear-gradient(135deg, rgba(47, 111, 94, 0.12) 0%, rgba(212, 146, 75, 0.12) 100%)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-lg)",
-          padding: "1.25rem 1.5rem",
-          marginBottom: "1.75rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "1rem"
-        }}>
+        <div className="guest-preview-banner settings-guest-banner">
           <div>
-            <h4 style={{ margin: "0 0 0.25rem", fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>
+            <h4 className="settings-guest-title">
               👋 Guest Preferences Mode
             </h4>
-            <p style={{ margin: 0, fontSize: "0.86rem", color: "var(--text-muted)" }}>
+            <p className="settings-guest-desc">
               Theme, language, and display settings are saved locally in your browser. Sign in to sync preferences across devices, export data, and manage account settings.
             </p>
           </div>
           <button
-            className="filter-btn-apply"
+            className="filter-btn-apply settings-guest-btn"
             onClick={() => navigate("/login")}
-            style={{ display: "flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap" }}
           >
             Sign In / Register
           </button>
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+      <div className="settings-grid">
         {/* ── LEFT COLUMN ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <div className="settings-col">
 
           {/* General Settings */}
           <div className="settings-section">
-            <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Globe size={15} style={{ color: "var(--teal)" }} /> General Settings
+            <div className="settings-section-title">
+              <Globe size={15} className="settings-title-icon" /> General Settings
             </div>
 
             {/* Theme */}
             <div className="settings-row">
-              <div style={{ flex: 1, paddingRight: "1rem" }}>
+              <div className="settings-row-info">
                 <div className="settings-row-label">Theme</div>
                 <div className="settings-row-desc">Choose your preferred interface theme</div>
               </div>
@@ -207,7 +195,7 @@ export default function SettingsPage() {
 
             {/* Language */}
             <div className="settings-row">
-              <div style={{ flex: 1, paddingRight: "1rem" }}>
+              <div className="settings-row-info">
                 <div className="settings-row-label">Language</div>
                 <div className="settings-row-desc">Interface language</div>
               </div>
@@ -226,9 +214,9 @@ export default function SettingsPage() {
 
             {/* Date Format */}
             <div className="settings-row">
-              <div style={{ flex: 1, paddingRight: "1rem" }}>
+              <div className="settings-row-info">
                 <div className="settings-row-label">
-                  <CalendarDays size={13} style={{ marginRight: "0.3rem", verticalAlign: "middle" }} />
+                  <CalendarDays size={13} className="settings-icon-inline" />
                   Date Format
                 </div>
                 <div className="settings-row-desc">How dates are displayed across the app</div>
@@ -248,9 +236,9 @@ export default function SettingsPage() {
 
             {/* Items per page */}
             <div className="settings-row">
-              <div style={{ flex: 1, paddingRight: "1rem" }}>
+              <div className="settings-row-info">
                 <div className="settings-row-label">
-                  <List size={13} style={{ marginRight: "0.3rem", verticalAlign: "middle" }} />
+                  <List size={13} className="settings-icon-inline" />
                   Items per page
                 </div>
                 <div className="settings-row-desc">Rows shown in history and table views</div>
@@ -272,8 +260,7 @@ export default function SettingsPage() {
           {/* Save button */}
           <button
             id="settings-save-btn"
-            className="btn-primary"
-            style={{ width: "100%", justifyContent: "center", padding: "0.8rem", display: "flex", alignItems: "center", gap: "0.5rem" }}
+            className="btn-primary settings-save-btn"
             onClick={handleSave}
             disabled={!hasChanges}
           >
@@ -282,13 +269,13 @@ export default function SettingsPage() {
         </div>
 
         {/* ── RIGHT COLUMN ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <div className="settings-col">
           {user ? (
             <>
               {/* Notification Preferences */}
               <div className="settings-section">
-                <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Bell size={15} style={{ color: "var(--teal)" }} /> Notification Preferences
+                <div className="settings-section-title">
+                  <Bell size={15} className="settings-title-icon" /> Notification Preferences
                 </div>
 
                 {[
@@ -297,7 +284,7 @@ export default function SettingsPage() {
                   { key: "weekly",        label: "Weekly Reports",        desc: "Receive a weekly summary of beach data" },
                 ].map((n) => (
                   <div key={n.key} className="settings-row">
-                    <div style={{ flex: 1, paddingRight: "1rem" }}>
+                    <div className="settings-row-info">
                       <div className="settings-row-label">{n.label}</div>
                       <div className="settings-row-desc">{n.desc}</div>
                     </div>
@@ -317,25 +304,24 @@ export default function SettingsPage() {
 
               {/* Data & Privacy */}
               <div className="settings-section">
-                <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Trash2 size={15} style={{ color: "var(--rose, #ef4444)" }} /> Data &amp; Privacy
+                <div className="settings-section-title">
+                  <Trash2 size={15} className="settings-title-icon--danger" /> Data &amp; Privacy
                 </div>
 
                 {/* Export */}
                 <div className="settings-row">
-                  <div style={{ flex: 1, paddingRight: "1rem" }}>
+                  <div className="settings-row-info">
                     <div className="settings-row-label">Export My Data</div>
                     <div className="settings-row-desc">Download all your analyses as JSON</div>
                   </div>
                   <button
                     id="settings-export-btn"
-                    className="export-btn"
+                    className="export-btn settings-export-btn"
                     onClick={handleExport}
                     disabled={exporting}
-                    style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}
                   >
                     {exporting ? (
-                      <><span className="login-spinner" style={{ width: 12, height: 12, borderWidth: 2 }} /> Exporting…</>
+                      <><span className="login-spinner settings-mini-spinner" /> Exporting…</>
                     ) : exportDone ? (
                       <><CheckCircle size={13} /> Done!</>
                     ) : (
@@ -346,27 +332,13 @@ export default function SettingsPage() {
 
                 {/* Delete Account */}
                 <div className="settings-row">
-                  <div style={{ flex: 1, paddingRight: "1rem" }}>
-                    <div className="settings-row-label" style={{ color: "var(--rose, #ef4444)" }}>Delete Account</div>
+                  <div className="settings-row-info">
+                    <div className="settings-row-label settings-row-label--danger">Delete Account</div>
                     <div className="settings-row-desc">Sign out and request permanent account deletion</div>
                   </div>
                   <button
                     id="settings-delete-btn"
-                    style={{
-                      background: "transparent",
-                      border: "1.5px solid var(--rose, #ef4444)",
-                      color: "var(--rose, #ef4444)",
-                      borderRadius: "8px",
-                      padding: "0.35rem 0.85rem",
-                      fontSize: "0.78rem",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.35rem",
-                      transition: "background 0.15s",
-                    }}
+                    className="settings-delete-btn"
                     onClick={() => setDeleteModal(true)}
                   >
                     <Trash2 size={12} /> Delete
@@ -375,25 +347,19 @@ export default function SettingsPage() {
               </div>
             </>
           ) : (
-            <div className="settings-section" style={{ textAlign: "center", padding: "2.5rem 1.5rem" }}>
-              <div style={{
-                width: "48px", height: "48px", borderRadius: "50%",
-                background: "rgba(47, 111, 94, 0.12)", color: "var(--teal)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                margin: "0 auto 1rem"
-              }}>
+            <div className="settings-section settings-lock-card">
+              <div className="settings-lock-icon">
                 <Bell size={24} strokeWidth={1.8} />
               </div>
-              <h3 style={{ fontSize: "1.05rem", fontWeight: 700, margin: "0 0 0.5rem", color: "var(--text-primary)" }}>
+              <h3 className="settings-lock-title">
                 Account &amp; Notification Settings
               </h3>
-              <p style={{ margin: "0 auto 1.25rem", fontSize: "0.85rem", color: "var(--text-muted)", maxWidth: "340px" }}>
+              <p className="settings-lock-desc">
                 Notification preferences and data export features are available to signed-in accounts. Sign in to enable email notifications and export your detection data.
               </p>
               <button
-                className="filter-btn-apply"
+                className="filter-btn-apply settings-lock-btn"
                 onClick={() => navigate("/login")}
-                style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
               >
                 Sign In to Unlock
               </button>
@@ -407,7 +373,7 @@ export default function SettingsPage() {
         <div className="admin-modal-backdrop" onClick={() => !deleting && setDeleteModal(false)}>
           <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-icon">
-              <AlertTriangle size={36} style={{ color: "#dc2626" }} />
+              <AlertTriangle size={36} className="admin-modal-alert-icon" />
             </div>
             <h2 className="admin-modal-title">Delete your account?</h2>
             <p className="admin-modal-body">
@@ -417,7 +383,7 @@ export default function SettingsPage() {
               <strong>This cannot be undone.</strong>
             </p>
             {deleteError && (
-              <p style={{ color: "var(--rose, #ef4444)", fontSize: "0.82rem", marginBottom: "1rem" }}>{deleteError}</p>
+              <p className="settings-delete-error">{deleteError}</p>
             )}
             <div className="admin-modal-actions">
               <button
