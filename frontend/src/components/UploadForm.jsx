@@ -1,5 +1,5 @@
 import { useState, useContext, useRef, useEffect } from "react";
-import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check, Navigation, ChevronDown } from "lucide-react";
+import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check, Navigation, ChevronDown, LocateFixed, Loader2, RefreshCw } from "lucide-react";
 import { StatsContext } from "../context/StatsContext.jsx";
 import { extractGPS } from "../utils/extractGPS.js";
 import ToastNotification from "./ToastNotification.jsx";
@@ -25,6 +25,7 @@ export default function UploadForm({
   const [dragging,      setDragging]      = useState(false);
   const [selectedBeach, setSelectedBeach] = useState("auto");
   const [exifCoords,    setExifCoords]    = useState(null);
+  const [deviceCoords,  setDeviceCoords]  = useState(null);
   // idle | fetching | granted | denied
   const [locStatus,     setLocStatus]     = useState("idle");
   const [toast,         setToast]         = useState(null);
@@ -50,6 +51,36 @@ export default function UploadForm({
     availableModels: DEFAULT_AI_MODELS,
   };
 
+  function fetchDeviceGPS() {
+    if (!navigator.geolocation) {
+      setLocStatus("denied");
+      showToast("error", "Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setLocStatus("fetching");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          latitude: Number(pos.coords.latitude.toFixed(6)),
+          longitude: Number(pos.coords.longitude.toFixed(6)),
+          accuracy: Math.round(pos.coords.accuracy || 0),
+        };
+        setDeviceCoords(coords);
+        setLocStatus("granted");
+        showToast("success", `GPS location locked (${coords.latitude}, ${coords.longitude})`);
+      },
+      (err) => {
+        setLocStatus("denied");
+        const msg = err.code === 1
+          ? "Location access denied. Enable permissions in your browser address bar."
+          : "Unable to retrieve device GPS coordinates. Try again or select a beach below.";
+        showToast("error", msg);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
   async function applyFile(selected) {
     if (!selected || !selected.type.startsWith("image/")) return;
     if (previewUrlRef.current) {
@@ -70,6 +101,7 @@ export default function UploadForm({
       if (gps) {
         setExifCoords(gps);
         setSelectedBeach("auto");
+        showToast("info", `Extracted GPS from photo EXIF: ${gps.latitude}, ${gps.longitude}`);
       }
     } catch (_) {
       // Non-fatal
@@ -89,9 +121,12 @@ export default function UploadForm({
     e.preventDefault();
     if (!file) return;
 
-    // 1. Manual beach selection override
-    if (selectedBeach !== "auto") {
-      const preset = dbLocations.find((l, idx) => (l.id ? String(l.id) === selectedBeach : `loc_${idx}` === selectedBeach));
+    // 1. Manual preset beach selection
+    if (selectedBeach !== "auto" && selectedBeach !== "device" && selectedBeach !== "exif") {
+      const preset = dbLocations.find((l, idx) => {
+        const key = l.id ? String(l.id) : (l.location_id ? String(l.location_id) : `loc_${idx}`);
+        return key === selectedBeach;
+      });
       if (preset) {
         onUpload(file, {
           latitude:      preset.latitude ?? null,
@@ -102,16 +137,37 @@ export default function UploadForm({
       }
     }
 
-    // 2. EXIF GPS extracted directly from image
-    if (exifCoords) {
+    // 2. Specific device GPS selection
+    if (selectedBeach === "device" && deviceCoords) {
       onUpload(file, {
-        latitude:  exifCoords.latitude,
-        longitude: exifCoords.longitude,
+        latitude:      deviceCoords.latitude,
+        longitude:     deviceCoords.longitude,
+        locationLabel: "Device GPS Location",
       });
       return;
     }
 
-    // 3. Fallback to device browser geolocation
+    // 3. EXIF GPS extracted directly from image
+    if (exifCoords && (selectedBeach === "auto" || selectedBeach === "exif")) {
+      onUpload(file, {
+        latitude:      exifCoords.latitude,
+        longitude:     exifCoords.longitude,
+        locationLabel: "Photo EXIF GPS",
+      });
+      return;
+    }
+
+    // 4. Cached device GPS already granted
+    if (deviceCoords && selectedBeach === "auto") {
+      onUpload(file, {
+        latitude:      deviceCoords.latitude,
+        longitude:     deviceCoords.longitude,
+        locationLabel: "Device GPS Location",
+      });
+      return;
+    }
+
+    // 5. Fallback: prompt device browser geolocation
     if (!navigator.geolocation) {
       onUpload(file, null);
       return;
@@ -120,20 +176,26 @@ export default function UploadForm({
     setLocStatus("fetching");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        const coords = {
+          latitude: Number(pos.coords.latitude.toFixed(6)),
+          longitude: Number(pos.coords.longitude.toFixed(6)),
+          accuracy: Math.round(pos.coords.accuracy || 0),
+        };
+        setDeviceCoords(coords);
         setLocStatus("granted");
-        onUpload(file, { latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+        onUpload(file, { latitude: coords.latitude, longitude: coords.longitude, locationLabel: "Device GPS Location" });
       },
       () => {
         setLocStatus("denied");
         onUpload(file, null);
       },
-      { timeout: 6000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }
 
   const isBusy   = loading || locStatus === "fetching";
   const btnLabel =
-    locStatus === "fetching" ? "Getting location…"
+    locStatus === "fetching" ? "Acquiring GPS location…"
     : loading               ? "Analyzing…"
     :                         "Analyze photo";
 
@@ -255,18 +317,52 @@ export default function UploadForm({
         </details>
       )}
 
-      {/* Beach Location Selector */}
-      <div className="bg-surface border border-border rounded-xl p-3.5 flex flex-col gap-2">
-        <div className="flex items-center justify-between">
+      {/* Beach Location Selector & GPS Tracker */}
+      <div className="bg-surface border border-border rounded-xl p-3.5 flex flex-col gap-2.5">
+        <div className="flex items-center justify-between gap-2">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-text-primary">
             <MapPin size={14} className="text-primary" /> Target Beach Location:
           </label>
+          <button
+            type="button"
+            onClick={fetchDeviceGPS}
+            disabled={locStatus === "fetching"}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold border border-primary/20 transition-all cursor-pointer disabled:opacity-50"
+            title="Detect device GPS coordinates"
+          >
+            {locStatus === "fetching" ? (
+              <><Loader2 size={12} className="animate-spin" /> Locating…</>
+            ) : (
+              <><LocateFixed size={12} /> Detect GPS</>
+            )}
+          </button>
         </div>
 
-        {exifCoords && selectedBeach === "auto" && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary-light text-primary text-xs font-medium">
-            <Navigation size={13} className="shrink-0" />
-            <span>Photo EXIF GPS: <strong>{exifCoords.latitude.toFixed(4)}, {exifCoords.longitude.toFixed(4)}</strong></span>
+        {/* Live GPS / EXIF GPS Active Status Badge */}
+        {exifCoords && (
+          <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-medium">
+            <div className="flex items-center gap-1.5 truncate">
+              <Navigation size={13} className="shrink-0" />
+              <span className="truncate">Photo EXIF GPS: <strong>{exifCoords.latitude.toFixed(4)}, {exifCoords.longitude.toFixed(4)}</strong></span>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 px-1.5 py-0.5 rounded shrink-0">Auto-Attached</span>
+          </div>
+        )}
+
+        {deviceCoords && !exifCoords && (
+          <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-medium">
+            <div className="flex items-center gap-1.5 truncate">
+              <LocateFixed size={13} className="shrink-0" />
+              <span className="truncate">Device GPS: <strong>{deviceCoords.latitude.toFixed(4)}, {deviceCoords.longitude.toFixed(4)}</strong> (±{deviceCoords.accuracy}m)</span>
+            </div>
+            <button
+              type="button"
+              onClick={fetchDeviceGPS}
+              className="p-1 hover:bg-primary/20 rounded-md transition-colors"
+              title="Refresh GPS"
+            >
+              <RefreshCw size={11} className={locStatus === "fetching" ? "animate-spin" : ""} />
+            </button>
           </div>
         )}
 
@@ -277,10 +373,15 @@ export default function UploadForm({
             className="w-full pl-3.5 pr-9 py-2 bg-bg-secondary text-text-primary border border-border rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
           >
             <option value="auto">
-              {exifCoords ? "Photo EXIF GPS (Auto-detected)" : "Device GPS (Auto-detect)"}
+              {exifCoords ? "Photo EXIF GPS (Auto-detected)" : deviceCoords ? `Device GPS (${deviceCoords.latitude.toFixed(4)}, ${deviceCoords.longitude.toFixed(4)})` : "Auto-detect (EXIF or Device GPS)"}
             </option>
+            {deviceCoords && (
+              <option value="device">
+                📍 Live Device GPS ({deviceCoords.latitude.toFixed(4)}, {deviceCoords.longitude.toFixed(4)})
+              </option>
+            )}
             {dbLocations.map((item, idx) => {
-              const key = item.id ? String(item.id) : `loc_${idx}`;
+              const key = item.id ? String(item.id) : (item.location_id ? String(item.location_id) : `loc_${idx}`);
               const label = item.location_label || item.locationLabel || item.beach || (item.latitude != null && item.longitude != null ? `${item.latitude}, ${item.longitude}` : `Location #${idx + 1}`);
               return (
                 <option key={key} value={key}>
@@ -313,13 +414,13 @@ export default function UploadForm({
       </button>
 
       {selectedBeach === "auto" && locStatus === "denied" && (
-        <p className="text-xs text-text-muted italic">
-          Location access denied — uploaded without coordinates.
+        <p className="text-xs text-amber-600 dark:text-amber-400 italic">
+          ⚠️ Location access denied or timed out — upload will proceed without coordinates.
         </p>
       )}
       {selectedBeach === "auto" && locStatus === "granted" && (
         <p className="text-xs text-primary font-medium">
-          Location attached to this photo.
+          ✓ Accurate GPS coordinates attached to this scan.
         </p>
       )}
 
@@ -327,3 +428,4 @@ export default function UploadForm({
     </form>
   );
 }
+

@@ -68,8 +68,8 @@ export default function UploadPage() {
     const formData = new FormData();
     formData.append("image", file);
     if (coords) {
-      if (coords.latitude)  formData.append("latitude",  coords.latitude);
-      if (coords.longitude) formData.append("longitude", coords.longitude);
+      if (coords.latitude != null)  formData.append("latitude",  coords.latitude);
+      if (coords.longitude != null) formData.append("longitude", coords.longitude);
       if (coords.locationLabel) formData.append("location_label", coords.locationLabel);
     }
 

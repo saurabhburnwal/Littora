@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest src/__tests__",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest src/__tests__ --coverage"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/__tests__",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/__tests__ --coverage"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

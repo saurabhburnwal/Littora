@@ -9,8 +9,11 @@ export async function extractGPS(file) {
   if (!file) return null;
 
   try {
-    const exifr = (await import("exifr")).default;
-    const gps = await exifr.gps(file);
+    const exifrMod = await import("exifr");
+    const parseGps = exifrMod.gps || exifrMod.default?.gps || (typeof exifrMod.default === "function" ? exifrMod.default : null);
+    if (!parseGps) return null;
+
+    const gps = await parseGps(file);
 
     if (
       gps &&

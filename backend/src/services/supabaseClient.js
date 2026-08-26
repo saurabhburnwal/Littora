@@ -634,18 +634,6 @@ export async function getAvailableAiModels() {
  */
 export async function getActiveSystemModel() {
   try {
-    const { data, error } = await supabase
-      .from("system_settings")
-      .select("value")
-      .eq("key", "active_ai_model")
-      .single();
-
-    if (!error && data?.value) {
-      return data.value;
-    }
-  } catch (_) {}
-
-  try {
     const { data: activeModel, error: modelError } = await supabase
       .from("ai_models")
       .select("id")
@@ -658,7 +646,19 @@ export async function getActiveSystemModel() {
     }
   } catch (_) {}
 
-  return null;
+  try {
+    const { data, error } = await supabase
+      .from("system_settings")
+      .select("value")
+      .eq("key", "active_ai_model")
+      .single();
+
+    if (!error && data?.value) {
+      return data.value;
+    }
+  } catch (_) {}
+
+  return "yolov11m";
 }
 
 /**
@@ -671,15 +671,29 @@ export async function setActiveSystemModel(modelId) {
     throw new Error(`Invalid model ID: ${modelId}`);
   }
 
-  const { error: settingsError } = await supabase
-    .from("system_settings")
-    .upsert({ key: "active_ai_model", value: modelId, updated_at: new Date().toISOString() }, { onConflict: "key" });
+  // 1. Synchronize active state directly in ai_models using valid WHERE filters
+  const { error: deactivateError } = await supabase
+    .from("ai_models")
+    .update({ is_active: false })
+    .neq("id", modelId);
 
-  if (settingsError) throw settingsError;
+  if (deactivateError) throw deactivateError;
 
-  // Sync active status in public.ai_models table
-  await supabase.from("ai_models").update({ is_active: false }).neq("id", "");
-  await supabase.from("ai_models").update({ is_active: true }).eq("id", modelId);
+  const { error: activateError } = await supabase
+    .from("ai_models")
+    .update({ is_active: true })
+    .eq("id", modelId);
+
+  if (activateError) throw activateError;
+
+  // 2. Best-effort update to system_settings configuration table
+  try {
+    await supabase
+      .from("system_settings")
+      .upsert({ key: "active_ai_model", value: modelId, updated_at: new Date().toISOString() }, { onConflict: "key" });
+  } catch (_) {
+    // Non-fatal: ai_models.is_active is synchronized and acts as source of truth
+  }
 
   return modelId;
 }
