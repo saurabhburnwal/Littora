@@ -4,7 +4,15 @@ import AnalysisLightbox from "./AnalysisLightbox.jsx";
 
 export default function PhotoGallery({ items, showUser = false, onDeleteRequest, deletingId }) {
   const [modalItem, setModalItem] = useState(null);
-  const [colCount, setColCount] = useState(3);
+  const [colCount, setColCount] = useState(() => {
+    const saved = parseInt(localStorage.getItem("photoGalleryColCount"), 10);
+    return [2, 3, 4].includes(saved) ? saved : 3;
+  });
+
+  const handleColChange = (n) => {
+    setColCount(n);
+    localStorage.setItem("photoGalleryColCount", n);
+  };
 
   const gridClass = {
     2: "grid-cols-1 sm:grid-cols-2",
@@ -31,7 +39,7 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
           <button
             key={n}
             type="button"
-            onClick={() => setColCount(n)}
+            onClick={() => handleColChange(n)}
             className={`px-3 py-1 rounded-pill text-xs font-semibold transition-all cursor-pointer border ${
               colCount === n
                 ? "bg-primary text-white border-primary shadow-sm"

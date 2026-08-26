@@ -537,10 +537,6 @@ ${actionsList || "- Deploy routine maintenance patrols."}
 
       {/* Report Template Selector Cards */}
       <section className="space-y-4">
-        <SectionHeader
-          title="Select Report Period"
-          subtitle="Choose the temporal scope and filters for coastal waste monitoring"
-        />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {REPORT_TYPES.map((r) => (
             <div
