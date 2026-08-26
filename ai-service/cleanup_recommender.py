@@ -266,28 +266,13 @@ async def generate_cleanup_recommendations(request: CleanupRequest) -> CleanupRe
             "categories": loc.get_categories(),
         })
 
-    user_prompt = f"""Synthesize prioritized coastal cleanup recommendations for the following locations:
-Location Data:
+    user_prompt = f"""You are a coastal cleanup planner. Return ONLY a valid JSON object (no markdown, no explanation).
+
+Beach pollution data:
 {json.dumps(loc_summaries, indent=2)}
 
-Required JSON Output Schema:
-{{
-  "recommendations": [
-    {{
-      "location": "Beach Name",
-      "priority_tier": "Tier 1 - Critical" or "Tier 2 - Moderate" or "Tier 3 - Routine",
-      "urgency": "Immediate" or "High" or "Moderate" or "Routine",
-      "severity": "Severe" or "High" or "Moderate" or "Low",
-      "action": "Concrete operational intervention step",
-      "rationale": "Data-driven justification citing pollution score and debris count",
-      "estimated_volunteers": 20,
-      "estimated_duration_hours": 3,
-      "equipment": ["Heavy-duty gloves", "Trash grabbers", "Plastic sorting bags"],
-      "targeted_zones": ["High-tide waterline", "Dune perimeter"],
-      "suggested_schedule": "Immediate (Within 48 hours)"
-    }}
-  ]
-}}
+Respond with this exact JSON structure:
+{{"recommendations": [{{"location": "string", "priority_tier": "Tier 1 - Critical|Tier 2 - Moderate|Tier 3 - Routine", "urgency": "Immediate|High|Moderate|Routine", "severity": "Severe|High|Moderate|Low", "action": "string", "rationale": "string", "estimated_volunteers": 15, "estimated_duration_hours": 3, "equipment": ["string"], "targeted_zones": ["string"], "suggested_schedule": "string"}}]}}
 """
 
     llm_result = await ollama_client.generate(

@@ -17,7 +17,7 @@ logger = logging.getLogger("ai_service.ollama")
 # --- Configuration with Environment Variable Defaults ---
 OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
 OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "ministral-3:3b")
-OLLAMA_TIMEOUT_SECONDS: float = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "30.0"))
+OLLAMA_TIMEOUT_SECONDS: float = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120.0"))
 OLLAMA_ENABLED: bool = os.getenv("OLLAMA_ENABLED", "true").strip().lower() in ("true", "1", "yes")
 
 _cached_liveness: Optional[Tuple[bool, str]] = None
@@ -138,8 +138,16 @@ async def generate(
                 return raw_response
 
             if json_format and isinstance(raw_response, str):
+                # Strip markdown code fences that some models add despite format=json
+                cleaned = raw_response.strip()
+                if cleaned.startswith("```"):
+                    # Remove opening fence (```json or ```)
+                    cleaned = cleaned.split("\n", 1)[-1] if "\n" in cleaned else cleaned[3:]
+                    # Remove closing fence
+                    if cleaned.rstrip().endswith("```"):
+                        cleaned = cleaned.rstrip()[:-3].rstrip()
                 try:
-                    parsed = json.loads(raw_response)
+                    parsed = json.loads(cleaned)
                     if isinstance(parsed, dict):
                         return parsed
                     logger.warning(f"Ollama JSON output is not a JSON object: {type(parsed)}")

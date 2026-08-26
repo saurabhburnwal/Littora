@@ -271,32 +271,15 @@ async def generate_report(request: ReportRequest) -> ReportResponse:
         e = request.date_range.end or request.date_range.end_date or "N/A"
         date_str = f"Date Range: {s} to {e}\n"
 
-    user_prompt = f"""Synthesize a coastal environmental audit report based on the following telemetry:
-Report Scope: {request.period.upper()} ({period_label})
-{date_str}Location Scope: {location}
-Total Scans Conducted: {total_scans}
-Total Waste Items Cataloged: {total_waste}
-Average Pollution Index: {avg_score:.1f}
-Severity Distribution: Low={sev_breakdown.get('Low', 0)}, Moderate={sev_breakdown.get('Moderate', 0)}, High={sev_breakdown.get('High', 0)}, Severe={sev_breakdown.get('Severe', 0)}
-Top Waste Categories: {json.dumps(top_categories)}
+    user_prompt = f"""You are a coastal environmental analyst. Return ONLY a valid JSON object (no markdown, no explanation).
 
-Required JSON Output Schema:
-{{
-  "executive_summary": "Comprehensive 2-4 sentence executive overview analyzing debris volume, severity hotspots, and primary contamination trends.",
-  "risk_assessment": "Detailed 2-3 sentence ecological assessment analyzing marine wildlife threats, tidal wash hazards, and microplastic breakdown risks.",
-  "actionable_takeaways": [
-    "Concrete recommendation 1",
-    "Concrete recommendation 2",
-    "Concrete recommendation 3",
-    "Concrete recommendation 4"
-  ],
-  "impact_analysis": "Narrative summary of coastal threat level, primary contaminant, and recommended patrol frequency.",
-  "priority_actions": [
-    "Immediate high-priority action item 1",
-    "Action item 2",
-    "Action item 3"
-  ]
-}}
+Report scope: {request.period.upper()} | {period_label}
+{date_str}Location: {location} | Scans: {total_scans} | Waste items: {total_waste} | Avg pollution index: {avg_score:.1f}
+Severity: Low={sev_breakdown.get('Low', 0)} Moderate={sev_breakdown.get('Moderate', 0)} High={sev_breakdown.get('High', 0)} Severe={sev_breakdown.get('Severe', 0)}
+Top waste: {json.dumps(top_categories)}
+
+Respond with this exact JSON:
+{{"executive_summary": "2-3 sentence overview", "risk_assessment": "2-3 sentence ecological risk", "actionable_takeaways": ["recommendation 1", "recommendation 2", "recommendation 3"], "impact_analysis": "1-2 sentence impact summary", "priority_actions": ["action 1", "action 2", "action 3"]}}
 """
 
     llm_result = await ollama_client.generate(
