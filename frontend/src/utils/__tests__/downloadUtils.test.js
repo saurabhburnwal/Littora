@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { downloadBlob, downloadJson, downloadCsv, downloadFileUrl } from "../downloadUtils.js";
+import { downloadBlob, downloadJson, downloadCsv, downloadMarkdown, downloadFileUrl } from "../downloadUtils.js";
+
 
 describe("downloadUtils", () => {
   beforeEach(() => {
@@ -54,6 +55,20 @@ describe("downloadUtils", () => {
     });
 
     downloadCsv(["ID", "Name"], [["1", "Beach"]], "test.csv");
+    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    expect(clickSpy).toHaveBeenCalled();
+  });
+
+  it("handles downloadMarkdown properly", () => {
+    const clickSpy = vi.fn();
+    const origCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, "createElement").mockImplementation((tag) => {
+      const el = origCreateElement(tag);
+      if (tag === "a") el.click = clickSpy;
+      return el;
+    });
+
+    downloadMarkdown("# Littora Report", "report.md");
     expect(global.URL.createObjectURL).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();
   });

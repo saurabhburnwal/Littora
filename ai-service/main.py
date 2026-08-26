@@ -220,45 +220,25 @@ app = FastAPI(
 )
 
 
-# --- Pydantic Request / Response Models ---
-
-class HealthResponse(BaseModel):
-    status: str = "ok"
-    device: str
-    loaded_models: list[str]
-
-
-class ModelInfo(BaseModel):
-    id: str
-    name: str
-    tag: str
-    architecture: str
-    params: str
-    path: str
-    description: str
-    badge: str
-    available: bool
-
-
-class ModelListResponse(BaseModel):
-    models: list[ModelInfo]
-
-
-class BoundingBox(BaseModel):
-    class_name: str
-    confidence: float
-    box: list[float] = Field(..., description="Bounding box pixel coordinates [x1, y1, x2, y2]")
-    box_normalized: list[float] = Field(..., description="Normalized bounding box coordinates [x1, y1, x2, y2] (0..1)")
-
-
-class DetectionResponse(BaseModel):
-    detections: dict[str, int]
-    total_waste: int
-    pollution_score: int
-    severity: str
-    boxes: list[BoundingBox]
-    model_used: str
-    model_name: str
+from schemas import (
+    BoundingBox,
+    CleanupRecommendationItem,
+    CleanupRecommendationsRequest,
+    CleanupRecommendationsResponse,
+    CleanupRequest,
+    CleanupResponse,
+    DetectionResponse,
+    HealthResponse,
+    ModelInfo,
+    ModelListResponse,
+    ReportGenerateRequest,
+    ReportGenerateResponse,
+    ReportRequest,
+    ReportResponse,
+)
+import ollama_client
+import report_generator
+import cleanup_recommender
 
 
 # --- Core Helpers for Thread Offloading & Synchronization ---
@@ -386,15 +366,19 @@ async def _process_detection(file: UploadFile, model_name: str) -> DetectionResp
 # --- API Routes ---
 
 @app.get("/health", response_model=HealthResponse)
-def health():
-    """Health check endpoint returning status, hardware compute device, and loaded models."""
+async def health():
+    """Health check endpoint returning status, hardware compute device, loaded models, and Ollama connectivity."""
     device = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
     with _model_lock:
         loaded_models = list(_loaded_models.keys())
+    _, ollama_status = await ollama_client.check_liveness()
     return HealthResponse(
         status="ok",
         device=device,
         loaded_models=loaded_models,
+        ollama_status=ollama_status,
+        ollama_model=ollama_client.OLLAMA_MODEL,
+        ollama_url=ollama_client.OLLAMA_BASE_URL,
     )
 
 
@@ -429,3 +413,22 @@ async def predict(
 ):
     """Inference alias endpoint for /detect."""
     return await _process_detection(file, model_name)
+
+
+@app.post("/report/generate", response_model=ReportResponse)
+async def generate_report_endpoint(request: ReportRequest) -> ReportResponse:
+    """
+    Generates a multi-period environmental audit report synthesizing executive summary,
+    risk assessment, and actionable takeaways using Ollama LLM with deterministic statistical fallback.
+    """
+    return await report_generator.generate_report(request)
+
+
+@app.post("/cleanup/recommendations", response_model=CleanupResponse)
+async def cleanup_recommendations_endpoint(request: CleanupRequest) -> CleanupResponse:
+    """
+    Synthesizes prioritized, contextual cleanup intervention plans, volunteer/time estimates,
+    equipment lists, and targeted coastal zones using Ollama LLM with deterministic fallback.
+    """
+    return await cleanup_recommender.generate_cleanup_recommendations(request)
+

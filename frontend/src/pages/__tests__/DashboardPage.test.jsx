@@ -77,14 +77,15 @@ describe("DashboardPage component", () => {
     expect(screen.queryByText(/Welcome to Guest Preview Mode/i)).not.toBeInTheDocument();
   });
 
-  it("scrolls smoothly to analytics section when View Dashboard is clicked", async () => {
+  it("scrolls smoothly to analytics section when View Live Analytics is clicked", async () => {
     const scrollIntoViewMock = vi.fn();
     window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
 
     renderDashboard();
-    await vi.waitFor(() => screen.getByRole("button", { name: /view dashboard/i }));
+    await vi.waitFor(() => screen.getByRole("button", { name: /view live analytics/i }));
 
-    fireEvent.click(screen.getByRole("button", { name: /view dashboard/i }));
+    fireEvent.click(screen.getByRole("button", { name: /view live analytics/i }));
     expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: "smooth" });
   });
 });
+

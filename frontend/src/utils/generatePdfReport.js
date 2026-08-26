@@ -39,6 +39,14 @@ export const PDF_STYLES = {
   kpiValScore: "font-size: 22px; font-weight: 800; color: #6b21a8;",
   kpiLabelScore: "font-size: 11px; font-weight: 600; color: #7e22ce; text-transform: uppercase; margin-top: 2px;",
 
+  // AI Executive Summary Box
+  aiSummaryBox: "margin-bottom: 28px; background: #f0fdfa; border: 1px solid #99f6e4; border-left: 4px solid #0d9488; border-radius: 8px; padding: 16px;",
+  aiSummaryHeader: "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;",
+  aiSummaryTitle: "font-size: 13px; font-weight: 700; color: #0f766e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;",
+  aiBadge: "display: inline-block; background: #ccfbf1; color: #0f766e; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;",
+  aiSummaryText: "font-size: 12px; color: #134e4a; line-height: 1.6; margin: 0 0 8px 0;",
+  aiImpactText: "font-size: 11px; color: #0f766e; font-style: italic; margin: 0;",
+
   // Table Structure & Headers
   table: "width: 100%; border-collapse: collapse; font-size: 13px;",
   tableHeadRow: "background: #f1f5f9; color: #475569; text-align: left;",
@@ -62,9 +70,9 @@ export const PDF_STYLES = {
   wasteItemEmpty: "grid-column: span 2; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; text-align: center; color: #64748b;",
 
   // Action Recommendations Box
-  recsBox: "margin-bottom: 32px; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 16px;",
-  recsTitle: "font-size: 13px; font-weight: 700; color: #0f766e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 0;",
-  recsList: "margin: 0; padding-left: 20px; color: #134e4a; font-size: 12px; line-height: 1.6;",
+  recsBox: "margin-bottom: 32px; background: #fefce8; border: 1px solid #fef08a; border-left: 4px solid #ca8a04; border-radius: 8px; padding: 16px;",
+  recsTitle: "font-size: 13px; font-weight: 700; color: #854d0e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 0;",
+  recsList: "margin: 0; padding-left: 20px; color: #713f12; font-size: 12px; line-height: 1.6;",
 
   // Document Footer
   footer: "border-top: 1px solid #e2e8f0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #94a3b8;",
@@ -73,15 +81,17 @@ export const PDF_STYLES = {
 /**
  * Generates and downloads a styled PDF report for Littora Beach Waste Detection.
  * @param {string} reportType - "daily" | "weekly" | "monthly" | "custom"
- * @param {object} stats - Analytics data from StatsContext
+ * @param {object} stats - Analytics data from StatsContext or scoped telemetry
  * @param {object} user - Current logged in user
+ * @param {object} options - Optional AI summary and scope overrides
  */
-export async function generatePdfReport(reportType, stats = {}, user = null) {
+export async function generatePdfReport(reportType, stats = {}, user = null, options = {}) {
   // Dynamically load heavy PDF generation libraries on demand
   const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
     import("jspdf"),
     import("html2canvas"),
   ]);
+
   const titleMap = {
     daily: "Daily Beach Waste Report",
     weekly: "Weekly Beach Waste Report",
@@ -98,18 +108,19 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
     minute: "2-digit",
   });
 
-  const totalDetections = (stats.totalAnalyses || 0).toLocaleString();
-  const totalWaste = (stats.totalWasteAllTime || 0).toLocaleString();
-  const locationsCount = stats.locations?.length || 0;
-  const avgScore = stats.avgScore || 0;
+  const totalDetections = (stats.totalAnalyses ?? stats.totalScans ?? 0).toLocaleString();
+  const totalWaste = (stats.totalWaste ?? stats.totalWasteAllTime ?? 0).toLocaleString();
+  const locationsCount = stats.locationsCount ?? stats.locations?.length ?? 0;
+  const avgScore = stats.avgScore ?? stats.avgPollutionScore ?? 0;
 
-  const lowCount = stats.severityCounts?.Low || 0;
-  const modCount = stats.severityCounts?.Moderate || 0;
-  const highCount = stats.severityCounts?.High || 0;
-  const severeCount = stats.severityCounts?.Severe || 0;
+  const severityCounts = stats.severityCounts || {};
+  const lowCount = severityCounts.Low ?? severityCounts.low ?? 0;
+  const modCount = severityCounts.Moderate ?? severityCounts.moderate ?? 0;
+  const highCount = severityCounts.High ?? severityCounts.high ?? 0;
+  const severeCount = severityCounts.Severe ?? severityCounts.severe ?? 0;
 
   const wasteEntries = Object.entries(stats.aggregateDetections || {}).filter(([_, count]) => count > 0);
-  const formatWasteName = (t) => String(t || "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const formatWasteName = (t) => String(t || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const wasteCategoryHtml = wasteEntries.length > 0
     ? wasteEntries.map(([type, count]) => `
         <div style="${PDF_STYLES.wasteItem}">
@@ -118,6 +129,45 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
         </div>
       `).join("")
     : `<div style="${PDF_STYLES.wasteItemEmpty}">No waste items recorded.</div>`;
+
+  // Process AI Summary if provided
+  const aiSummaryObj = options.aiSummary || options.summary || null;
+  let summaryText = "";
+  let riskText = "";
+  let impactText = "";
+  let dynamicRecs = [];
+
+  if (aiSummaryObj) {
+    if (typeof aiSummaryObj === "string") {
+      summaryText = aiSummaryObj;
+    } else {
+      summaryText = aiSummaryObj.executive_summary || aiSummaryObj.summary || "";
+      riskText = aiSummaryObj.risk_assessment || "";
+      impactText = typeof aiSummaryObj.impact_analysis === "string"
+        ? aiSummaryObj.impact_analysis
+        : aiSummaryObj.impact_analysis?.ecosystem_risk || aiSummaryObj.impact || "";
+      
+      const rawRecs = aiSummaryObj.priority_actions || aiSummaryObj.actionable_takeaways || aiSummaryObj.recommendations;
+      if (Array.isArray(rawRecs)) {
+        dynamicRecs = rawRecs.map((r) => {
+          if (typeof r === "string") return r;
+          if (r && typeof r === "object") return r.action ? `${r.urgency ? `[${r.urgency}] ` : ""}${r.action}` : JSON.stringify(r);
+          return String(r);
+        });
+      }
+    }
+  }
+
+  if (dynamicRecs.length === 0) {
+    dynamicRecs = [
+      "Prioritize community cleanup drives at beaches exhibiting High or Severe pollution indices.",
+      "Deploy additional waste disposal & recycling bins in areas with high plastic bottle counts.",
+      "Maintain automated surveillance schedules to monitor trend dynamics over time.",
+    ];
+  }
+
+  const scopeLabel = options.dateRangeLabel || options.dateRange || reportTitle;
+  const locationScope = options.locationLabel || options.location || "All Monitored Sites";
 
   // Temporary off-screen container for rendering styled HTML template
   const container = document.createElement("div");
@@ -156,8 +206,8 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
       <!-- Report Metadata -->
       <div style="${PDF_STYLES.metaCard}">
         <div>
-          <span style="${PDF_STYLES.metaLabel}">Report Scope:</span> 
-          <strong style="${PDF_STYLES.metaValue}">${reportTitle}</strong>
+          <span style="${PDF_STYLES.metaLabel}">Scope:</span> 
+          <strong style="${PDF_STYLES.metaValue}">${scopeLabel} (${locationScope})</strong>
         </div>
         <div>
           <span style="${PDF_STYLES.metaLabel}">Generated For:</span> 
@@ -189,6 +239,19 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
           </div>
         </div>
       </div>
+
+      ${summaryText ? `
+      <!-- AI Executive Environmental Summary -->
+      <div style="${PDF_STYLES.aiSummaryBox}">
+        <div style="${PDF_STYLES.aiSummaryHeader}">
+          <h3 style="${PDF_STYLES.aiSummaryTitle}">🤖 AI Executive Environmental Summary</h3>
+          <span style="${PDF_STYLES.aiBadge}">Certified AI Audit</span>
+        </div>
+        <p style="${PDF_STYLES.aiSummaryText}">${summaryText}</p>
+        ${riskText ? `<p style="${PDF_STYLES.aiImpactText}"><strong>Risk Assessment:</strong> ${riskText}</p>` : ""}
+        ${impactText ? `<p style="${PDF_STYLES.aiImpactText}; margin-top: 4px;"><strong>Impact Analysis:</strong> ${impactText}</p>` : ""}
+      </div>
+      ` : ""}
 
       <!-- Severity Distribution -->
       <div style="${PDF_STYLES.section}">
@@ -238,22 +301,20 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
         </div>
       </div>
 
-      <!-- Recommended Action Items -->
+      <!-- Action Recommendations Box -->
       <div style="${PDF_STYLES.recsBox}">
         <h3 style="${PDF_STYLES.recsTitle}">
           💡 Actionable Recommendations
         </h3>
         <ul style="${PDF_STYLES.recsList}">
-          <li>Prioritize community cleanup drives at beaches exhibiting High or Severe pollution indices.</li>
-          <li>Deploy additional waste disposal & recycling bins in areas with high plastic bottle counts.</li>
-          <li>Maintain automated surveillance schedules to monitor trend dynamics over time.</li>
+          ${dynamicRecs.map((rec) => `<li>${rec}</li>`).join("")}
         </ul>
       </div>
 
       <!-- Document Footer -->
       <div style="${PDF_STYLES.footer}">
-        <div>Littora Coastal Monitoring & AI Waste Detection Platform</div>
-        <div>Confidential & System Generated</div>
+        <div>Littora Coastal Monitoring &amp; AI Waste Detection Platform</div>
+        <div>Confidential &amp; System Generated</div>
       </div>
     </div>
   `;
@@ -285,4 +346,3 @@ export async function generatePdfReport(reportType, stats = {}, user = null) {
     document.body.removeChild(container);
   }
 }
-

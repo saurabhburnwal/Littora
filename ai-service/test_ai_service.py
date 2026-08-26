@@ -90,11 +90,12 @@ def test_class_normalization_mappings(raw_label, expected_canonical):
 
 # --- 3. Direct Function Tests ---
 
-def test_health_direct():
-    res = health()
+async def test_health_direct():
+    res = await health()
     assert res.status == "ok"
     assert res.device in ["cuda", "mps", "cpu"]
     assert isinstance(res.loaded_models, list)
+    assert res.ollama_status in ["connected", "unreachable", "disabled"]
 
 
 def test_models_direct():
@@ -114,6 +115,7 @@ async def test_health_endpoint_async(async_client: AsyncClient):
     assert data["status"] == "ok"
     assert "device" in data
     assert "loaded_models" in data
+    assert "ollama_status" in data
 
 
 async def test_models_endpoint_async(async_client: AsyncClient):

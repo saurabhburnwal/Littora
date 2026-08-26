@@ -83,4 +83,36 @@ describe("generatePdfReport", () => {
     await generatePdfReport("custom", stats);
     expect(mockSave.mock.calls[2][0]).toMatch(/^littora_custom_report_\d+\.pdf$/);
   });
+
+  it("successfully renders AI summary and custom options in PDF", async () => {
+    const stats = {
+      totalAnalyses: 15,
+      totalWaste: 45,
+      locationsCount: 3,
+      avgScore: 5.8,
+      severityCounts: { Low: 3, Moderate: 6, High: 4, Severe: 2 },
+      aggregateDetections: { bottle: 25, can: 20 },
+    };
+    const user = { email: "lead@littora.org" };
+    const options = {
+      aiSummary: {
+        executive_summary: "High debris density detected along northern perimeter.",
+        risk_assessment: "Substantial marine ingestion risk.",
+        impact_analysis: "Immediate intervention recommended.",
+        priority_actions: [
+          "Deploy cleanup team to northern beach sector",
+          "Install smart waste bins at parking access point",
+        ],
+      },
+      dateRangeLabel: "Past 7 Days (Aug 19 – Aug 26, 2026)",
+      locationLabel: "Marina Bay Area",
+    };
+
+    await generatePdfReport("weekly", stats, user, options);
+
+    expect(mockAddImage).toHaveBeenCalled();
+    expect(mockSave).toHaveBeenCalled();
+    expect(mockSave.mock.calls[0][0]).toMatch(/^littora_weekly_report_\d+\.pdf$/);
+  });
 });
+

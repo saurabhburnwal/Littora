@@ -24,6 +24,11 @@ export function downloadCsv(headers, rows, filename) {
   downloadBlob(blob, filename);
 }
 
+export function downloadMarkdown(content, filename) {
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8;" });
+  downloadBlob(blob, filename);
+}
+
 export function downloadFileUrl(url, filename) {
   if (!url) return;
   const link = document.createElement("a");
@@ -34,3 +39,4 @@ export function downloadFileUrl(url, filename) {
   link.click();
   link.remove();
 }
+

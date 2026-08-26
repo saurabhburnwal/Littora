@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const isDark = theme === "dark";
 
   const scrollToStats = () => {
-    const el = document.getElementById("analytics-section");
+    const el = document.getElementById("dashboard-analytics") || document.getElementById("analytics-section");
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -64,7 +64,7 @@ export default function DashboardPage() {
               onClick={scrollToStats}
               className="inline-flex items-center gap-2 px-5.5 py-3 rounded-pill bg-[#EADFCB]/80 hover:bg-[#EADFCB] dark:bg-white/10 dark:hover:bg-white/20 text-[#2C2A27] dark:text-white font-semibold text-sm border border-[#D7CBB8] dark:border-white/25 backdrop-blur-sm cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm"
             >
-              <BarChart3 size={17} /> View Dashboard
+              <BarChart3 size={17} /> View Live Analytics
             </button>
           </div>
 
@@ -104,7 +104,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Lower Analytics / Monitoring Section ── */}
-      <div id="analytics-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div id="dashboard-analytics" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Guest Lock Banner for non-authenticated users */}
         {!user && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-surface border border-border shadow-sm mb-6">

@@ -2,9 +2,9 @@
  * Waste Management & Formatting Utilities
  * Standardized waste normalizers, severity normalizers, and catalog lookups across Littora.
  */
-import { API_BASE, CANONICAL_WASTE_CLASSES, SEVERITY_RANKS } from "./constants.js";
+import { API_BASE, AI_SERVICE_URL, CANONICAL_WASTE_CLASSES, SEVERITY_RANKS } from "./constants.js";
 
-export { API_BASE, CANONICAL_WASTE_CLASSES, SEVERITY_RANKS };
+export { API_BASE, AI_SERVICE_URL, CANONICAL_WASTE_CLASSES, SEVERITY_RANKS };
 
 export const SUPPORTED_WASTE_TYPES = CANONICAL_WASTE_CLASSES;
 
