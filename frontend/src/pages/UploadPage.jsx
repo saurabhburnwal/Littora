@@ -92,17 +92,17 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="page-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="page-heading mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="mb-6">
         <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Detect Waste</h1>
         <p className="text-xs sm:text-sm text-text-muted mt-1">Upload or capture a beach photo to detect waste using AI.</p>
       </div>
 
-      <div className={`upload-layout ${!result ? "before-analysis" : "has-result"} grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(360px,1fr)] gap-6 items-start`}>
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(360px,1fr)] gap-6 items-start">
         {/* Left — upload form & feature image with bounding boxes */}
-        <div className="upload-pane sticky top-6 z-10">
-          <div className="upload-card bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-md">
-            <div className="upload-card-title font-display text-sm font-bold text-text-primary mb-4 pb-2 border-b border-border/50">Upload &amp; Detection View</div>
+        <div className="sticky top-6 z-10">
+          <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-md">
+            <div className="font-display text-sm font-bold text-text-primary mb-4 pb-2 border-b border-border/50">Upload &amp; Detection View</div>
             <UploadForm
               onUpload={handleUpload}
               loading={loading}
@@ -114,7 +114,7 @@ export default function UploadPage() {
               updatingModel={updatingModel}
             />
             {error && (
-              <p className="error error--spaced text-xs text-rose-500 font-medium mt-3">
+              <p className="text-xs text-rose-500 font-medium mt-3">
                 {error}
               </p>
             )}
@@ -123,12 +123,12 @@ export default function UploadPage() {
 
         {/* Right — result statistics & charts */}
         <div>
-          <div className="upload-card bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-md">
-            <div className="upload-card-title font-display text-sm font-bold text-text-primary mb-4 pb-2 border-b border-border/50">Detection Result &amp; Analytics</div>
+          <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-md">
+            <div className="font-display text-sm font-bold text-text-primary mb-4 pb-2 border-b border-border/50">Detection Result &amp; Analytics</div>
             {result ? (
               <ResultPanel result={result} />
             ) : (
-              <div className="result-placeholder result-placeholder--transparent flex flex-col items-center justify-center p-12 text-center text-text-muted gap-3">
+              <div className="flex flex-col items-center justify-center p-12 text-center text-text-muted gap-3">
                 <ImageOff size={44} strokeWidth={1.4} />
                 <p className="text-xs sm:text-sm">Your analysis breakdown and charts will appear here after you upload and analyze a photo.</p>
               </div>

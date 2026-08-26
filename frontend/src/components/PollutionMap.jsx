@@ -171,16 +171,16 @@ export default function PollutionMap({ locations: locationsProp }) {
   const isFiltered = filterSeverity !== "All" || searchQuery.trim() !== "" || timeframe !== "All";
 
   return (
-    <div className="map-card">
+    <div className="bg-surface border border-border rounded-2xl shadow-md overflow-hidden flex flex-col">
       {/* ── Top Bar Controls: Search, Severity Chips, Timeframe & Map Tile Style ── */}
-      <div className="map-top-bar">
-        <div className="map-controls-row">
+      <div className="p-4 sm:p-5 border-b border-border/60 flex flex-col gap-4 bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search Input Bar */}
-          <div className="map-search-wrapper">
-            <Search size={14} className="map-search-icon" />
+          <div className="relative flex-1 min-w-[240px]">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             <input
               type="text"
-              className="map-search-input"
+              className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-text-muted transition-all"
               placeholder="Search beach hotspot or coordinates…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -188,7 +188,7 @@ export default function PollutionMap({ locations: locationsProp }) {
             {searchQuery && (
               <button
                 type="button"
-                className="map-search-clear-btn"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary rounded-full cursor-pointer transition-colors"
                 onClick={() => setSearchQuery("")}
               >
                 <X size={12} />
@@ -197,13 +197,17 @@ export default function PollutionMap({ locations: locationsProp }) {
           </div>
 
           {/* Timeframe Dropdown Switcher */}
-          <div className="map-timeframe-group">
-            <span className="map-filter-label"><Calendar size={13} /> Timeframe:</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-semibold text-text-muted flex items-center gap-1 mr-1"><Calendar size={13} /> Timeframe:</span>
             {["All", "7d", "30d", "90d"].map((tf) => (
               <button
                 key={tf}
                 type="button"
-                className={`map-filter-chip ${timeframe === tf ? "active" : ""}`}
+                className={`px-3 py-1.5 rounded-pill text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  timeframe === tf
+                    ? "border-primary bg-primary text-white font-bold shadow-sm"
+                    : "border-border bg-bg-secondary text-text-secondary hover:border-primary/50"
+                }`}
                 onClick={() => setTimeframe(tf)}
               >
                 {tf === "All" ? "All Time" : tf}
@@ -212,13 +216,17 @@ export default function PollutionMap({ locations: locationsProp }) {
           </div>
 
           {/* Map Tile Style Switcher */}
-          <div className="map-tile-switcher">
-            <span className="map-tile-label"><Layers size={13} /> Style:</span>
+          <div className="flex items-center gap-1.5 p-1 bg-bg-secondary rounded-pill">
+            <span className="text-xs font-semibold text-text-muted flex items-center gap-1 ml-2 mr-1"><Layers size={13} /> Style:</span>
             {availableTileKeys.map((key) => (
               <button
                 key={key}
                 type="button"
-                className={`map-tile-btn ${tileMode === key ? "active" : ""}`}
+                className={`px-2.5 py-1 rounded-pill text-xs font-semibold transition-all cursor-pointer ${
+                  tileMode === key
+                    ? "bg-surface text-primary shadow-xs font-bold"
+                    : "text-text-muted hover:text-text-primary"
+                }`}
                 onClick={() => setTileMode(key)}
               >
                 {TILE_LAYERS[key].name}
@@ -228,20 +236,27 @@ export default function PollutionMap({ locations: locationsProp }) {
         </div>
 
         {/* Severity Filter Chips with Live Count Badges */}
-        <div className="map-severity-bar">
-          <div className="map-severity-filters">
-            <span className="map-filter-label"><Filter size={13} /> Severity:</span>
+        <div className="flex items-center justify-between gap-3 flex-wrap pt-2 border-t border-border/40">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-semibold text-text-muted flex items-center gap-1 mr-1"><Filter size={13} /> Severity:</span>
             {["All", "Low", "Moderate", "High", "Severe"].map((sev) => {
               const count = severityCounts[sev] || 0;
+              const isSelected = filterSeverity === sev;
               return (
                 <button
                   key={sev}
                   type="button"
-                  className={`map-filter-chip map-severity-chip-inner ${filterSeverity === sev ? "active" : ""}`}
+                  className={`px-3 py-1.5 rounded-pill text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? "border-primary bg-primary text-white font-bold shadow-sm"
+                      : "border-border bg-bg-secondary text-text-secondary hover:border-primary/50"
+                  }`}
                   onClick={() => setFilterSeverity(sev)}
                 >
                   <span>{sev}</span>
-                  <span className={`map-severity-count-badge ${filterSeverity === sev ? "map-severity-count-badge--active" : ""}`}>
+                  <span className={`ml-1 text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    isSelected ? "bg-white/20 text-white" : "bg-bg-primary text-text-muted"
+                  }`}>
                     {count}
                   </span>
                 </button>
@@ -252,7 +267,7 @@ export default function PollutionMap({ locations: locationsProp }) {
           {isFiltered && (
             <button
               type="button"
-              className="map-filter-chip map-filter-reset-btn"
+              className="px-3 py-1.5 rounded-pill text-xs font-semibold text-rose-500 hover:text-rose-600 bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 transition-colors cursor-pointer ml-auto"
               onClick={resetFilters}
             >
               Reset Filters
@@ -262,39 +277,39 @@ export default function PollutionMap({ locations: locationsProp }) {
       </div>
 
       {!hasLocations ? (
-        <div className="map-empty-state">
-          <span>📍</span>
+        <div className="flex flex-col items-center justify-center p-12 text-center text-text-muted text-sm gap-2 min-h-[400px]">
+          <span className="text-2xl">📍</span>
           <p>
             No location data yet — attach location access when uploading a beach photo to populate this interactive map.
           </p>
         </div>
       ) : (
-        <div className="map-canvas-container">
+        <div className="relative w-full h-[550px] sm:h-[600px] bg-bg-secondary overflow-hidden">
           {/* Floating On-Map Stats Overlay */}
-          <div className="map-floating-stats">
-            <div className="map-stat-item">
-              <MapPin size={13} className="map-control-icon--gps" />
+          <div className="absolute top-4 left-4 z-[1000] flex flex-wrap gap-2 pointer-events-none">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-surface/90 backdrop-blur-md border border-border shadow-md text-xs text-text-secondary pointer-events-auto">
+              <MapPin size={13} className="text-primary" />
               <span>Showing <strong>{filteredLocations.length}</strong> / {totalMapped} Hotspots</span>
             </div>
-            <div className="map-stat-item">
-              <AlertCircle size={13} className="map-control-icon--hotspot" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-surface/90 backdrop-blur-md border border-border shadow-md text-xs text-text-secondary pointer-events-auto">
+              <AlertCircle size={13} className="text-rose-500" />
               <span><strong>{criticalCount}</strong> Critical Risks</span>
             </div>
-            <div className="map-stat-item">
-              <Compass size={13} className="map-control-icon--reset" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-surface/90 backdrop-blur-md border border-border shadow-md text-xs text-text-secondary pointer-events-auto">
+              <Compass size={13} className="text-secondary" />
               <span>Peak Score: <strong>{maxScore}</strong></span>
             </div>
           </div>
 
           {filteredLocations.length === 0 ? (
-            <div className="map-empty-state map-empty-state--fill">
-              <span>🔍</span>
-              <p className="map-empty-text">
+            <div className="flex flex-col items-center justify-center p-12 text-center text-text-muted text-sm gap-3 w-full h-full bg-surface">
+              <span className="text-2xl">🔍</span>
+              <p className="text-xs sm:text-sm">
                 No beach hotspots match your active filter criteria.
               </p>
               <button
                 type="button"
-                className="map-filter-chip active map-empty-btn"
+                className="px-4 py-2 rounded-pill bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
                 onClick={resetFilters}
               >
                 Clear Map Filters
@@ -304,7 +319,7 @@ export default function PollutionMap({ locations: locationsProp }) {
             <MapContainer
               center={DEFAULT_CENTER}
               zoom={DEFAULT_ZOOM}
-              className="map-container leaflet-map-root"
+              className="w-full h-full"
               scrollWheelZoom={true}
             >
               <AutoFitBounds locations={filteredLocations} />
@@ -348,39 +363,41 @@ export default function PollutionMap({ locations: locationsProp }) {
                       }}
                     >
                       <Popup className="custom-map-popup">
-                        <div className="map-popup-card">
+                        <div className="p-3 min-w-[220px] max-w-[280px] flex flex-col gap-2 font-sans">
                           {loc.image_url && (
-                            <div className="map-popup-image">
-                              <img src={loc.image_url} alt="Beach analysis preview" decoding="async" />
+                            <div className="w-full h-28 rounded-lg overflow-hidden bg-bg-secondary mb-1">
+                              <img src={loc.image_url} alt="Beach analysis preview" decoding="async" className="w-full h-full object-cover" />
                             </div>
                           )}
-                          <div className="map-popup-header">
-                            <strong>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <strong className="text-xs font-bold text-text-primary truncate">
                               {loc.location_label || `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`}
                             </strong>
-                            <span className={`severity-badge severity-${normSev.toLowerCase()}`}>
+                            <span className={`severity-badge severity-${normSev.toLowerCase()} px-2 py-0.5 rounded-pill text-[10px] font-bold`}>
                               {normSev} Risk
                             </span>
                           </div>
                           {loc.created_at && (
-                            <div className="map-popup-date">
+                            <div className="text-[11px] text-text-muted font-mono">
                               {new Date(loc.created_at).toLocaleDateString("en-IN", {
                                 day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
                               })}
                             </div>
                           )}
-                          <div className="map-popup-stats">
-                            <div className="map-popup-stat-pill">
-                              <span>Waste Items:</span> <strong>{loc.total_waste || 0}</strong>
+                          <div className="flex items-center gap-2 text-xs">
+                            <div className="flex-1 p-1.5 rounded-lg bg-bg-secondary/40 border border-border/50 text-center">
+                              <span className="text-[10px] text-text-muted block">Items</span>
+                              <strong className="text-xs text-text-primary">{loc.total_waste || 0}</strong>
                             </div>
-                            <div className="map-popup-stat-pill">
-                              <span>Pollution Score:</span> <strong>{loc.pollution_score || 0}</strong>
+                            <div className="flex-1 p-1.5 rounded-lg bg-bg-secondary/40 border border-border/50 text-center">
+                              <span className="text-[10px] text-text-muted block">Score</span>
+                              <strong className="text-xs text-text-primary">{loc.pollution_score || 0}</strong>
                             </div>
                           </div>
 
                           <button
                             type="button"
-                            className="map-detail-btn"
+                            className="w-full mt-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-pill bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm"
                             onClick={(e) => {
                               e.stopPropagation();
                               e.preventDefault();

@@ -5,7 +5,7 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
   ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell
 } from "recharts";
-import { TrendingUp, Trash2, ImageIcon, Target, SlidersHorizontal } from "lucide-react";
+import { TrendingUp, Trash2, ImageIcon, Target } from "lucide-react";
 import SectionHeader from "../components/ui/SectionHeader.jsx";
 import MetricCard from "../components/ui/MetricCard.jsx";
 import { formatWasteType, SUPPORTED_WASTE_TYPES } from "../utils/wasteUtils.js";
@@ -240,17 +240,17 @@ export default function TrendsPage() {
   const avgItemsPerPhoto = totalDetections > 0 ? (totalWasteItems / totalDetections).toFixed(1) : "0.0";
 
   return (
-    <div className="page-container">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
-      <div className="page-heading">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1>Historical Trends</h1>
-          <p>Track changes in coastal waste over time.</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Historical Trends</h1>
+          <p className="text-xs sm:text-sm text-text-muted mt-1">Track changes in coastal waste over time.</p>
         </div>
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="kpi-stats-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard
           label="Total Detections"
           value={totalDetections.toLocaleString()}
@@ -278,16 +278,16 @@ export default function TrendsPage() {
       </div>
 
       {/* Filter Toolbar Card */}
-      <div className="filter-bar-card">
-        <div className="filter-group">
-          <label className="filter-group-label" htmlFor="trend-date-select">
+      <div className="bg-surface border border-border rounded-2xl p-4 sm:p-5 flex flex-wrap items-end gap-4 shadow-sm mb-6">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+          <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="trend-date-select">
             Date Range
           </label>
           <select
             id="trend-date-select"
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="filter-popover-select"
+            className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
           >
             <option value="all">All Time</option>
             <option value="last30">Last 30 Days</option>
@@ -296,15 +296,15 @@ export default function TrendsPage() {
           </select>
         </div>
 
-        <div className="filter-group">
-          <label className="filter-group-label" htmlFor="trend-loc-select">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+          <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="trend-loc-select">
             Beach Location
           </label>
           <select
             id="trend-loc-select"
             value={beach}
             onChange={(e) => setBeach(e.target.value)}
-            className="filter-popover-select"
+            className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
           >
             <option value="all">All Beaches</option>
             {beachOptions.map((b) => (
@@ -313,15 +313,15 @@ export default function TrendsPage() {
           </select>
         </div>
 
-        <div className="filter-group">
-          <label className="filter-group-label" htmlFor="trend-waste-select">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+          <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="trend-waste-select">
             Waste Type
           </label>
           <select
             id="trend-waste-select"
             value={wasteType}
             onChange={(e) => setWasteType(e.target.value)}
-            className="filter-popover-select"
+            className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
           >
             <option value="all">All</option>
             {wasteTypeOptions.map((w) => (
@@ -330,11 +330,11 @@ export default function TrendsPage() {
           </select>
         </div>
 
-        <div className="filter-actions-wrap">
+        <div className="flex items-center self-end pb-0.5">
           {activeFilterCount > 0 && (
             <button
               type="button"
-              className="filter-chip-clear-all"
+              className="text-xs font-semibold text-rose-500 hover:text-rose-600 px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 transition-colors cursor-pointer"
               onClick={handleClear}
             >
               Clear Filters
@@ -344,15 +344,15 @@ export default function TrendsPage() {
       </div>
 
       {/* PRIMARY SECTION: Detection Activity */}
-      <section className="trends-section">
+      <section className="space-y-4 mb-8">
         <SectionHeader
           title="Detection Activity"
           subtitle="Chronological volume of detection scans and cataloged debris"
         />
-        <div className="chart-card">
-          <div className="chart-card-title">Detections &amp; Waste Over Time</div>
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col">
+          <div className="font-display text-sm sm:text-base font-bold text-text-primary mb-4">Detections &amp; Waste Over Time</div>
           {monthlyData.length === 0 ? (
-            <div className="chart-empty">No trend data recorded for selected criteria. Upload scans to populate timeline charts.</div>
+            <div className="flex items-center justify-center h-48 text-center text-xs sm:text-sm text-text-muted italic">No trend data recorded for selected criteria. Upload scans to populate timeline charts.</div>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={monthlyData} margin={{ top: 10, right: 15, left: -15, bottom: 0 }}>
@@ -370,16 +370,16 @@ export default function TrendsPage() {
       </section>
 
       {/* SECONDARY SECTION: Waste Composition & Trends */}
-      <section className="trends-section">
+      <section className="space-y-4 mb-8">
         <SectionHeader
           title="Waste Composition"
           subtitle="Categorical debris distribution and volume trends"
         />
-        <div className="charts-row">
-          <div className="chart-card">
-            <div className="chart-card-title">Waste Category Trend (by Count)</div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="bg-surface border border-border rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col">
+            <div className="font-display text-sm sm:text-base font-bold text-text-primary mb-4">Waste Category Trend (by Count)</div>
             {wasteTypeData.length === 0 ? (
-              <div className="chart-empty">No waste category trends recorded for selected criteria.</div>
+              <div className="flex items-center justify-center h-48 text-center text-xs sm:text-sm text-text-muted italic">No waste category trends recorded for selected criteria.</div>
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={wasteTypeData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
@@ -396,10 +396,10 @@ export default function TrendsPage() {
             )}
           </div>
 
-          <div className="chart-card">
-            <div className="chart-card-title">Waste Category Composition</div>
+          <div className="bg-surface border border-border rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col">
+            <div className="font-display text-sm sm:text-base font-bold text-text-primary mb-4">Waste Category Composition</div>
             {wasteComposition.length === 0 ? (
-              <div className="chart-empty">No waste composition data recorded for selected criteria.</div>
+              <div className="flex items-center justify-center h-48 text-center text-xs sm:text-sm text-text-muted italic">No waste composition data recorded for selected criteria.</div>
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
@@ -425,16 +425,16 @@ export default function TrendsPage() {
       </section>
 
       {/* LOCATION & BREAKDOWN SECTION */}
-      <section className="trends-section">
+      <section className="space-y-4 mb-8">
         <SectionHeader
           title="Location Breakdown"
           subtitle="Top coastal hotspots and detailed catalog table"
         />
-        <div className="charts-row charts-row--spaced">
-          <div className="chart-card chart-card--flex">
-            <div className="chart-card-title">Top Locations by Detections</div>
+        <div className="grid grid-cols-1 gap-5">
+          <div className="bg-surface border border-border rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col">
+            <div className="font-display text-sm sm:text-base font-bold text-text-primary mb-4">Top Locations by Detections</div>
             {topLocationsData.length === 0 ? (
-              <div className="chart-empty">No location detections recorded in database.</div>
+              <div className="flex items-center justify-center h-48 text-center text-xs sm:text-sm text-text-muted italic">No location detections recorded in database.</div>
             ) : (
               <ResponsiveContainer width="100%" height={230}>
                 <BarChart data={topLocationsData} layout="vertical" margin={{ top: 10, right: 15, left: 10, bottom: 0 }}>
@@ -449,75 +449,77 @@ export default function TrendsPage() {
           </div>
         </div>
 
-        <div className="full-card">
-          <div className="full-card-title">
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-6 shadow-sm overflow-hidden mt-6">
+          <div className="font-display text-sm sm:text-base font-bold text-text-primary mb-4">
             Waste Category Breakdown Table
           </div>
           {wasteComposition.length === 0 ? (
-            <div className="empty-state">
+            <div className="p-6 text-center text-xs sm:text-sm text-text-muted">
               No waste items recorded in database for selected criteria.
             </div>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Waste Type</th>
-                  <th>Count</th>
-                  <th>Percentage</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wasteComposition.map((w) => (
-                  <tr key={w.name}>
-                    <td>{w.name}</td>
-                    <td>{w.count.toLocaleString()}</td>
-                    <td>
-                      <div className="trends-bar-track">
-                        <div
-                          className="trends-bar-fill"
-                          style={{
-                            width: `${Math.min(parseFloat(w.pct) || 5, 100)}%`,
-                          }}
-                        />
-                        <span className="trends-pct-text">{w.pct}</span>
-                      </div>
-                    </td>
-                    <td className="trends-status-cell">Active Tracking</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead>
+                  <tr className="border-b border-border text-text-muted font-semibold text-xs uppercase tracking-wider">
+                    <th className="py-3 px-4">Waste Type</th>
+                    <th className="py-3 px-4">Count</th>
+                    <th className="py-3 px-4">Percentage</th>
+                    <th className="py-3 px-4">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {wasteComposition.map((w) => (
+                    <tr key={w.name} className="hover:bg-bg-secondary/40 transition-colors">
+                      <td className="py-3 px-4 font-medium text-text-primary">{w.name}</td>
+                      <td className="py-3 px-4 font-semibold text-text-primary">{w.count.toLocaleString()}</td>
+                      <td className="py-3 px-4">
+                        <div className="w-full max-w-[200px] h-2.5 bg-bg-secondary rounded-full overflow-hidden flex items-center relative">
+                          <div
+                            className="h-full bg-primary rounded-full transition-all duration-300"
+                            style={{
+                              width: `${Math.min(parseFloat(w.pct) || 5, 100)}%`,
+                            }}
+                          />
+                          <span className="ml-2 text-xs font-semibold text-text-secondary whitespace-nowrap">{w.pct}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-xs font-medium text-text-muted">Active Tracking</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </section>
 
       {/* HEATMAP SECTION: Pollution by Day / Time */}
-      <section className="trends-section">
+      <section className="space-y-4 mb-8">
         <SectionHeader
           title="Pollution by Day / Time"
           subtitle="Temporal density heatmap of debris sightings throughout the week"
         />
-        <div className="chart-card">
-          <div className="chart-card-title">Heatmap — Detections by Day &amp; Time</div>
-          <div className="heatmap-layout-wrap">
-            <div className="heatmap-days-col">
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col">
+          <div className="font-display text-sm sm:text-base font-bold text-text-primary mb-4">Heatmap — Detections by Day &amp; Time</div>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            <div className="flex flex-col gap-2 pt-6 shrink-0">
               {DAYS.map((d) => (
-                <div key={d} className="heatmap-day-label">{d}</div>
+                <div key={d} className="h-6 text-xs font-medium text-text-muted flex items-center justify-end pr-2">{d}</div>
               ))}
             </div>
-            <div className="heatmap-grid-body">
-              <div className="heatmap-hours-row">
+            <div className="flex flex-col gap-2 flex-1 min-w-[320px]">
+              <div className="grid grid-cols-6 gap-2 text-center text-xs font-semibold text-text-muted pb-1">
                 {HOURS.map((h) => (
-                  <div key={h} className="heatmap-hour-label">{h}</div>
+                  <div key={h} className="text-xs font-semibold text-text-muted">{h}</div>
                 ))}
               </div>
               {heatmapData.map((row) => (
-                <div key={row.day} className="heatmap-row">
+                <div key={row.day} className="grid grid-cols-6 gap-2">
                   {row.hours.map((cell) => (
                     <div
                       key={cell.hour}
-                      className="heatmap-cell"
+                      className="h-6 rounded-md border border-border/50 transition-colors"
                       style={{
                         background: getHeatmapColor(cell.value, isDark),
                       }}

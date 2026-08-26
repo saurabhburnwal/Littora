@@ -97,13 +97,30 @@ describe("UploadForm component", () => {
     expect(screen.getByText("bottle 95%")).toBeInTheDocument();
   });
 
-  it("triggers alert on camera button click", () => {
-    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+  it("shows toast notification on camera button click", () => {
     render(<UploadForm onUpload={vi.fn()} loading={false} result={null} />);
 
     fireEvent.click(screen.getByRole("button", { name: /open camera/i }));
-    expect(alertSpy).toHaveBeenCalledWith("Camera capture coming soon!");
-    alertSpy.mockRestore();
+    expect(screen.getByText("Camera capture coming soon!")).toBeInTheDocument();
+  });
+
+  it("revokes previous object URL on new image selection and component unmount", () => {
+    const revokeSpy = vi.spyOn(global.URL, "revokeObjectURL").mockImplementation(() => {});
+    const { container, unmount } = render(<UploadForm onUpload={vi.fn()} loading={false} result={null} />);
+    const file1 = new File(["dummy 1"], "beach1.jpg", { type: "image/jpeg" });
+    const file2 = new File(["dummy 2"], "beach2.jpg", { type: "image/jpeg" });
+
+    const input = container.querySelector("input[type='file']");
+    fireEvent.change(input, { target: { files: [file1] } });
+    expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(input, { target: { files: [file2] } });
+    expect(revokeSpy).toHaveBeenCalledTimes(1);
+    expect(revokeSpy).toHaveBeenCalledWith("blob:preview-url");
+
+    unmount();
+    expect(revokeSpy).toHaveBeenCalledTimes(2);
+    revokeSpy.mockRestore();
   });
 
   it("submits with extracted EXIF coordinates when available", async () => {

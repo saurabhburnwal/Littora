@@ -5,18 +5,27 @@ import { sendEmail } from "../services/emailService.js";
 const router = Router();
 
 router.post("/send-report", requireAuth, async (req, res) => {
-  const { reportType, reportText } = req.body;
-  const recipient = req.user.email;
+  const { reportType, reportText } = req.body || {};
+  const recipient = req.user?.email;
 
   if (!recipient) {
     return res.status(400).json({ error: "User email not found" });
   }
 
+  if (!reportType || typeof reportType !== "string" || !reportType.trim()) {
+    return res.status(400).json({ error: "Invalid or missing reportType" });
+  }
+
+  const safeReportType = reportType.trim().toUpperCase();
+  const safeReportText = typeof reportText === "string" && reportText.trim()
+    ? reportText
+    : "Your Littora beach waste report is ready.";
+
   try {
     await sendEmail({
       to: recipient,
-      subject: `Littora Beach Waste Report (${reportType.toUpperCase()})`,
-      text: reportText || "Your Littora beach waste report is ready.",
+      subject: `Littora Beach Waste Report (${safeReportType})`,
+      text: safeReportText,
     });
     res.json({ message: "Report sent to email successfully", recipient });
   } catch (err) {

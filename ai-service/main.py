@@ -5,7 +5,9 @@ Supports multi-model inference (YOLOv8 Medium, YOLOv11 Medium, YOLOv26 Small).
 Stateless FastAPI service — Node backend orchestrates model selection and persistence.
 """
 
+import asyncio
 from contextlib import asynccontextmanager
+import gc
 import io
 import logging
 import os
@@ -67,15 +69,48 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
 }
 
 CLASS_NORMALIZATION: Dict[str, str] = {
+    # Canonical labels (identity)
     "bottle": "bottle",
     "can": "can",
     "bag": "bag",
     "wrapper": "wrapper",
+    # Bottle variants
+    "plastic_bottle": "bottle",
+    "plastic bottle": "bottle",
+    "glass_bottle": "bottle",
+    "glass bottle": "bottle",
+    "water_bottle": "bottle",
+    "water bottle": "bottle",
+    # Can variants
+    "metal_can": "can",
+    "metal can": "can",
+    "aluminum_can": "can",
+    "aluminum can": "can",
+    "tin_can": "can",
+    "tin can": "can",
+    "beverage_can": "can",
+    "soda_can": "can",
+    # Bag variants
+    "plastic_bag": "bag",
+    "plastic bag": "bag",
+    "trash_bag": "bag",
+    "trash bag": "bag",
+    "grocery_bag": "bag",
+    "shopping_bag": "bag",
+    # Wrapper variants
+    "food_wrapper": "wrapper",
+    "food wrapper": "wrapper",
+    "plastic_wrapper": "wrapper",
+    "plastic wrapper": "wrapper",
+    "snack_wrapper": "wrapper",
+    "candy_wrapper": "wrapper",
+    "chip_bag": "wrapper",
 }
 
-# Thread-safe model cache
+# Thread-safe model cache and synchronization locks
 _loaded_models: Dict[str, YOLO] = {}
 _model_lock = threading.Lock()
+_inference_lock = threading.Lock()
 
 
 class ModelWeightsUnavailable(RuntimeError):
@@ -148,6 +183,7 @@ async def lifespan(app: FastAPI):
     """
     FastAPI Lifespan context manager for warm-up and graceful shutdown.
     Pre-loads default YOLO model to eliminate cold-start latency on first request.
+    Reclaims GPU/CPU memory and clears caches on shutdown.
     """
     logger.info("Initializing Beach Waste Detection AI Service...")
     try:
@@ -155,12 +191,24 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Initial model warm-up failed: {e}")
     yield
-    _loaded_models.clear()
+    with _model_lock:
+        _loaded_models.clear()
     if torch.cuda.is_available():
         try:
             torch.cuda.empty_cache()
         except Exception:
             pass
+    if (
+        hasattr(torch, "mps")
+        and hasattr(torch.mps, "empty_cache")
+        and getattr(torch.backends, "mps", None)
+        and torch.backends.mps.is_available()
+    ):
+        try:
+            torch.mps.empty_cache()
+        except Exception:
+            pass
+    gc.collect()
     logger.info("AI Service shut down cleanly.")
 
 
@@ -213,7 +261,30 @@ class DetectionResponse(BaseModel):
     model_name: str
 
 
-# --- Core Helper ---
+# --- Core Helpers for Thread Offloading & Synchronization ---
+
+def _sync_load_image(data: bytes) -> Image.Image:
+    """Synchronously decode image bytes in a worker thread."""
+    img = Image.open(io.BytesIO(data))
+    return img.convert("RGB")
+
+
+def _sync_inference(
+    model_name: str, image: Image.Image
+) -> tuple[Any, str, str, dict[int, str]]:
+    """
+    Synchronously run YOLO inference in a worker thread with an execution lock.
+    Serializes inference calls on shared YOLO model instances to ensure thread safety.
+    Uses GPU acceleration (CUDA / MPS) whenever available to maximize performance and minimize CPU load.
+    """
+    model, model_id, model_display_name = get_yolo_model(model_name)
+    device = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
+    with _inference_lock:
+        with torch.inference_mode():
+            results = model.predict(image, device=device, verbose=False)[0]
+    names_dict = getattr(results, "names", getattr(model, "names", {}))
+    return results, model_id, model_display_name, names_dict
+
 
 async def _process_detection(file: UploadFile, model_name: str) -> DetectionResponse:
     """Core image processing and inference pipeline."""
@@ -231,7 +302,7 @@ async def _process_detection(file: UploadFile, model_name: str) -> DetectionResp
         )
 
     try:
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        image = await asyncio.to_thread(_sync_load_image, contents)
     except UnidentifiedImageError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -245,15 +316,17 @@ async def _process_detection(file: UploadFile, model_name: str) -> DetectionResp
         )
 
     try:
-        model, model_id, model_display_name = get_yolo_model(model_name)
-        with torch.inference_mode():
-            results = model.predict(image, verbose=False)[0]
+        results, model_id, model_display_name, class_names = await asyncio.to_thread(
+            _sync_inference, model_name, image
+        )
     except ModelWeightsUnavailable as err:
         logger.error(str(err))
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(err),
         )
+    except HTTPException:
+        raise
     except Exception as err:
         logger.error(f"Inference error during model execution: {err}")
         raise HTTPException(
@@ -267,7 +340,7 @@ async def _process_detection(file: UploadFile, model_name: str) -> DetectionResp
 
     for box in results.boxes:
         class_id = int(box.cls[0])
-        raw_name = str(model.names[class_id]).lower().strip()
+        raw_name = str(class_names.get(class_id, class_id)).lower().strip()
         name = CLASS_NORMALIZATION.get(raw_name, raw_name)
         detections[name] = detections.get(name, 0) + 1
 
@@ -316,10 +389,12 @@ async def _process_detection(file: UploadFile, model_name: str) -> DetectionResp
 def health():
     """Health check endpoint returning status, hardware compute device, and loaded models."""
     device = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
+    with _model_lock:
+        loaded_models = list(_loaded_models.keys())
     return HealthResponse(
         status="ok",
         device=device,
-        loaded_models=list(_loaded_models.keys()),
+        loaded_models=loaded_models,
     )
 
 

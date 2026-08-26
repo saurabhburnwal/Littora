@@ -81,4 +81,56 @@ describe("POST /api/email/send-report", () => {
     expect(res.body.error).toBe("Could not send report email");
     expect(res.body.details).toBe("SMTP Connection Failed");
   });
+
+  it("returns 400 Bad Request if reportType is missing from payload", async () => {
+    mockGetUser.mockResolvedValueOnce({ data: { user: { id: "user-123", email: "user@example.com" } }, error: null });
+
+    const res = await request(app)
+      .post("/api/email/send-report")
+      .set("Authorization", "Bearer valid-token")
+      .send({ reportText: "Some report" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("Invalid or missing reportType");
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 Bad Request if reportType is non-string or whitespace", async () => {
+    mockGetUser.mockResolvedValueOnce({ data: { user: { id: "user-123", email: "user@example.com" } }, error: null });
+
+    const resNum = await request(app)
+      .post("/api/email/send-report")
+      .set("Authorization", "Bearer valid-token")
+      .send({ reportType: 12345 });
+
+    expect(resNum.status).toBe(400);
+    expect(resNum.body.error).toBe("Invalid or missing reportType");
+
+    mockGetUser.mockResolvedValueOnce({ data: { user: { id: "user-123", email: "user@example.com" } }, error: null });
+    const resSpace = await request(app)
+      .post("/api/email/send-report")
+      .set("Authorization", "Bearer valid-token")
+      .send({ reportType: "   " });
+
+    expect(resSpace.status).toBe(400);
+    expect(resSpace.body.error).toBe("Invalid or missing reportType");
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  it("uses default report text when reportText is omitted", async () => {
+    mockGetUser.mockResolvedValueOnce({ data: { user: { id: "user-123", email: "user@example.com" } }, error: null });
+    mockSendEmail.mockResolvedValueOnce({ messageId: "msg-100" });
+
+    const res = await request(app)
+      .post("/api/email/send-report")
+      .set("Authorization", "Bearer valid-token")
+      .send({ reportType: "monthly" });
+
+    expect(res.status).toBe(200);
+    expect(mockSendEmail).toHaveBeenCalledWith({
+      to: "user@example.com",
+      subject: "Littora Beach Waste Report (MONTHLY)",
+      text: "Your Littora beach waste report is ready.",
+    });
+  });
 });

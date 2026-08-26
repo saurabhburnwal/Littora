@@ -94,7 +94,7 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
 
   return createPortal(
     <div
-      className="modal-overlay analysis-lightbox-overlay"
+      className="modal-overlay analysis-lightbox-overlay fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -102,13 +102,13 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
     >
       <section
         ref={containerRef}
-        className={`analysis-lightbox ${isDragging ? "is-resizing" : ""}`}
+        className={`analysis-lightbox relative flex flex-col md:flex-row w-full max-w-6xl max-h-[90vh] bg-surface border border-border rounded-3xl shadow-2xl overflow-hidden ${isDragging ? "is-resizing" : ""}`}
         data-testid="lightbox-container"
         onClick={(event) => event.stopPropagation()}
       >
         <button
           ref={closeButtonRef}
-          className="analysis-lightbox-close"
+          className="analysis-lightbox-close absolute top-3.5 right-3.5 z-40 flex items-center justify-center w-8 h-8 rounded-full bg-bg-secondary/80 hover:bg-primary-light text-text-primary hover:text-primary border border-border transition-colors cursor-pointer"
           onClick={onClose}
           aria-label="Close photo analysis detail"
         >
@@ -117,11 +117,11 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
 
         {/* LEFT: Image / BoundingBoxImage Stage */}
         <div
-          className="analysis-lightbox-stage"
+          className="analysis-lightbox-stage relative flex items-center justify-center bg-black overflow-hidden"
           data-testid="lightbox-stage"
           style={{ flex: `0 0 ${splitPercent}%`, width: `${splitPercent}%`, maxWidth: `${splitPercent}%` }}
         >
-          <div className="analysis-lightbox-media">
+          <div className="analysis-lightbox-media w-full h-full flex items-center justify-center p-4 sm:p-6">
             <BoundingBoxImage
               src={item.image_url}
               alt="Full-size beach analysis"
@@ -133,7 +133,7 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
 
         {/* DRAGGABLE DIVIDER / SPLITTER */}
         <div
-          className={`analysis-lightbox-divider ${isDragging ? "dragging" : ""}`}
+          className={`analysis-lightbox-divider hidden md:block w-2 bg-border hover:bg-primary cursor-col-resize relative transition-colors select-none ${isDragging ? "dragging !bg-primary" : ""}`}
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize image and details panels"
@@ -146,12 +146,12 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
           onDoubleClick={handleDoubleClick}
           onKeyDown={handleDividerKeyDown}
         >
-          <div className="analysis-lightbox-divider-line" />
+          <div className="analysis-lightbox-divider-line absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-8 bg-text-muted rounded-full" />
         </div>
 
         {/* RIGHT: Detection Metadata Panel */}
         <aside
-          className="analysis-lightbox-details"
+          className="analysis-lightbox-details overflow-y-auto p-4 sm:p-6 bg-surface"
           data-testid="lightbox-details"
           style={{ flex: `0 0 ${100 - splitPercent}%`, width: `${100 - splitPercent}%`, maxWidth: `${100 - splitPercent}%` }}
         >

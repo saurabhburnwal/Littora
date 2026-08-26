@@ -143,20 +143,20 @@ export default function DatasetPage() {
   };
 
   return (
-    <div className="page-container">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
-      <div className="page-heading">
-        <div className="dataset-heading-title">
-          <Database size={22} className="dataset-heading-icon" />
-          <h1>Data Explorer</h1>
+      <div className="flex flex-col gap-1 mb-6">
+        <div className="flex items-center gap-2.5">
+          <Database size={24} className="text-primary shrink-0" />
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Data Explorer</h1>
         </div>
-        <p>
+        <p className="text-xs sm:text-sm text-text-muted mt-1">
           Browse and export research-ready coastal waste datasets with GIS coordinates and Roboflow training data.
         </p>
       </div>
 
       {/* Dataset Metrics */}
-      <div className="kpi-stats-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard
           label="Catalog Records"
           value={(stats.totalAnalyses || 0).toLocaleString()}
@@ -184,18 +184,18 @@ export default function DatasetPage() {
       </div>
 
       {/* Section Header & Toolbar */}
-      <div className="section-header-wrap">
+      <div className="mb-4">
         <SectionHeader
           title="Available Datasets"
           subtitle="Machine-learning annotations and geospatial feature collections"
         />
       </div>
 
-      <div className="dataset-toolbar">
-        <div className="search-box">
-          <Search size={14} className="search-icon" />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
           <input
-            className="search-input dataset-search-input"
+            className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-surface text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-text-muted transition-all"
             type="text"
             placeholder="Search datasets..."
             value={search}
@@ -203,10 +203,10 @@ export default function DatasetPage() {
           />
         </div>
 
-        <div className="dataset-filter-group">
-          <Filter size={14} className="dataset-filter-icon" />
+        <div className="relative flex items-center">
+          <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
           <select
-            className="filter-select dataset-filter-select"
+            className="pl-9 pr-8 py-2 text-xs sm:text-sm bg-surface text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer transition-all appearance-none"
             value={formatFilter}
             onChange={(e) => setFormatFilter(e.target.value)}
           >
@@ -220,84 +220,86 @@ export default function DatasetPage() {
       </div>
 
       {/* Table Card */}
-      <div className="history">
-        <table>
-          <thead>
-            <tr>
-              <th>Dataset Name</th>
-              <th>Records</th>
-              <th>Size</th>
-              <th>Format</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
+      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-md">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead className="bg-bg-secondary/50 text-text-secondary border-b border-border text-[11px] uppercase tracking-wider font-semibold">
               <tr>
-                <td colSpan={6} className="history-empty-state">
-                  No matching datasets found.
-                </td>
+                <th className="px-4 py-3 font-semibold">Dataset Name</th>
+                <th className="px-4 py-3 font-semibold">Records</th>
+                <th className="px-4 py-3 font-semibold">Size</th>
+                <th className="px-4 py-3 font-semibold">Format</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Actions</th>
               </tr>
-            ) : (
-              filtered.map((d) => (
-                <tr key={d.id}>
-                  <td>
-                    <div className="dataset-title-row">
-                      {d.format === "GEOJSON" && <MapPin size={14} className="dataset-icon--geojson" />}
-                      {d.format === "CSV" && <FileSpreadsheet size={14} className="dataset-icon--csv" />}
-                      {d.format === "ROBOFLOW" && <Database size={14} className="dataset-icon--roboflow" />}
-                      <span>{d.name}</span>
-                    </div>
-                    {d.description && (
-                      <div className="dataset-desc">
-                        {d.description}
-                      </div>
-                    )}
-                  </td>
-                  <td>{d.records.toLocaleString()}</td>
-                  <td className="dataset-table-size">{d.size}</td>
-                  <td>
-                    <span
-                      className={`waste-badge ${
-                        d.format === "GEOJSON"
-                          ? "waste-badge--geojson"
-                          : d.format === "ROBOFLOW"
-                          ? "waste-badge--roboflow"
-                          : "waste-badge--default"
-                      }`}
-                    >
-                      {d.format}
-                    </span>
-                  </td>
-                  <td className="dataset-table-updated">{d.updated}</td>
-                  <td>
-                    {d.isExternal ? (
-                      <a
-                        href={d.externalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="export-btn dataset-action-btn"
-                      >
-                        <ExternalLink size={13} /> View
-                      </a>
-                    ) : (
-                      <button
-                        type="button"
-                        className="export-btn dataset-action-btn"
-                        onClick={() => handleDownload(d)}
-                        disabled={downloadingId === d.id}
-                      >
-                        <Download size={13} />
-                        {downloadingId === d.id ? "Downloading..." : "Export"}
-                      </button>
-                    )}
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-xs sm:text-sm text-text-muted">
+                    No matching datasets found.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filtered.map((d) => (
+                  <tr key={d.id} className="hover:bg-bg-secondary/30 transition-colors">
+                    <td className="px-4 py-3.5 text-text-primary align-middle">
+                      <div className="flex items-center gap-2 font-bold text-text-primary text-xs sm:text-sm font-display">
+                        {d.format === "GEOJSON" && <MapPin size={14} className="text-sky-500 shrink-0" />}
+                        {d.format === "CSV" && <FileSpreadsheet size={14} className="text-emerald-500 shrink-0" />}
+                        {d.format === "ROBOFLOW" && <Database size={14} className="text-purple-500 shrink-0" />}
+                        <span>{d.name}</span>
+                      </div>
+                      {d.description && (
+                        <div className="text-xs text-text-muted mt-1 max-w-lg leading-relaxed">
+                          {d.description}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5 text-text-primary align-middle font-mono text-xs">{d.records.toLocaleString()}</td>
+                    <td className="px-4 py-3.5 text-text-secondary align-middle font-mono text-xs">{d.size}</td>
+                    <td className="px-4 py-3.5 text-text-primary align-middle">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-pill text-[11px] font-bold ${
+                          d.format === "GEOJSON"
+                            ? "bg-sky-500/15 text-sky-500 border border-sky-500/30"
+                            : d.format === "ROBOFLOW"
+                            ? "bg-purple-500/15 text-purple-500 border border-purple-500/30"
+                            : "bg-primary/15 text-primary border border-primary/30"
+                        }`}
+                      >
+                        {d.format}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-text-muted align-middle text-xs font-medium">{d.updated}</td>
+                    <td className="px-4 py-3.5 text-text-primary align-middle">
+                      {d.isExternal ? (
+                        <a
+                          href={d.externalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold border border-primary/30 transition-colors disabled:opacity-50 cursor-pointer"
+                        >
+                          <ExternalLink size={13} /> View
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold border border-primary/30 transition-colors disabled:opacity-50 cursor-pointer"
+                          onClick={() => handleDownload(d)}
+                          disabled={downloadingId === d.id}
+                        >
+                          <Download size={13} />
+                          {downloadingId === d.id ? "Downloading..." : "Export"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -25,10 +25,32 @@ const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "beach-waste-images";
 const SUPPORTED_WASTE_TYPES = new Set(["bottle", "can", "bag", "wrapper"]);
 
 /**
+ * Sanitizes an image filename by stripping directory traversal sequences,
+ * path separators, and non-safe characters.
+ */
+export function sanitizeFilename(originalName) {
+  if (!originalName || typeof originalName !== "string") {
+    return "image.jpg";
+  }
+  // Strip directory paths (forward and backward slashes)
+  const baseName = originalName.split(/[/\\]/).pop() || "";
+  // Strip null bytes and control chars
+  const noControl = baseName.replace(/[\x00-\x1f\x7f-\x9f]/g, "");
+  // Replace path traversal patterns (e.g., '..'), and unsafe characters (keep alphanumeric, ., -, _)
+  const sanitized = noControl
+    .replace(/\.\.+/g, ".")
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .replace(/^[_.-]+/, "");
+
+  return sanitized || "image.jpg";
+}
+
+/**
  * Uploads an image buffer to Supabase Storage and returns its public URL.
  */
 export async function uploadImage(buffer, originalName, mimeType) {
-  const fileName = `${Date.now()}-${originalName}`;
+  const safeName = sanitizeFilename(originalName);
+  const fileName = `${Date.now()}-${safeName}`;
 
   const { error } = await supabase.storage
     .from(BUCKET)
@@ -113,18 +135,31 @@ export async function saveAnalysis({
 
   if (analysisError) throw analysisError;
 
-  // 3. Insert child detections rows
-  const detectionRows = Object.entries(detections).map(([wasteType, count]) => ({
+  // 3. Insert child detections rows with compensation rollback
+  const detectionRows = Object.entries(detections || {}).map(([wasteType, count]) => ({
     analysis_id: analysis.id,
     waste_type:  String(wasteType).toLowerCase(),
     count,
   }));
 
   if (detectionRows.length > 0) {
-    const { error: detectionsError } = await supabase
-      .from("detections")
-      .insert(detectionRows);
-    if (detectionsError) throw detectionsError;
+    try {
+      const { error: detectionsError } = await supabase
+        .from("detections")
+        .insert(detectionRows);
+
+      if (detectionsError) {
+        throw detectionsError;
+      }
+    } catch (err) {
+      // Rollback created parent record so no orphaned analyses remain
+      try {
+        await supabase.from("analyses").delete().eq("id", analysis.id);
+      } catch (cleanupErr) {
+        console.error(`Failed to rollback orphaned analysis ${analysis.id}:`, cleanupErr.message);
+      }
+      throw err;
+    }
   }
 
   // 4. Return enriched row from vw_analysis_details (includes location JOIN)

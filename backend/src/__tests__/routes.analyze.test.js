@@ -163,4 +163,26 @@ describe("POST /api/analyze", () => {
       expect.objectContaining({ userId: null })
     );
   });
+
+  it("returns 413 Payload Too Large when file size exceeds 10MB limit", async () => {
+    const OVERSIZED_BUFFER = Buffer.alloc(10 * 1024 * 1024 + 1024); // 10MB + 1KB
+
+    const res = await request(app)
+      .post("/api/analyze")
+      .attach("image", OVERSIZED_BUFFER, { filename: "large.jpg", contentType: "image/jpeg" });
+
+    expect(res.status).toBe(413);
+    expect(res.body.error).toMatch(/exceeds 10mb limit|file too large/i);
+    expect(mockRunDetection).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 Bad Request when unexpected field name is provided in multipart form", async () => {
+    const res = await request(app)
+      .post("/api/analyze")
+      .attach("wrong_field", TINY_PNG, { filename: "test.jpg", contentType: "image/jpeg" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/unexpected field|invalid/i);
+    expect(mockRunDetection).not.toHaveBeenCalled();
+  });
 });

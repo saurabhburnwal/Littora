@@ -245,8 +245,8 @@ export default function HistoryPage() {
     (filterLocation !== "all" ? 1 : 0);
 
   return (
-    <div className="page-container history-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="page-heading flex items-start justify-between gap-4 flex-wrap">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Detection History</h1>
           <p className="text-xs sm:text-sm text-text-muted mt-1">
@@ -258,12 +258,12 @@ export default function HistoryPage() {
         {user && (
           <button
             type="button"
-            className="refresh-btn flex items-center gap-2 px-3.5 py-2 bg-surface hover:bg-bg-secondary border border-border text-text-primary rounded-pill text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-surface hover:bg-bg-secondary border border-border text-text-primary rounded-pill text-xs font-semibold shadow-sm transition-colors cursor-pointer disabled:opacity-50"
             onClick={loadAnalyses}
             disabled={loading}
             title="Refresh analyses"
           >
-            <RefreshCw size={15} className={loading ? "is-spinning animate-spin" : ""} />
+            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
             Refresh
           </button>
         )}
@@ -271,7 +271,7 @@ export default function HistoryPage() {
 
       {/* KPI Section */}
       {!loading && !error && history.length > 0 && (
-        <div className="kpi-stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <MetricCard
             label="Detection Sessions"
             value={history.length}
@@ -294,29 +294,29 @@ export default function HistoryPage() {
 
       {/* Loading state */}
       {loading && (
-        <div className="result-placeholder">
-          <div className="login-spinner login-spinner--centered" />
-          <p>{isAdmin ? "Loading all analyses…" : "Loading your analyses…"}</p>
+        <div className="flex flex-col items-center justify-center p-12 text-center text-text-muted gap-3 bg-surface border border-dashed border-border rounded-2xl my-6">
+          <div className="w-7 h-7 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-xs sm:text-sm font-medium">{isAdmin ? "Loading all analyses…" : "Loading your analyses…"}</p>
         </div>
       )}
 
       {/* Error state */}
       {!loading && error && (
-        <div className="admin-error-banner admin-error-banner--spaced">
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-sm font-medium my-4">
           {error}
         </div>
       )}
 
       {/* Empty state */}
       {!loading && !error && history.length === 0 && (
-        <div className="result-placeholder result-placeholder--spaced">
+        <div className="flex flex-col items-center justify-center p-12 text-center text-text-muted gap-3 bg-surface border border-dashed border-border rounded-2xl my-6">
           <ImageOff size={48} strokeWidth={1.2} />
           {isAdmin ? (
-            <p>No analyses have been uploaded by any user yet.</p>
+            <p className="text-xs sm:text-sm">No analyses have been uploaded by any user yet.</p>
           ) : (
             <>
-              <p>You haven&apos;t uploaded any photos yet.</p>
-              <p className="history-empty-hint">
+              <p className="text-xs sm:text-sm">You haven&apos;t uploaded any photos yet.</p>
+              <p className="text-xs text-text-muted mt-1">
                 Head to <strong>Detect Waste</strong> to upload your first beach photo.
               </p>
             </>
@@ -337,29 +337,33 @@ export default function HistoryPage() {
             resultsCount={filtered.length}
           >
             {/* Severity Filter Group */}
-            <div className="filter-group">
-              <label className="filter-group-label">Severity Tier</label>
-              <div className="filter-severity-pills">
+            <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Severity Tier</label>
+              <div className="flex items-center gap-1.5 flex-wrap">
                 {SEVERITY_OPTIONS.map((opt) => (
                   <button
                     key={opt.id}
                     type="button"
-                    className={`filter-severity-pill ${filterSeverity === opt.id ? "active" : ""}`}
+                    className={`px-3 py-1.5 rounded-pill text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1 ${
+                      filterSeverity === opt.id
+                        ? "border-primary bg-primary text-white font-bold shadow-sm"
+                        : "border-border bg-surface text-text-secondary hover:border-primary/50"
+                    }`}
                     onClick={() => setFilterSeverity(opt.id)}
                   >
                     <span>{opt.label}</span>
-                    {opt.sub && <span className="filter-pill-sub">{opt.sub}</span>}
+                    {opt.sub && <span className="ml-1 text-[10px] opacity-75 font-normal">{opt.sub}</span>}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Waste Type Filter Group */}
-            <div className="filter-group">
-              <label className="filter-group-label" htmlFor="filter-waste-select">Waste Type</label>
+            <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="filter-waste-select">Waste Type</label>
               <select
                 id="filter-waste-select"
-                className="filter-popover-select"
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
                 aria-label="Filter by waste type"
                 value={filterWasteType}
                 onChange={(e) => setFilterWasteType(e.target.value)}
@@ -374,11 +378,11 @@ export default function HistoryPage() {
             </div>
 
             {/* Date Filter Group */}
-            <div className="filter-group">
-              <label className="filter-group-label" htmlFor="filter-date-select">Date Range</label>
+            <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="filter-date-select">Date Range</label>
               <select
                 id="filter-date-select"
-                className="filter-popover-select"
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
                 aria-label="Filter by date range"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
@@ -392,11 +396,11 @@ export default function HistoryPage() {
             </div>
 
             {/* Location Filter Group */}
-            <div className="filter-group">
-              <label className="filter-group-label" htmlFor="filter-loc-select">Beach Location</label>
+            <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+              <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="filter-loc-select">Beach Location</label>
               <select
                 id="filter-loc-select"
-                className="filter-popover-select"
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
                 aria-label="Filter by location"
                 value={filterLocation}
                 onChange={(e) => setFilterLocation(e.target.value)}
@@ -412,7 +416,7 @@ export default function HistoryPage() {
           </FilterToolbar>
 
           {/* Photo gallery */}
-          <section className="history-gallery-section">
+          <section className="space-y-4">
             <SectionHeader
               title="Photo Gallery"
               subtitle="Visual detection catalog and photo inspection"
@@ -426,7 +430,7 @@ export default function HistoryPage() {
           </section>
 
           {/* Detailed records table */}
-          <section>
+          <section className="space-y-4">
             <SectionHeader
               title="Analysis Records"
               subtitle="Tabular dataset of past scans and debris classifications"

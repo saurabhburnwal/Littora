@@ -75,4 +75,18 @@ describe("ReportsPage component", () => {
       expect(generatePdfReport).toHaveBeenCalled();
     });
   });
+
+  it("selects report period via Enter and Space keyboard interaction", async () => {
+    renderReports({ user: { id: "u-reporter", email: "reporter@example.com" } });
+    await vi.waitFor(() => screen.getByRole("button", { name: /select daily report/i }));
+
+    const dailyCard = screen.getByRole("button", { name: /select daily report/i });
+    fireEvent.keyDown(dailyCard, { key: "Enter" });
+    expect(dailyCard.className).toContain("selected");
+
+    const weeklyCard = screen.getByRole("button", { name: /select weekly report/i });
+    fireEvent.keyDown(weeklyCard, { key: " " });
+    expect(weeklyCard.className).toContain("selected");
+  });
 });
+

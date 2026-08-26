@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   FileText, Calendar, BarChart3, Settings, Download, Mail,
-  Loader2, CheckCircle, AlertTriangle, ShieldAlert, Sparkles,
+  Loader2, ShieldAlert, Sparkles,
   TrendingUp, Trash2, MapPin, Check
 } from "lucide-react";
 import axios from "axios";
@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import SectionHeader from "../components/ui/SectionHeader.jsx";
 import MetricCard from "../components/ui/MetricCard.jsx";
 import Badge from "../components/ui/Badge.jsx";
+import ToastNotification from "../components/ToastNotification.jsx";
 import { generatePdfReport } from "../utils/generatePdfReport.js";
 import { API_BASE, formatWasteType } from "../utils/wasteUtils.js";
 
@@ -120,36 +121,51 @@ End of Report - Littora Coastal Monitoring Systems
   };
 
   return (
-    <div className="page-container">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
-      <div className="page-heading">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1>Reports</h1>
-          <p>Generate, preview, download, and email comprehensive environmental audit reports.</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Reports</h1>
+          <p className="text-xs sm:text-sm text-text-muted mt-1">Generate, preview, download, and email comprehensive environmental audit reports.</p>
         </div>
       </div>
 
       {/* Report Template Selector Cards */}
-      <section className="reports-section">
+      <section className="space-y-4 mb-8">
         <SectionHeader
           title="Select Report Period"
           subtitle="Choose the temporal scope for coastal waste monitoring"
         />
-        <div className="cards-grid-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {REPORT_TYPES.map((r) => (
             <div
               key={r.id}
-              className={`report-card${selected === r.id ? " selected" : ""}`}
+              className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer bg-surface text-left flex items-start gap-3.5 shadow-sm ${
+                selected === r.id
+                  ? "selected border-primary ring-2 ring-primary/20 bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
               onClick={() => setSelected(r.id)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && setSelected(r.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelected(r.id);
+                }
+              }}
               aria-label={`Select ${r.title}`}
             >
-              <div className="report-icon">{r.icon}</div>
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0 flex items-center justify-center">
+                {r.icon}
+              </div>
               <div>
-                <div className="report-card-title">{r.title}</div>
-                <div className="report-card-desc">{r.desc}</div>
+                <div className="font-display text-sm font-bold text-text-primary mb-1">
+                  {r.title}
+                </div>
+                <div className="text-xs text-text-muted leading-relaxed">
+                  {r.desc}
+                </div>
               </div>
             </div>
           ))}
@@ -157,46 +173,46 @@ End of Report - Littora Coastal Monitoring Systems
       </section>
 
       {/* Report Preview Section */}
-      <section className="reports-section">
-        <div className="full-card report-preview-card">
+      <section className="space-y-4 mb-8">
+        <div className="bg-surface border border-border rounded-2xl p-5 sm:p-7 shadow-sm space-y-6">
           {/* Header Action Row */}
-          <div className="report-preview-header">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border/60">
             <div>
-              <div className="report-title-wrap">
-                <h2 className="report-title-text">
+              <div className="flex items-center gap-3 flex-wrap mb-1">
+                <h2 className="font-display text-xl sm:text-2xl font-bold text-text-primary tracking-tight">
                   {selectedReport.title}
                 </h2>
                 <Badge variant="status" type="active">Certified AI Audit</Badge>
               </div>
-              <p className="report-subtitle-text">
+              <p className="text-xs sm:text-sm text-text-muted">
                 Generated for <strong>{user?.email || "Littora User"}</strong> on {new Date().toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}
               </p>
             </div>
 
-            <div className="report-actions-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
               <button
                 type="button"
-                className="export-btn report-btn--teal"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-pill bg-primary hover:bg-primary-hover active:bg-primary-active text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 onClick={handleEmailReport}
                 disabled={emailing}
               >
-                {emailing ? <Loader2 size={14} className="is-spinning" /> : <Mail size={14} />}
+                {emailing ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
                 Email to Me
               </button>
               <button
                 type="button"
-                className="export-btn report-btn--secondary"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-pill bg-secondary hover:bg-secondary-hover active:bg-secondary-active text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 onClick={handleDownloadReport}
                 disabled={downloading}
               >
-                {downloading ? <Loader2 size={14} className="is-spinning" /> : <Download size={14} />}
+                {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 Download PDF Report
               </button>
             </div>
           </div>
 
           {/* 1. Summary Metrics Cards */}
-          <div className="kpi-stats-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard
               label="Total Detections"
               value={(stats.totalAnalyses || 0).toLocaleString()}
@@ -224,47 +240,47 @@ End of Report - Littora Coastal Monitoring Systems
           </div>
 
           {/* 2. Severity & Waste Composition Grid */}
-          <div className="report-breakdown-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Severity Distribution Card */}
-            <div className="report-breakdown-card">
-              <div className="report-breakdown-header">
+            <div className="bg-bg-secondary/40 border border-border/60 rounded-xl p-4 sm:p-5 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-secondary">
                 <ShieldAlert size={15} />
                 <span>Severity Distribution</span>
               </div>
-              <div className="report-breakdown-list">
-                <div className="report-breakdown-row">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-b-0 text-xs sm:text-sm">
                   <Badge variant="severity" type="low">Low Severity</Badge>
-                  <span className="report-breakdown-val">{stats.severityCounts?.Low || 0}</span>
+                  <span className="font-semibold text-text-primary">{stats.severityCounts?.Low || 0}</span>
                 </div>
-                <div className="report-breakdown-row">
+                <div className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-b-0 text-xs sm:text-sm">
                   <Badge variant="severity" type="moderate">Moderate Severity</Badge>
-                  <span className="report-breakdown-val">{stats.severityCounts?.Moderate || 0}</span>
+                  <span className="font-semibold text-text-primary">{stats.severityCounts?.Moderate || 0}</span>
                 </div>
-                <div className="report-breakdown-row">
+                <div className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-b-0 text-xs sm:text-sm">
                   <Badge variant="severity" type="high">High Severity</Badge>
-                  <span className="report-breakdown-val">{stats.severityCounts?.High || 0}</span>
+                  <span className="font-semibold text-text-primary">{stats.severityCounts?.High || 0}</span>
                 </div>
-                <div className="report-breakdown-row">
+                <div className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-b-0 text-xs sm:text-sm">
                   <Badge variant="severity" type="severe">Severe Pollution</Badge>
-                  <span className="report-breakdown-val">{stats.severityCounts?.Severe || 0}</span>
+                  <span className="font-semibold text-text-primary">{stats.severityCounts?.Severe || 0}</span>
                 </div>
               </div>
             </div>
 
             {/* Waste Composition Breakdown Card */}
-            <div className="report-breakdown-card">
-              <div className="report-breakdown-header">
+            <div className="bg-bg-secondary/40 border border-border/60 rounded-xl p-4 sm:p-5 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-secondary">
                 <Trash2 size={15} />
                 <span>Top Waste Types</span>
               </div>
               {wasteEntries.length === 0 ? (
-                <p className="table-null-dash">No waste items cataloged yet.</p>
+                <p className="text-xs text-text-muted italic py-2">No waste items cataloged yet.</p>
               ) : (
-                <div className="report-breakdown-list">
+                <div className="space-y-2.5">
                   {wasteEntries.slice(0, 4).map(([type, count]) => (
-                    <div key={type} className="report-breakdown-row">
+                    <div key={type} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-b-0 text-xs sm:text-sm">
                       <Badge variant="waste" type={type}>{formatWasteType(type)}</Badge>
-                      <span className="report-breakdown-val">{count.toLocaleString()} items</span>
+                      <span className="font-semibold text-text-primary">{count.toLocaleString()} items</span>
                     </div>
                   ))}
                 </div>
@@ -273,12 +289,12 @@ End of Report - Littora Coastal Monitoring Systems
           </div>
 
           {/* 3. Action Recommendations */}
-          <div className="report-recommendations-box">
-            <div className="report-rec-title">
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 sm:p-5 space-y-3">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-primary">
               <Check size={16} />
               <span>Recommended Environmental Actions</span>
             </div>
-            <ul className="report-rec-list">
+            <ul className="list-disc list-inside space-y-1.5 text-xs sm:text-sm text-text-secondary pl-1">
               <li>Deploy targeted community cleanup drives for high-severity beaches identified in this report.</li>
               <li>Increase smart waste receptacle placement near high-traffic coastal hotspots.</li>
               <li>Maintain ongoing automated surveillance and real-time YOLO debris classification.</li>
@@ -286,11 +302,11 @@ End of Report - Littora Coastal Monitoring Systems
           </div>
 
           {/* 4. Raw Report Text (Disclosure Control) */}
-          <details className="raw-report-details">
-            <summary className="raw-report-summary">
+          <details className="border border-border/70 rounded-xl p-3 bg-bg-secondary/30 transition-all">
+            <summary className="text-xs font-semibold text-text-muted cursor-pointer hover:text-text-primary transition-colors select-none">
               View raw report
             </summary>
-            <pre className="raw-report-pre">
+            <pre className="mt-3 p-4 bg-bg-secondary text-text-primary rounded-lg text-xs font-mono whitespace-pre-wrap overflow-x-auto border border-border/60">
               {generateReportText()}
             </pre>
           </details>
@@ -298,12 +314,7 @@ End of Report - Littora Coastal Monitoring Systems
       </section>
 
       {/* Toast Notification */}
-      {toast && (
-        <div className={`admin-toast admin-toast-${toast.type}`}>
-          {toast.type === "success" ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
-          <span>{toast.message}</span>
-        </div>
-      )}
+      <ToastNotification toast={toast} />
     </div>
   );
 }

@@ -28,7 +28,35 @@ const {
   uploadImage,
   saveAnalysis,
   getWasteTypesCatalog,
+  sanitizeFilename,
 } = await import("../services/supabaseClient.js");
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("sanitizeFilename", () => {
+  it("preserves standard safe filenames", () => {
+    expect(sanitizeFilename("beach-waste.jpg")).toBe("beach-waste.jpg");
+    expect(sanitizeFilename("photo_2026.png")).toBe("photo_2026.png");
+  });
+
+  it("strips directory traversal paths and path separators", () => {
+    expect(sanitizeFilename("../../etc/passwd")).toBe("passwd");
+    expect(sanitizeFilename("..\\..\\windows\\system32\\cmd.exe")).toBe("cmd.exe");
+    expect(sanitizeFilename("folder/subfolder/test-image.jpg")).toBe("test-image.jpg");
+  });
+
+  it("replaces special characters and spaces with underscores", () => {
+    expect(sanitizeFilename("beach photo (1) [HD]!.jpeg")).toBe("beach_photo__1___HD__.jpeg");
+    expect(sanitizeFilename("test@#%&*$.png")).toBe("test______.png");
+  });
+
+  it("handles empty, non-string, or purely invalid filenames with default fallback", () => {
+    expect(sanitizeFilename("")).toBe("image.jpg");
+    expect(sanitizeFilename(null)).toBe("image.jpg");
+    expect(sanitizeFilename(undefined)).toBe("image.jpg");
+    expect(sanitizeFilename("../..")).toBe("image.jpg");
+    expect(sanitizeFilename("....")).toBe("image.jpg");
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe("uploadImage", () => {
@@ -40,6 +68,19 @@ describe("uploadImage", () => {
     const url = await uploadImage(Buffer.from("fake-img"), "test.jpg", "image/jpeg");
     expect(url).toBe("https://example.com/test.jpg");
     expect(mockUpload).toHaveBeenCalled();
+  });
+
+  it("sanitizes originalName when uploading", async () => {
+    const mockUpload = jest.fn().mockResolvedValue({ error: null });
+    const mockGetPublicUrl = jest.fn().mockReturnValue({ data: { publicUrl: "https://example.com/clean.jpg" } });
+    mockStorageFrom.mockReturnValue({ upload: mockUpload, getPublicUrl: mockGetPublicUrl });
+
+    await uploadImage(Buffer.from("img"), "../../bad/path/dirty photo (1).jpg", "image/jpeg");
+    expect(mockUpload).toHaveBeenCalledWith(
+      expect.stringMatching(/^\d+-dirty_photo__1_\.jpg$/),
+      expect.any(Buffer),
+      { contentType: "image/jpeg" }
+    );
   });
 
   it("throws error when upload fails", async () => {
@@ -128,7 +169,7 @@ describe("saveAnalysis", () => {
     })).rejects.toThrow("DB Constraint Fail");
   });
 
-  it("throws when detections insert returns an error", async () => {
+  it("throws and rolls back created analysis row when detections insert returns an error", async () => {
     const fakeAnalysis = { id: "a-101", total_waste: 1 };
     const mockLocationUpsert = {
       select: jest.fn().mockReturnThis(),
@@ -138,11 +179,15 @@ describe("saveAnalysis", () => {
       select: jest.fn().mockReturnThis(),
       single: jest.fn().mockResolvedValue({ data: fakeAnalysis, error: null }),
     };
+    const mockDeleteAnalysisEq = jest.fn().mockResolvedValue({ error: null });
+    const mockDeleteAnalysis = {
+      eq: mockDeleteAnalysisEq,
+    };
     const mockInsertDetections = jest.fn().mockResolvedValue({ error: new Error("Detections FK error") });
 
     mockFrom.mockImplementation((table) => {
       if (table === "locations")       return { upsert: () => mockLocationUpsert };
-      if (table === "analyses")        return { insert: () => mockInsertAnalysis };
+      if (table === "analyses")        return { insert: () => mockInsertAnalysis, delete: () => mockDeleteAnalysis };
       if (table === "detections")      return { insert: mockInsertDetections };
       if (table === "system_settings") return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
       if (table === "ai_models")       return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
@@ -158,6 +203,46 @@ describe("saveAnalysis", () => {
       longitude: 72.8,
       locationLabel: "Girgaon Beach",
     })).rejects.toThrow("Detections FK error");
+
+    expect(mockDeleteAnalysisEq).toHaveBeenCalledWith("id", "a-101");
+  });
+
+  it("handles rollback error gracefully when deletion fails during compensation", async () => {
+    const fakeAnalysis = { id: "a-102", total_waste: 1 };
+    const mockLocationUpsert = {
+      select: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: { id: "loc-2" }, error: null }),
+    };
+    const mockInsertAnalysis = {
+      select: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: fakeAnalysis, error: null }),
+    };
+    const mockDeleteAnalysisEq = jest.fn().mockRejectedValue(new Error("Cleanup network timeout"));
+    const mockDeleteAnalysis = {
+      eq: mockDeleteAnalysisEq,
+    };
+    const mockInsertDetections = jest.fn().mockRejectedValue(new Error("Detections network exception"));
+
+    mockFrom.mockImplementation((table) => {
+      if (table === "locations")       return { upsert: () => mockLocationUpsert };
+      if (table === "analyses")        return { insert: () => mockInsertAnalysis, delete: () => mockDeleteAnalysis };
+      if (table === "detections")      return { insert: mockInsertDetections };
+      if (table === "system_settings") return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      if (table === "ai_models")       return { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), limit: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: null, error: null }) };
+    });
+
+    await expect(saveAnalysis({
+      imageUrl: "https://example.com/a.jpg",
+      totalWaste: 1,
+      pollutionScore: 10,
+      severity: "Low",
+      detections: { bottle: 1 },
+      latitude: 18.9,
+      longitude: 72.8,
+      locationLabel: "Girgaon Beach",
+    })).rejects.toThrow("Detections network exception");
+
+    expect(mockDeleteAnalysisEq).toHaveBeenCalledWith("id", "a-102");
   });
 
   it("rejects waste types outside the deployed four-class model", async () => {

@@ -138,10 +138,10 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
   const isFocused = lightbox && viewMode === "focus" && Boolean(focusViewport);
 
   return (
-    <div className="bbox-interactive-wrapper">
-      <div className={`modal-img-container${lightbox ? " modal-img-container--lightbox" : ""}`}>
+    <div className="relative w-full h-full flex flex-col items-center justify-center">
+      <div className={`modal-img-container relative w-full flex items-center justify-center overflow-hidden rounded-2xl ${lightbox ? "modal-img-container--lightbox max-h-[80vh]" : ""}`}>
         <div
-          className="modal-image-frame"
+          className="modal-image-frame relative inline-block max-w-full max-h-full transition-transform duration-300 ease-out"
           data-testid="modal-image-frame"
           style={{
             ...(aspectRatio ? { aspectRatio } : {}),
@@ -156,7 +156,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
           <img
             src={src}
             alt={alt}
-            className="modal-img-full"
+            className="modal-img-full block max-w-full max-h-[75vh] object-contain rounded-xl"
             decoding="async"
             onLoad={(event) => {
               const { naturalWidth, naturalHeight } = event.currentTarget;
@@ -165,7 +165,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
           />
 
           {visibleBoxes.length > 0 && (
-            <div className="bbox-overlay-layer" data-testid="bbox-overlay" aria-label="Detection bounding boxes">
+            <div className="bbox-overlay-layer absolute inset-0 pointer-events-none" data-testid="bbox-overlay" aria-label="Detection bounding boxes">
               {visibleBoxes.map((b, idx) => {
                 const [xmin, ymin, xmax, ymax] = b.box_normalized;
                 const left = Math.max(0, Math.min(100, xmin * 100));
@@ -179,7 +179,7 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
                 return (
                   <div
                     key={idx}
-                    className="bbox-box"
+                    className="bbox-box absolute border-2 pointer-events-none box-border transition-opacity duration-200"
                     data-testid="bbox-box"
                     style={{
                       left: `${left}%`,
@@ -190,7 +190,10 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
                       boxShadow: `0 0 10px ${color}80, inset 0 0 8px ${color}25`,
                     }}
                   >
-                    <span className="bbox-label" style={{ backgroundColor: color }}>
+                    <span
+                      className="bbox-label absolute bottom-full left-0 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-t whitespace-nowrap pointer-events-none"
+                      style={{ backgroundColor: color }}
+                    >
                       {label}
                     </span>
                   </div>
@@ -203,10 +206,19 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
 
       {/* Detection-Focus Viewport Toggle (Lightbox Mode) */}
       {lightbox && (
-        <div className="bbox-view-mode-toggle" data-testid="bbox-view-mode-toggle" role="group" aria-label="Image view mode">
+        <div
+          className="bbox-view-mode-toggle flex items-center gap-1.5 p-1 bg-surface/90 backdrop-blur-md border border-border rounded-pill shadow-md mt-3"
+          data-testid="bbox-view-mode-toggle"
+          role="group"
+          aria-label="Image view mode"
+        >
           <button
             type="button"
-            className={`bbox-view-btn ${isFocused ? "active" : ""}`}
+            className={`px-3 py-1.5 rounded-pill text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+              isFocused
+                ? "bg-primary text-white shadow-xs font-bold"
+                : "text-text-muted hover:text-text-primary"
+            }`}
             onClick={() => setViewMode("focus")}
             disabled={!focusViewport}
             aria-pressed={isFocused}
@@ -217,7 +229,11 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
           </button>
           <button
             type="button"
-            className={`bbox-view-btn ${!isFocused ? "active" : ""}`}
+            className={`px-3 py-1.5 rounded-pill text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              !isFocused
+                ? "bg-primary text-white shadow-xs font-bold"
+                : "text-text-muted hover:text-text-primary"
+            }`}
             onClick={() => setViewMode("full")}
             aria-pressed={!isFocused}
             title="Show complete original image"
@@ -230,16 +246,16 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
 
       {/* Interactive Toolbar — collapsible detection settings with confidence slider & category chips */}
       {validBoxes.length > 0 && (
-        <details className="bbox-filter-details" open={!lightbox}>
-          <summary className="bbox-filter-summary">
-            <SlidersHorizontal size={13} className="bbox-settings-icon" />
+        <details className="w-full max-w-xl mt-3 bg-surface/95 backdrop-blur-md border border-border rounded-2xl p-3.5 shadow-md" open={!lightbox}>
+          <summary className="flex items-center gap-2 text-xs font-bold text-text-primary cursor-pointer select-none">
+            <SlidersHorizontal size={13} className="text-primary shrink-0" />
             <span>Detection Settings</span>
-            <span className="bbox-summary-hint">{Math.round(minConf * 100)}% threshold</span>
+            <span className="ml-auto text-[11px] text-text-muted font-normal">{Math.round(minConf * 100)}% threshold</span>
           </summary>
-          <div className="bbox-filter-toolbar" data-testid="bbox-filter-toolbar" aria-label="Bounding box filters">
-            <div className="bbox-filter-conf">
-              <SlidersHorizontal size={14} className="bbox-filter-icon" />
-              <label htmlFor="min-conf-slider" className="bbox-filter-label">
+          <div className="bbox-filter-toolbar pt-3 mt-3 border-t border-border/50 flex flex-col gap-3" data-testid="bbox-filter-toolbar" aria-label="Bounding box filters">
+            <div className="flex items-center gap-2.5 text-xs text-text-secondary flex-wrap">
+              <SlidersHorizontal size={14} className="text-text-muted shrink-0" />
+              <label htmlFor="min-conf-slider" className="text-xs font-semibold text-text-primary">
                 Confidence: <strong>{Math.round(minConf * 100)}%</strong>
               </label>
               <input
@@ -251,10 +267,11 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
                 value={Math.round(minConf * 100)}
                 onChange={(e) => setMinConf(Number(e.target.value) / 100)}
                 aria-label="Minimum detection confidence"
+                className="flex-1 min-w-[120px] accent-primary cursor-pointer"
               />
             </div>
 
-            <div className="bbox-filter-chips">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {allCategories.map((cat) => {
                 const isHidden = hiddenCategories.has(cat);
                 const color = BBOX_COLORS[cat] || "#00D4AA";
@@ -265,13 +282,15 @@ export default function BoundingBoxImage({ src, alt = "Beach waste detection", b
                     key={cat}
                     type="button"
                     onClick={() => toggleCategory(cat)}
-                    className={`bbox-chip ${isHidden ? "bbox-chip--off" : ""}`}
+                    className={`bbox-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-xs font-semibold border transition-all cursor-pointer ${
+                      isHidden ? "bbox-chip--off opacity-45 border-border text-text-muted" : ""
+                    }`}
                     style={{ "--chip-color": color }}
                     title={isHidden ? `Show ${cat} detections` : `Hide ${cat} detections`}
                   >
                     {isHidden ? <EyeOff size={11} /> : <Eye size={11} />}
                     <span>{cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
-                    <span className="bbox-chip-count">{count}</span>
+                    <span className="bbox-chip-count text-[10px] px-1.5 py-0.2 rounded-full bg-bg-secondary">{count}</span>
                   </button>
                 );
               })}

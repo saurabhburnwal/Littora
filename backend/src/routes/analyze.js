@@ -19,10 +19,25 @@ const upload = multer({
   },
 });
 
+const handleUpload = (req, res, next) => {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError || err?.name === "MulterError") {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(413).json({ error: "File size exceeds 10MB limit" });
+        }
+        return res.status(400).json({ error: err.message || "Invalid multipart form data" });
+      }
+      return next(err);
+    }
+    next();
+  });
+};
+
 // POST /api/analyze — multipart/form-data, field name "image"
 // Optional extra fields: latitude, longitude, location_label (all nullable)
 // Optional header: Authorization: Bearer <jwt>  → tags upload with user_id
-router.post("/", optionalAuth, upload.single("image"), async (req, res) => {
+router.post("/", optionalAuth, handleUpload, async (req, res) => {
   if (!req.file) {
     return res
       .status(400)

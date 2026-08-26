@@ -4,6 +4,9 @@
  * requireAdmin — checks ADMIN_EMAIL env var
  */
 import { jest } from "@jest/globals";
+import express from "express";
+import request from "supertest";
+import multer from "multer";
 
 // ── Mock supabaseClient before import ───────────────────────────────────────
 const mockGetUser = jest.fn();
@@ -125,5 +128,86 @@ describe("requireAdmin middleware", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
     expect(res.status).not.toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("Global Error Handler & Production Sanitization", () => {
+  const originalEnv = process.env.NODE_ENV;
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalEnv;
+  });
+
+  const createTestApp = () => {
+    const app = express();
+
+    app.get("/trigger-500", (_req, _res, next) => {
+      next(new Error("Sensitive DB query syntax error at line 42"));
+    });
+
+    app.get("/trigger-multer-size", (_req, _res, next) => {
+      const err = new multer.MulterError("LIMIT_FILE_SIZE");
+      next(err);
+    });
+
+    app.get("/trigger-multer-field", (_req, _res, next) => {
+      const err = new multer.MulterError("LIMIT_UNEXPECTED_FILE");
+      next(err);
+    });
+
+    // Global Error Handler mirroring index.js
+    app.use((err, _req, res, _next) => {
+      if (err instanceof multer.MulterError || err?.name === "MulterError") {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(413).json({ error: "File size exceeds 10MB limit" });
+        }
+        return res.status(400).json({ error: err.message || "Invalid multipart form data" });
+      }
+
+      const statusCode = err.status || err.statusCode || 500;
+      if (statusCode >= 500 && process.env.NODE_ENV === "production") {
+        return res.status(statusCode).json({ error: "Internal server error" });
+      }
+
+      res.status(statusCode).json({ error: err.message || "Internal server error" });
+    });
+
+    return app;
+  };
+
+  it("masks 500 internal error details in production mode", async () => {
+    process.env.NODE_ENV = "production";
+    const testApp = createTestApp();
+
+    const res = await request(testApp).get("/trigger-500");
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe("Internal server error");
+    expect(res.body.error).not.toContain("Sensitive DB query");
+  });
+
+  it("exposes detailed error message in non-production mode", async () => {
+    process.env.NODE_ENV = "development";
+    const testApp = createTestApp();
+
+    const res = await request(testApp).get("/trigger-500");
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe("Sensitive DB query syntax error at line 42");
+  });
+
+  it("maps Multer LIMIT_FILE_SIZE to 413 Payload Too Large", async () => {
+    const testApp = createTestApp();
+
+    const res = await request(testApp).get("/trigger-multer-size");
+    expect(res.status).toBe(413);
+    expect(res.body.error).toBe("File size exceeds 10MB limit");
+  });
+
+  it("maps Multer form error to 400 Bad Request", async () => {
+    const testApp = createTestApp();
+
+    const res = await request(testApp).get("/trigger-multer-field");
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/unexpected file|unexpected field/i);
   });
 });

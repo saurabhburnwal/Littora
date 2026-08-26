@@ -90,6 +90,13 @@ describe("PhotoGallery — modal", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
+  it("opens modal via keyboard Space key on card", () => {
+    render(<PhotoGallery items={mockItems} />);
+    const card = screen.getAllByRole("button", { name: /analysis from/i })[0];
+    fireEvent.keyDown(card, { key: " " });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
   it("shows uploader info in modal when showUser=true", () => {
     render(<PhotoGallery items={mockItems} showUser={true} />);
     fireEvent.click(screen.getAllByRole("button", { name: /analysis from/i })[1]);

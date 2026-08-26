@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { Clock, Users, Waves, ShieldAlert, Sparkles, MapPin } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import SectionHeader from "../components/ui/SectionHeader.jsx";
-import Badge from "../components/ui/Badge.jsx";
 import { normalizeSeverity } from "../utils/wasteUtils.js";
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -88,92 +87,119 @@ export default function CleanupPage() {
   }, [recommendations]);
 
   return (
-    <div className="page-container">
-      <div className="page-heading">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1>Cleanup Recommendations</h1>
-          <p>AI-powered recommendations calculated dynamically from real-time database scans &amp; pollution analytics.</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Cleanup Recommendations</h1>
+          <p className="text-xs sm:text-sm text-text-muted mt-1">AI-powered recommendations calculated dynamically from real-time database scans &amp; pollution analytics.</p>
         </div>
       </div>
 
-      <div className="cards-grid-2">
-        <div>
-          <div className="section-header-wrap">
-            <SectionHeader
-              title="Recommended Actions"
-              subtitle="Prioritized cleanup interventions based on live database telemetry"
-              action={
-                <span className="cleanup-live-tag">
-                  <Sparkles size={13} /> Live Database Powered
-                </span>
-              }
-            />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Left Column: Recommended Actions */}
+        <div className="space-y-4">
+          <SectionHeader
+            title="Recommended Actions"
+            subtitle="Prioritized cleanup interventions based on live database telemetry"
+            action={
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                <Sparkles size={13} /> Live Database Powered
+              </span>
+            }
+          />
 
           {recommendations.length === 0 ? (
-            <div className="full-card cleanup-empty-card">
-              <ShieldAlert size={36} className="cleanup-empty-icon" />
-              <p className="cleanup-schedule-name">
+            <div className="bg-surface border border-border rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[220px] shadow-sm">
+              <ShieldAlert size={36} className="text-text-muted mb-3" />
+              <p className="text-sm font-bold text-text-primary font-display">
                 No pollution records found. Upload a scan to generate recommendations.
               </p>
             </div>
           ) : (
-            recommendations.map((r, i) => (
-              <div key={i} className="cleanup-card">
+            <div className="space-y-4">
+              {recommendations.map((r, i) => (
                 <div
-                  className={`cleanup-icon cleanup-icon--${r.priority}`}
+                  key={i}
+                  className="bg-surface border border-border rounded-2xl p-4 sm:p-5 flex gap-4 items-start shadow-sm hover:border-primary/40 transition-all"
                 >
-                  <Waves size={20} />
+                  <div
+                    className={`p-2.5 rounded-xl shrink-0 flex items-center justify-center ${
+                      r.priority === "high"
+                        ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+                        : r.priority === "medium"
+                        ? "bg-secondary/10 text-secondary border border-secondary/20"
+                        : "bg-primary/10 text-primary border border-primary/20"
+                    }`}
+                  >
+                    <Waves size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap font-bold text-text-primary font-display text-sm sm:text-base">
+                      <span>{r.beach}</span>
+                      <span
+                        className={`uppercase text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded-pill ${
+                          r.priority === "high"
+                            ? "bg-rose-500/15 text-rose-500 border border-rose-500/30"
+                            : r.priority === "medium"
+                            ? "bg-secondary/15 text-secondary border border-secondary/30"
+                            : "bg-primary/15 text-primary border border-primary/30"
+                        }`}
+                      >
+                        {r.priority}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-text-muted">
+                      <MapPin size={12} className="shrink-0" />
+                      <span className="truncate">{r.location}</span>
+                    </div>
+                    <div className="text-xs sm:text-sm font-medium text-text-secondary leading-snug">{r.action}</div>
+                    <div className="text-xs text-text-muted bg-bg-secondary/50 p-2.5 rounded-xl border border-border/40 leading-relaxed">{r.reason}</div>
+                    <div className="flex items-center gap-4 text-xs font-semibold text-text-muted pt-1">
+                      <span className="flex items-center gap-1"><Users size={12} /> {r.estimate.volunteers} volunteers</span>
+                      <span className="flex items-center gap-1"><Clock size={12} /> {r.estimate.time}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="cleanup-body">
-                  <div className="cleanup-title">
-                    <span>{r.beach}</span>
-                    <span className={`priority-badge priority-${r.priority}`}>
-                      {r.priority}
-                    </span>
-                  </div>
-                  <div className="cleanup-loc-line">
-                    <MapPin size={12} />
-                    <span>{r.location}</span>
-                  </div>
-                  <div className="cleanup-action">{r.action}</div>
-                  <div className="cleanup-reason">{r.reason}</div>
-                  <div className="cleanup-estimate">
-                    <span><Users size={12} /> {r.estimate.volunteers} volunteers</span>
-                    <span><Clock size={12} /> {r.estimate.time}</span>
-                  </div>
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
 
-        <div>
-          <div className="section-header-wrap">
-            <SectionHeader
-              title="Suggested Cleanup Schedule"
-              subtitle="Intervention timeline for local municipal teams"
-            />
-          </div>
+        {/* Right Column: Suggested Cleanup Schedule */}
+        <div className="space-y-4">
+          <SectionHeader
+            title="Suggested Cleanup Schedule"
+            subtitle="Intervention timeline for local municipal teams"
+          />
 
-          <div className="full-card">
+          <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-sm">
             {upcomingCleanups.length === 0 ? (
-              <p className="table-null-dash">
+              <p className="text-xs text-text-muted italic py-6 text-center">
                 No high-priority cleanups currently scheduled. All coastal sites report optimal baseline scores.
               </p>
             ) : (
-              upcomingCleanups.map((c, i) => (
-                <div
-                  key={i}
-                  className={`cleanup-schedule-item ${i < upcomingCleanups.length - 1 ? "cleanup-schedule-item--divided" : ""}`}
-                >
-                  <div>
-                    <div className="cleanup-schedule-name">{c.beach}</div>
-                    <div className="cleanup-schedule-date">{c.date}</div>
+              <div className="divide-y divide-border/50">
+                {upcomingCleanups.map((c, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0"
+                  >
+                    <div>
+                      <div className="text-sm font-bold text-text-primary font-display">{c.beach}</div>
+                      <div className="text-xs text-text-muted mt-0.5">{c.date}</div>
+                    </div>
+                    <span
+                      className={`uppercase text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded-pill ${
+                        c.priority === "high"
+                          ? "bg-rose-500/15 text-rose-500 border border-rose-500/30"
+                          : "bg-secondary/15 text-secondary border border-secondary/30"
+                      }`}
+                    >
+                      {c.priority}
+                    </span>
                   </div>
-                  <span className={`priority-badge priority-${c.priority}`}>{c.priority}</span>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         </div>

@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import compression from "compression";
 import helmet from "helmet";
+import multer from "multer";
 
 import analyzeRouter    from "./routes/analyze.js";
 import analysesRouter   from "./routes/analyses.js";
@@ -68,7 +69,20 @@ app.use((_req, res) => {
 // Global Error Handler
 app.use((err, _req, res, _next) => {
   console.error("Unhandled API error:", err.message);
-  res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+
+  if (err instanceof multer.MulterError || err?.name === "MulterError") {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ error: "File size exceeds 10MB limit" });
+    }
+    return res.status(400).json({ error: err.message || "Invalid multipart form data" });
+  }
+
+  const statusCode = err.status || err.statusCode || 500;
+  if (statusCode >= 500 && process.env.NODE_ENV === "production") {
+    return res.status(statusCode).json({ error: "Internal server error" });
+  }
+
+  res.status(statusCode).json({ error: err.message || "Internal server error" });
 });
 
 export default app;

@@ -13,11 +13,9 @@ export default function ProtectedRoute({ children, adminOnly = false, allowGuest
 
   if (loading) {
     return (
-      <div className="auth-loading-screen">
-        <div className="auth-loading-wave">
-          <span /><span /><span />
-        </div>
-        <p>Loading…</p>
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-bg-primary text-text-muted gap-3">
+        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-medium">Loading…</p>
       </div>
     );
   }

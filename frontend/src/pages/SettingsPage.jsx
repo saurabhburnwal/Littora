@@ -12,15 +12,14 @@ import {
   CheckCircle,
   AlertTriangle,
   X,
-  ShieldCheck,
-  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import SectionHeader from "../components/ui/SectionHeader.jsx";
 import Badge from "../components/ui/Badge.jsx";
-import { supabase } from "../lib/supabase.js";
+import ToastNotification from "../components/ToastNotification.jsx";
+import axios from "axios";
 import { API_BASE } from "../utils/constants.js";
 import { downloadJson } from "../utils/downloadUtils.js";
 
@@ -84,17 +83,14 @@ export default function SettingsPage() {
     setExportDone(false);
     try {
       const token = await getToken();
-      const res = await fetch(`${API_BASE}/api/my-analyses`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const { data } = await axios.get(`${API_BASE}/api/my-analyses`, { headers });
       downloadJson(data, `littora-data-${new Date().toISOString().slice(0, 10)}.json`);
       setExportDone(true);
       showToast("success", "Data exported successfully!");
       setTimeout(() => setExportDone(false), 3000);
     } catch (err) {
-      showToast("error", "Export failed: " + err.message);
+      showToast("error", "Export failed: " + (err.response?.data?.error || err.message));
     } finally {
       setExporting(false);
     }
@@ -105,7 +101,6 @@ export default function SettingsPage() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await supabase.auth.signOut();
       await logout();
       navigate("/login");
     } catch (err) {
@@ -115,12 +110,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="page-container">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* ── Header ── */}
-      <div className="page-heading">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <div className="settings-header-wrap">
-            <h1 className="settings-title">Settings</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Settings</h1>
             {user ? (
               <Badge variant="role" type={isAdmin ? "admin" : "member"}>
                 {isAdmin ? "Admin" : "Member"}
@@ -129,27 +124,27 @@ export default function SettingsPage() {
               <Badge variant="role" type="guest">Guest</Badge>
             )}
           </div>
-          <p>Manage your preferences, notifications and account configuration.</p>
+          <p className="text-xs sm:text-sm text-text-muted">Manage your preferences, notifications and account configuration.</p>
         </div>
         {hasChanges && (
-          <div className="settings-unsaved-warning">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary/15 text-secondary border border-secondary/30 rounded-pill text-xs font-bold animate-pulse">
             <AlertTriangle size={14} /> Unsaved changes
           </div>
         )}
       </div>
 
       {!user && (
-        <div className="guest-preview-banner settings-guest-banner">
+        <div className="p-5 rounded-2xl bg-surface border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm mb-6">
           <div>
-            <h4 className="settings-guest-title">
+            <h4 className="font-display text-sm sm:text-base font-bold text-text-primary mb-1">
               👋 Guest Preferences Mode
             </h4>
-            <p className="settings-guest-desc">
+            <p className="text-xs sm:text-sm text-text-muted max-w-2xl leading-relaxed">
               Theme, language, and display settings are saved locally in your browser. Sign in to sync preferences across devices, export data, and manage account settings.
             </p>
           </div>
           <button
-            className="filter-btn-apply settings-guest-btn"
+            className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-pill shadow-sm transition-colors shrink-0 cursor-pointer"
             onClick={() => navigate("/login")}
           >
             Sign In / Register
@@ -157,26 +152,30 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div className="settings-grid">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* ── LEFT COLUMN ── */}
-        <div className="settings-col">
+        <div className="space-y-6">
 
           {/* General Settings */}
-          <div className="settings-section">
-            <div className="settings-section-title">
-              <Globe size={15} className="settings-title-icon" /> General Settings
+          <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+            <div className="font-display text-sm font-bold text-text-primary flex items-center gap-2 pb-3 border-b border-border/50">
+              <Globe size={15} className="text-primary shrink-0" /> General Settings
             </div>
 
             {/* Theme */}
-            <div className="settings-row">
-              <div className="settings-row-info">
-                <div className="settings-row-label">Theme</div>
-                <div className="settings-row-desc">Choose your preferred interface theme</div>
+            <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-b-0">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs sm:text-sm font-bold text-text-primary">Theme</div>
+                <div className="text-xs text-text-muted mt-0.5">Choose your preferred interface theme</div>
               </div>
-              <div className="theme-options">
+              <div className="flex items-center gap-1.5 p-1 bg-bg-secondary rounded-pill">
                 <button
                   type="button"
-                  className={`theme-option${pendingTheme === "earth" ? " active" : ""}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-pill text-xs font-semibold transition-all cursor-pointer ${
+                    pendingTheme === "earth"
+                      ? "bg-surface text-primary shadow-xs font-bold"
+                      : "text-text-muted hover:text-text-primary"
+                  }`}
                   onClick={() => setPendingTheme("earth")}
                   aria-label="Select Earth theme"
                 >
@@ -184,7 +183,11 @@ export default function SettingsPage() {
                 </button>
                 <button
                   type="button"
-                  className={`theme-option${pendingTheme === "dark" ? " active" : ""}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-pill text-xs font-semibold transition-all cursor-pointer ${
+                    pendingTheme === "dark"
+                      ? "bg-surface text-primary shadow-xs font-bold"
+                      : "text-text-muted hover:text-text-primary"
+                  }`}
                   onClick={() => setPendingTheme("dark")}
                   aria-label="Select Dark theme"
                 >
@@ -194,14 +197,14 @@ export default function SettingsPage() {
             </div>
 
             {/* Language */}
-            <div className="settings-row">
-              <div className="settings-row-info">
-                <div className="settings-row-label">Language</div>
-                <div className="settings-row-desc">Interface language</div>
+            <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-b-0">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs sm:text-sm font-bold text-text-primary">Language</div>
+                <div className="text-xs text-text-muted mt-0.5">Interface language</div>
               </div>
               <select
                 id="settings-language"
-                className="filter-select"
+                className="px-3 py-1.5 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
                 aria-label="Select interface language"
                 value={pendingLanguage}
                 onChange={(e) => setPendingLanguage(e.target.value)}
@@ -213,17 +216,17 @@ export default function SettingsPage() {
             </div>
 
             {/* Date Format */}
-            <div className="settings-row">
-              <div className="settings-row-info">
-                <div className="settings-row-label">
-                  <CalendarDays size={13} className="settings-icon-inline" />
+            <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-b-0">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs sm:text-sm font-bold text-text-primary flex items-center gap-1.5">
+                  <CalendarDays size={13} className="text-text-muted" />
                   Date Format
                 </div>
-                <div className="settings-row-desc">How dates are displayed across the app</div>
+                <div className="text-xs text-text-muted mt-0.5">How dates are displayed across the app</div>
               </div>
               <select
                 id="settings-dateformat"
-                className="filter-select"
+                className="px-3 py-1.5 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
                 aria-label="Select date format"
                 value={pendingDateFormat}
                 onChange={(e) => setPendingDateFormat(e.target.value)}
@@ -235,17 +238,17 @@ export default function SettingsPage() {
             </div>
 
             {/* Items per page */}
-            <div className="settings-row">
-              <div className="settings-row-info">
-                <div className="settings-row-label">
-                  <List size={13} className="settings-icon-inline" />
+            <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-b-0">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs sm:text-sm font-bold text-text-primary flex items-center gap-1.5">
+                  <List size={13} className="text-text-muted" />
                   Items per page
                 </div>
-                <div className="settings-row-desc">Rows shown in history and table views</div>
+                <div className="text-xs text-text-muted mt-0.5">Rows shown in history and table views</div>
               </div>
               <select
                 id="settings-ipp"
-                className="filter-select"
+                className="px-3 py-1.5 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
                 aria-label="Select items per page"
                 value={pendingIPP}
                 onChange={(e) => setPendingIPP(e.target.value)}
@@ -260,7 +263,7 @@ export default function SettingsPage() {
           {/* Save button */}
           <button
             id="settings-save-btn"
-            className="btn-primary settings-save-btn"
+            className="w-full py-3 px-6 bg-primary hover:bg-primary-hover active:bg-primary-active disabled:opacity-50 text-white font-bold text-sm rounded-pill shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 disabled:cursor-not-allowed"
             onClick={handleSave}
             disabled={!hasChanges}
           >
@@ -269,13 +272,13 @@ export default function SettingsPage() {
         </div>
 
         {/* ── RIGHT COLUMN ── */}
-        <div className="settings-col">
+        <div className="space-y-6">
           {user ? (
             <>
               {/* Notification Preferences */}
-              <div className="settings-section">
-                <div className="settings-section-title">
-                  <Bell size={15} className="settings-title-icon" /> Notification Preferences
+              <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+                <div className="font-display text-sm font-bold text-text-primary flex items-center gap-2 pb-3 border-b border-border/50">
+                  <Bell size={15} className="text-primary shrink-0" /> Notification Preferences
                 </div>
 
                 {[
@@ -283,45 +286,46 @@ export default function SettingsPage() {
                   { key: "highPollution", label: "High-Pollution Alerts", desc: "Get alerted when severity is High or Severe" },
                   { key: "weekly",        label: "Weekly Reports",        desc: "Receive a weekly summary of beach data" },
                 ].map((n) => (
-                  <div key={n.key} className="settings-row">
-                    <div className="settings-row-info">
-                      <div className="settings-row-label">{n.label}</div>
-                      <div className="settings-row-desc">{n.desc}</div>
+                  <div key={n.key} className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-b-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs sm:text-sm font-bold text-text-primary">{n.label}</div>
+                      <div className="text-xs text-text-muted mt-0.5">{n.desc}</div>
                     </div>
-                    <label className="toggle">
+                    <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
+                        className="sr-only peer"
                         checked={pendingNotifs[n.key]}
                         onChange={(e) =>
                           setPendingNotifs((prev) => ({ ...prev, [n.key]: e.target.checked }))
                         }
                       />
-                      <span className="toggle-slider" />
+                      <div className="w-11 h-6 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary border border-border"></div>
                     </label>
                   </div>
                 ))}
               </div>
 
               {/* Data & Privacy */}
-              <div className="settings-section">
-                <div className="settings-section-title">
-                  <Trash2 size={15} className="settings-title-icon--danger" /> Data &amp; Privacy
+              <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+                <div className="font-display text-sm font-bold text-text-primary flex items-center gap-2 pb-3 border-b border-border/50">
+                  <Trash2 size={15} className="text-rose-500 shrink-0" /> Data &amp; Privacy
                 </div>
 
                 {/* Export */}
-                <div className="settings-row">
-                  <div className="settings-row-info">
-                    <div className="settings-row-label">Export My Data</div>
-                    <div className="settings-row-desc">Download all your analyses as JSON</div>
+                <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-b-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs sm:text-sm font-bold text-text-primary">Export My Data</div>
+                    <div className="text-xs text-text-muted mt-0.5">Download all your analyses as JSON</div>
                   </div>
                   <button
                     id="settings-export-btn"
-                    className="export-btn settings-export-btn"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-pill bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold border border-primary/30 transition-colors disabled:opacity-50 cursor-pointer shrink-0 disabled:cursor-not-allowed"
                     onClick={handleExport}
                     disabled={exporting}
                   >
                     {exporting ? (
-                      <><span className="login-spinner settings-mini-spinner" /> Exporting…</>
+                      <><Loader2 size={13} className="animate-spin" /> Exporting…</>
                     ) : exportDone ? (
                       <><CheckCircle size={13} /> Done!</>
                     ) : (
@@ -331,14 +335,14 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Delete Account */}
-                <div className="settings-row">
-                  <div className="settings-row-info">
-                    <div className="settings-row-label settings-row-label--danger">Delete Account</div>
-                    <div className="settings-row-desc">Sign out and request permanent account deletion</div>
+                <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40 last:border-b-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs sm:text-sm font-bold text-rose-500">Delete Account</div>
+                    <div className="text-xs text-text-muted mt-0.5">Sign out and request permanent account deletion</div>
                   </div>
                   <button
                     id="settings-delete-btn"
-                    className="settings-delete-btn"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-pill bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs font-semibold border border-rose-500/30 transition-colors cursor-pointer shrink-0"
                     onClick={() => setDeleteModal(true)}
                   >
                     <Trash2 size={12} /> Delete
@@ -347,18 +351,18 @@ export default function SettingsPage() {
               </div>
             </>
           ) : (
-            <div className="settings-section settings-lock-card">
-              <div className="settings-lock-icon">
+            <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col items-center text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                 <Bell size={24} strokeWidth={1.8} />
               </div>
-              <h3 className="settings-lock-title">
+              <h3 className="font-display text-base font-bold text-text-primary">
                 Account &amp; Notification Settings
               </h3>
-              <p className="settings-lock-desc">
+              <p className="text-xs sm:text-sm text-text-muted leading-relaxed max-w-sm">
                 Notification preferences and data export features are available to signed-in accounts. Sign in to enable email notifications and export your detection data.
               </p>
               <button
-                className="filter-btn-apply settings-lock-btn"
+                className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold rounded-pill shadow-sm transition-colors cursor-pointer"
                 onClick={() => navigate("/login")}
               >
                 Sign In to Unlock
@@ -407,12 +411,7 @@ export default function SettingsPage() {
       )}
 
       {/* ── Toast ── */}
-      {toast && (
-        <div className={`admin-toast admin-toast-${toast.type}`}>
-          {toast.type === "success" ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
-          <span>{toast.message}</span>
-        </div>
-      )}
+      <ToastNotification toast={toast} />
     </div>
   );
 }

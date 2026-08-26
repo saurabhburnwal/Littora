@@ -31,28 +31,33 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
   return (
     <>
       {isOpen && (
-        <div className="sidebar-backdrop fixed inset-0 bg-black/45 z-40 md:hidden animate-[fadeIn_0.2s_ease]" onClick={onClose} aria-hidden="true" data-testid="sidebar-backdrop" />
+        <div
+          className="fixed inset-0 bg-black/45 z-40 md:hidden animate-[fadeIn_0.2s_ease]"
+          onClick={onClose}
+          aria-hidden="true"
+          data-testid="sidebar-backdrop"
+        />
       )}
 
       <aside
-        className={`sidebar${isOpen ? " open" : ""}${isCollapsed ? " collapsed w-[72px]" : " w-[250px]"} bg-sidebar border-r border-border flex flex-col sticky top-0 h-screen overflow-y-auto overflow-x-hidden z-50 shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden transition-[width] duration-250 ease-[cubic-bezier(0.4,0,0.2,1)]`}
+        className={`${isOpen ? "open " : ""}${isCollapsed ? "collapsed w-[72px]" : "w-[240px]"} bg-sidebar border-r border-border flex flex-col sticky top-0 h-screen overflow-y-auto overflow-x-hidden z-50 shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden transition-[width] duration-250 ease-[cubic-bezier(0.4,0,0.2,1)]`}
         aria-label="Primary navigation"
       >
         {/* Logo Header & Collapse Toggle */}
-        <div className={`sidebar-logo flex items-center ${isCollapsed ? "justify-center p-3" : "justify-between gap-3 p-4.5"} border-b border-border shrink-0`}>
+        <div className={`flex items-center ${isCollapsed ? "justify-center p-3" : "justify-between gap-3 p-4.5"} border-b border-border shrink-0`}>
           {!isCollapsed ? (
             <>
-              <div className="sidebar-logo-brand flex items-center gap-3 min-w-0">
-                <img src={logo} alt="Littora Logo" className="sidebar-logo-img w-9 h-9 shrink-0 object-contain" />
+              <div className="flex items-center gap-3 min-w-0">
+                <img src={logo} alt="Littora Logo" className="w-9 h-9 shrink-0 object-contain" />
                 <div className="min-w-0">
-                  <div className="sidebar-wordmark font-display text-xl font-extrabold text-text-primary tracking-tight leading-none">LITTORA</div>
-                  <div className="sidebar-tagline font-sans text-[10px] text-text-muted tracking-wider uppercase font-semibold mt-0.5">AI Beach Waste Detection</div>
+                  <div className="font-display text-xl font-extrabold text-text-primary tracking-tight leading-none">LITTORA</div>
+                  <div className="font-sans text-[10px] text-text-muted tracking-wider uppercase font-semibold mt-0.5">AI Beach Waste Detection</div>
                 </div>
               </div>
               {onToggleCollapse && (
                 <button
                   type="button"
-                  className="sidebar-collapse-btn p-1.5 text-text-muted hover:text-text-primary hover:bg-text-primary/10 rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                  className="p-1.5 text-text-muted hover:text-text-primary hover:bg-text-primary/10 rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
                   onClick={onToggleCollapse}
                   title="Collapse sidebar"
                   aria-label="Collapse sidebar"
@@ -62,12 +67,12 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
               )}
             </>
           ) : (
-            <div className="sidebar-collapsed-brand flex flex-col items-center gap-2">
-              <img src={logo} alt="Littora Logo" className="sidebar-logo-img w-8 h-8 shrink-0 object-contain" />
+            <div className="flex flex-col items-center gap-2">
+              <img src={logo} alt="Littora Logo" className="w-8 h-8 shrink-0 object-contain" />
               {onToggleCollapse && (
                 <button
                   type="button"
-                  className="sidebar-collapse-btn p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/10 rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                  className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/10 rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
                   onClick={onToggleCollapse}
                   title="Expand sidebar"
                   aria-label="Expand sidebar"
@@ -80,14 +85,14 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
         </div>
 
         {/* Navigation List */}
-        <nav className={`sidebar-nav flex-1 ${isCollapsed ? "p-2 gap-1.5" : "py-4 px-3 gap-1"} flex flex-col overflow-y-auto`} aria-label="Sections">
+        <nav className={`flex-1 ${isCollapsed ? "p-2 gap-1.5" : "py-4 px-3 gap-1"} flex flex-col overflow-y-auto`} aria-label="Sections">
           {NAV_ITEMS.map(({ to, label, icon: Icon, end, guestLocked }) => {
             // Locked nav item for guests — renders as a dimmed non-navigable div
             if (isGuest && guestLocked) {
               return (
                 <div
                   key={to}
-                  className={`nav-item nav-item--locked ${isCollapsed ? "w-11 h-11 mx-auto justify-center p-0 rounded-xl" : "flex items-center gap-3 px-3.5 py-2.5 rounded-xl"} text-text-secondary/70 hover:text-text-primary font-semibold text-sm transition-colors cursor-pointer`}
+                  className={`${isCollapsed ? "w-11 h-11 mx-auto justify-center p-0 rounded-xl" : "flex items-center gap-3 px-3.5 py-2.5 rounded-xl"} text-text-secondary/70 hover:text-text-primary font-semibold text-sm transition-colors cursor-pointer`}
                   title={isCollapsed ? `${label} (Sign in required)` : "Sign in required"}
                   onClick={() => navigate("/login")}
                   role="button"
@@ -96,8 +101,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
                   <Icon size={18} strokeWidth={1.8} aria-hidden="true" className="shrink-0" />
                   {!isCollapsed && (
                     <>
-                      <span className="nav-item-label flex-1 min-w-0 truncate">{label}</span>
-                      <Lock size={12} strokeWidth={2} className="nav-item-lock-icon text-text-muted shrink-0" />
+                      <span className="flex-1 min-w-0 truncate">{label}</span>
+                      <Lock size={12} strokeWidth={2} className="text-text-muted shrink-0" />
                     </>
                   )}
                 </div>
@@ -111,7 +116,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
                 to={to}
                 end={end}
                 title={isCollapsed ? label : undefined}
-                className={({ isActive }) => `nav-item ${isActive ? "active text-primary bg-primary/15 font-bold" : "text-text-secondary hover:text-text-primary hover:bg-primary/10"} ${isCollapsed ? "w-11 h-11 mx-auto justify-center p-0 rounded-xl" : "flex items-center gap-3 px-3.5 py-2.5 rounded-xl"} font-semibold text-sm transition-colors cursor-pointer`}
+                className={({ isActive }) => `${isActive ? "text-primary bg-primary/15 font-bold" : "text-text-secondary hover:text-text-primary hover:bg-primary/10"} ${isCollapsed ? "w-11 h-11 mx-auto justify-center p-0 rounded-xl" : "flex items-center gap-3 px-3.5 py-2.5 rounded-xl"} font-semibold text-sm transition-colors cursor-pointer`}
                 onClick={onClose}
               >
                 <Icon size={18} strokeWidth={1.8} aria-hidden="true" className="shrink-0" />
@@ -123,8 +128,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
 
         {/* Bottom Navbar Image Illustration */}
         {!isCollapsed && (
-          <div className="sidebar-navbar-image-container p-3 border-t border-border mt-auto shrink-0">
-            <img src={navbarImage} alt="Coastal Illustration" className="sidebar-navbar-img w-full h-auto rounded-xl object-cover" />
+          <div className="p-3 mt-auto shrink-0">
+            <img src={navbarImage} alt="Coastal Illustration" className="w-full h-auto rounded-xl object-cover" />
           </div>
         )}
       </aside>
