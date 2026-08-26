@@ -1,25 +1,13 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, Info } from "lucide-react";
 import BoundingBoxImage from "./BoundingBoxImage.jsx";
 import ResultPanel from "./ResultPanel.jsx";
 import { toResultShape } from "../utils/wasteUtils.js";
 
-const MIN_SPLIT = 45;
-const MAX_SPLIT = 70;
-
-const getDefaultSplit = () => {
-  if (typeof window !== "undefined" && window.innerWidth >= 1024 && window.innerWidth < 1280) {
-    return 50;
-  }
-  return 60;
-};
-
 export default function AnalysisLightbox({ item, showUser = false, onClose }) {
   const closeButtonRef = useRef(null);
-  const containerRef = useRef(null);
-  const [splitPercent, setSplitPercent] = useState(getDefaultSplit);
-  const [isDragging, setIsDragging] = useState(false);
+  const [showDetails, setShowDetails] = useState(true);
 
   useEffect(() => {
     if (!item) return undefined;
@@ -31,134 +19,95 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [item, onClose]);
 
-  // Handle dragging to resize panels
-  useEffect(() => {
-    if (!isDragging) return undefined;
-
-    const handleMouseMove = (e) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      if (rect.width <= 0) return;
-
-      const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
-      if (clientX == null) return;
-
-      const newPercent = ((clientX - rect.left) / rect.width) * 100;
-      const clamped = Math.max(MIN_SPLIT, Math.min(MAX_SPLIT, newPercent));
-      setSplitPercent(clamped);
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("touchmove", handleMouseMove, { passive: false });
-    document.addEventListener("touchend", handleMouseUp);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("touchmove", handleMouseMove);
-      document.removeEventListener("touchend", handleMouseUp);
-    };
-  }, [isDragging]);
-
-  const handleMouseDown = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDoubleClick = () => {
-    setSplitPercent(getDefaultSplit());
-  };
-
-  const handleDividerKeyDown = (e) => {
-    if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      setSplitPercent((prev) => Math.max(MIN_SPLIT, prev - 2));
-    } else if (e.key === "ArrowRight") {
-      e.preventDefault();
-      setSplitPercent((prev) => Math.min(MAX_SPLIT, prev + 2));
-    } else if (e.key === "Home") {
-      e.preventDefault();
-      setSplitPercent(MIN_SPLIT);
-    } else if (e.key === "End") {
-      e.preventDefault();
-      setSplitPercent(MAX_SPLIT);
-    }
-  };
-
   if (!item) return null;
 
   return createPortal(
     <div
-      className="modal-overlay analysis-lightbox-overlay fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/50 dark:bg-black/70 backdrop-blur-md overflow-hidden"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Photo analysis detail"
     >
+      {/* Full-screen ambient atmospheric glow */}
+      {item.image_url && (
+        <img
+          src={item.image_url}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover blur-[90px] scale-125 opacity-40 dark:opacity-30 pointer-events-none"
+        />
+      )}
+
       <section
-        ref={containerRef}
-        className={`analysis-lightbox relative flex flex-col md:flex-row w-full max-w-6xl max-h-[90vh] bg-surface border border-border rounded-3xl shadow-2xl overflow-hidden ${isDragging ? "is-resizing" : ""}`}
+        className="relative w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden border border-white/25 dark:border-white/10 bg-surface/15 dark:bg-black/30 backdrop-blur-2xl flex items-center justify-center"
         data-testid="lightbox-container"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          ref={closeButtonRef}
-          className="analysis-lightbox-close absolute top-3.5 right-3.5 z-40 flex items-center justify-center w-8 h-8 rounded-full bg-bg-secondary/80 hover:bg-primary-light text-text-primary hover:text-primary border border-border transition-colors cursor-pointer"
-          onClick={onClose}
-          aria-label="Close photo analysis detail"
-        >
-          <X size={16} />
-        </button>
-
-        {/* LEFT: Image / BoundingBoxImage Stage */}
-        <div
-          className="analysis-lightbox-stage relative flex items-center justify-center bg-black overflow-hidden"
-          data-testid="lightbox-stage"
-          style={{ flex: `0 0 ${splitPercent}%`, width: `${splitPercent}%`, maxWidth: `${splitPercent}%` }}
-        >
-          <div className="analysis-lightbox-media w-full h-full flex items-center justify-center p-4 sm:p-6">
-            <BoundingBoxImage
+        {/* ── Ambient Background Glow from Image inside modal ── */}
+        {item.image_url && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <img
               src={item.image_url}
-              alt="Full-size beach analysis"
-              boxes={item.boxes || []}
-              lightbox
+              alt=""
+              aria-hidden="true"
+              className="w-full h-full object-cover blur-[75px] scale-125 opacity-80 dark:opacity-70 saturate-150"
             />
+            <div className="absolute inset-0 bg-radial from-transparent via-black/10 to-black/30 dark:to-black/50" />
           </div>
+        )}
+
+        {/* ── Top Floating Action Controls (Close + Details Toggle) ── */}
+        <div className="absolute top-3.5 right-3.5 z-40 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowDetails((prev) => !prev)}
+            className={`flex items-center justify-center w-8 h-8 rounded-full border backdrop-blur-md transition-all cursor-pointer ${
+              showDetails
+                ? "bg-primary text-white border-primary shadow-sm"
+                : "bg-black/40 hover:bg-black/60 text-white border-white/20"
+            }`}
+            title={showDetails ? "Hide analysis details" : "Show analysis details"}
+            aria-label={showDetails ? "Hide analysis details" : "Show analysis details"}
+          >
+            <Info size={15} />
+          </button>
+          <button
+            ref={closeButtonRef}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white border border-white/20 backdrop-blur-sm transition-colors cursor-pointer"
+            onClick={onClose}
+            aria-label="Close photo analysis detail"
+          >
+            <X size={16} />
+          </button>
         </div>
 
-        {/* DRAGGABLE DIVIDER / SPLITTER */}
+        {/* ── Full-Canvas Image Stage (occupies 100% of the lightbox canvas) ── */}
         <div
-          className={`analysis-lightbox-divider hidden md:block w-2 bg-border hover:bg-primary cursor-col-resize relative transition-colors select-none ${isDragging ? "dragging !bg-primary" : ""}`}
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="Resize image and details panels"
-          aria-valuenow={Math.round(splitPercent)}
-          aria-valuemin={MIN_SPLIT}
-          aria-valuemax={MAX_SPLIT}
-          tabIndex={0}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleMouseDown}
-          onDoubleClick={handleDoubleClick}
-          onKeyDown={handleDividerKeyDown}
+          className="relative z-10 w-full h-full flex items-center justify-center p-2 sm:p-4 md:p-6"
+          data-testid="lightbox-stage"
         >
-          <div className="analysis-lightbox-divider-line absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-8 bg-text-muted rounded-full" />
+          <BoundingBoxImage
+            src={item.image_url}
+            alt="Full-size beach analysis"
+            boxes={item.boxes || []}
+            lightbox
+          />
         </div>
 
-        {/* RIGHT: Detection Metadata Panel */}
-        <aside
-          className="analysis-lightbox-details overflow-y-auto p-4 sm:p-6 bg-surface"
-          data-testid="lightbox-details"
-          style={{ flex: `0 0 ${100 - splitPercent}%`, width: `${100 - splitPercent}%`, maxWidth: `${100 - splitPercent}%` }}
-        >
-          <ResultPanel result={toResultShape(item)} showUser={showUser} />
-        </aside>
+        {/* ── Floating Glass Overlay Metadata Panel ── */}
+        {showDetails && (
+          <aside
+            className="absolute top-14 right-3.5 sm:right-5 z-30 w-72 sm:w-80 max-h-[calc(90vh-4.5rem)] overflow-y-auto bg-surface/90 backdrop-blur-2xl border border-border/70 rounded-2xl p-4 shadow-2xl animate-in fade-in duration-200"
+            data-testid="lightbox-details"
+          >
+            <ResultPanel result={toResultShape(item)} showUser={showUser} naked />
+          </aside>
+        )}
       </section>
     </div>,
     document.body
   );
 }
+
+

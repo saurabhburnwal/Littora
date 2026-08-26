@@ -8,7 +8,7 @@ import {
 } from "../utils/wasteUtils.js";
 import { downloadJson, downloadFileUrl } from "../utils/downloadUtils.js";
 
-export default function ResultPanel({ result, showUser = false }) {
+export default function ResultPanel({ result, showUser = false, naked = false }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -67,8 +67,12 @@ export default function ResultPanel({ result, showUser = false }) {
   const uploaderText = user_name || user_email || (user_id ? user_id.slice(0, 10) + "…" : null);
   const itemCountLabel = total_waste === 1 ? "1 waste item" : `${total_waste} waste items`;
 
+  const wrapperClass = naked
+    ? "flex flex-col gap-4"
+    : "flex flex-col gap-4 p-5 bg-surface border border-border rounded-2xl shadow-md";
+
   return (
-    <div className="flex flex-col gap-4 p-5 bg-surface border border-border rounded-2xl shadow-md">
+    <div className={wrapperClass}>
       {/* 1. Header: Location & Date */}
       <div className="flex flex-col gap-1 pb-3 border-b border-border/50">
         <h2 className="font-display text-base font-bold text-text-primary flex items-center gap-1.5 truncate" title={location_label || "Location unavailable"}>

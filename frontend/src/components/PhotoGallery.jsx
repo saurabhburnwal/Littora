@@ -4,10 +4,17 @@ import AnalysisLightbox from "./AnalysisLightbox.jsx";
 
 export default function PhotoGallery({ items, showUser = false, onDeleteRequest, deletingId }) {
   const [modalItem, setModalItem] = useState(null);
+  const [colCount, setColCount] = useState(3);
+
+  const gridClass = {
+    2: "grid-cols-1 sm:grid-cols-2",
+    3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+    4: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+  }[colCount];
 
   if (!items || items.length === 0) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="col-span-full flex items-center justify-center p-12 text-center text-text-muted text-sm bg-surface border border-dashed border-border rounded-2xl">
           <p>No photos match the selected filter.</p>
         </div>
@@ -17,7 +24,26 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Column count toggle */}
+      <div className="flex items-center justify-end gap-1.5 mb-3">
+        <span className="text-xs text-text-muted mr-1">Columns:</span>
+        {[2, 3, 4].map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => setColCount(n)}
+            className={`px-3 py-1 rounded-pill text-xs font-semibold transition-all cursor-pointer border ${
+              colCount === n
+                ? "bg-primary text-white border-primary shadow-sm"
+                : "bg-surface text-text-muted border-border hover:text-text-primary"
+            }`}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+
+      <div className={`grid ${gridClass} gap-4`}>
         {items.map((row) => {
           const formattedDate = row.created_at
             ? new Date(row.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
@@ -104,3 +130,4 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
     </>
   );
 }
+

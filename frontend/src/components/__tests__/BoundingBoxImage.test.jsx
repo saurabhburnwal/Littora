@@ -144,9 +144,36 @@ describe("BoundingBoxImage component", () => {
     expect(screen.getByText(/glass 95%/i)).toBeInTheDocument();
   });
 
-  // ─── Detection-Focus Viewport Tests (Chunk 15 Invariants) ───
+  // ─── Always-Full Image Tests (zoom toggle removed) ───
 
-  it("1. handles no detections in lightbox mode by defaulting to full image", () => {
+  it("always renders full image in lightbox mode — no zoom applied", () => {
+    const mockBoxes = [
+      {
+        class_name: "bottle",
+        confidence: 0.92,
+        box_normalized: [0.4, 0.45, 0.5, 0.55], // small center detection
+      },
+    ];
+
+    render(
+      <BoundingBoxImage
+        src="https://example.com/beach.jpg"
+        alt="Always full image test"
+        boxes={mockBoxes}
+        lightbox
+      />
+    );
+
+    const frame = screen.getByTestId("modal-image-frame");
+    // Transform must always be "none" — no zoom
+    expect(frame).toHaveStyle({ transform: "none" });
+    // No view-mode toggle rendered
+    expect(screen.queryByTestId("bbox-view-mode-toggle")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /focus detections/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /full image/i })).not.toBeInTheDocument();
+  });
+
+  it("renders full image even with no detections in lightbox mode", () => {
     render(
       <BoundingBoxImage
         src="https://example.com/beach.jpg"
@@ -156,111 +183,29 @@ describe("BoundingBoxImage component", () => {
       />
     );
 
-    const fullBtn = screen.getByRole("button", { name: /full image/i });
-    expect(fullBtn).toHaveAttribute("aria-pressed", "true");
-
-    const focusBtn = screen.getByRole("button", { name: /focus detections/i });
-    expect(focusBtn).toBeDisabled();
-
     const frame = screen.getByTestId("modal-image-frame");
     expect(frame).toHaveStyle({ transform: "none" });
+    expect(screen.queryByTestId("bbox-view-mode-toggle")).not.toBeInTheDocument();
   });
 
-  it("2. focuses and zooms on a single small detection in lightbox mode", () => {
-    const mockBoxes = [
-      {
-        class_name: "bottle",
-        confidence: 0.92,
-        box_normalized: [0.4, 0.45, 0.5, 0.55], // 10% x 10% area in center
-      },
-    ];
-
-    render(
-      <BoundingBoxImage
-        src="https://example.com/beach.jpg"
-        alt="Single detection focus"
-        boxes={mockBoxes}
-        lightbox
-      />
-    );
-
-    const focusBtn = screen.getByRole("button", { name: /focus detections/i });
-    expect(focusBtn).toHaveAttribute("aria-pressed", "true");
-
-    const frame = screen.getByTestId("modal-image-frame");
-    expect(frame.style.transform).toContain("scale(");
-    // Origin should be centered near ~45% x 50%
-    expect(frame.style.transformOrigin).toBeTruthy();
-  });
-
-  it("3. calculates combined bounding box for multiple spread-out detections", () => {
+  it("bounding boxes render correctly in lightbox mode without zoom", () => {
     const mockBoxes = [
       {
         class_name: "bottle",
         confidence: 0.90,
-        box_normalized: [0.10, 0.20, 0.18, 0.25], // Left detection
+        box_normalized: [0.10, 0.20, 0.18, 0.25],
       },
       {
         class_name: "bag",
         confidence: 0.88,
-        box_normalized: [0.60, 0.21, 0.70, 0.27], // Right detection
+        box_normalized: [0.60, 0.21, 0.70, 0.27],
       },
     ];
 
     render(
       <BoundingBoxImage
         src="https://example.com/beach.jpg"
-        alt="Multiple detections focus"
-        boxes={mockBoxes}
-        lightbox
-      />
-    );
-
-    const frame = screen.getByTestId("modal-image-frame");
-    expect(frame.style.transform).toContain("scale(");
-
-    // Both bounding boxes must be rendered inside frame
-    const renderedBoxes = screen.getAllByTestId("bbox-box");
-    expect(renderedBoxes).toHaveLength(2);
-  });
-
-  it("4. clamps padding properly when detection is near image edge", () => {
-    const mockBoxes = [
-      {
-        class_name: "can",
-        confidence: 0.95,
-        box_normalized: [0.01, 0.02, 0.10, 0.12], // Near top-left edge
-      },
-    ];
-
-    render(
-      <BoundingBoxImage
-        src="https://example.com/beach.jpg"
-        alt="Edge detection"
-        boxes={mockBoxes}
-        lightbox
-      />
-    );
-
-    const frame = screen.getByTestId("modal-image-frame");
-    expect(frame.style.transform).toContain("scale(");
-    // Origin must be non-negative and valid
-    expect(parseFloat(frame.style.transformOrigin)).toBeGreaterThanOrEqual(0);
-  });
-
-  it("5. falls back to full image if detection region occupies most of the image", () => {
-    const mockBoxes = [
-      {
-        class_name: "foam",
-        confidence: 0.90,
-        box_normalized: [0.05, 0.05, 0.95, 0.95], // Occupies 90% of image
-      },
-    ];
-
-    render(
-      <BoundingBoxImage
-        src="https://example.com/beach.jpg"
-        alt="Large detection"
+        alt="Multiple detections lightbox"
         boxes={mockBoxes}
         lightbox
       />
@@ -268,47 +213,7 @@ describe("BoundingBoxImage component", () => {
 
     const frame = screen.getByTestId("modal-image-frame");
     expect(frame).toHaveStyle({ transform: "none" });
-
-    const focusBtn = screen.getByRole("button", { name: /focus detections/i });
-    expect(focusBtn).toBeDisabled();
-  });
-
-  it("6 & 7. toggles smoothly between Focus Detections and Full Image view modes", () => {
-    const mockBoxes = [
-      {
-        class_name: "bottle",
-        confidence: 0.95,
-        box_normalized: [0.3, 0.3, 0.4, 0.4],
-      },
-    ];
-
-    render(
-      <BoundingBoxImage
-        src="https://example.com/beach.jpg"
-        alt="Toggle view mode test"
-        boxes={mockBoxes}
-        lightbox
-      />
-    );
-
-    const frame = screen.getByTestId("modal-image-frame");
-    const focusBtn = screen.getByRole("button", { name: /focus detections/i });
-    const fullBtn = screen.getByRole("button", { name: /full image/i });
-
-    // Initially focused
-    expect(focusBtn).toHaveAttribute("aria-pressed", "true");
-    expect(frame.style.transform).toContain("scale(");
-
-    // Switch to Full Image
-    fireEvent.click(fullBtn);
-    expect(fullBtn).toHaveAttribute("aria-pressed", "true");
-    expect(focusBtn).toHaveAttribute("aria-pressed", "false");
-    expect(frame).toHaveStyle({ transform: "none" });
-
-    // Switch back to Focus Detections
-    fireEvent.click(focusBtn);
-    expect(focusBtn).toHaveAttribute("aria-pressed", "true");
-    expect(frame.style.transform).toContain("scale(");
+    expect(screen.getAllByTestId("bbox-box")).toHaveLength(2);
   });
 
   it("8. keeps bounding boxes perfectly aligned with normalized coordinates", () => {
@@ -338,7 +243,7 @@ describe("BoundingBoxImage component", () => {
     });
   });
 
-  it("9 & 10. renders cleanly under Earth and Dark themes", () => {
+  it("renders cleanly under Earth and Dark themes without zoom toggle", () => {
     const mockBoxes = [
       {
         class_name: "bottle",
@@ -358,7 +263,7 @@ describe("BoundingBoxImage component", () => {
         />
       </div>
     );
-    expect(screen.getByTestId("bbox-view-mode-toggle")).toBeInTheDocument();
+    expect(screen.queryByTestId("bbox-view-mode-toggle")).not.toBeInTheDocument();
     unmount();
 
     // Dark theme container
@@ -372,6 +277,7 @@ describe("BoundingBoxImage component", () => {
         />
       </div>
     );
-    expect(screen.getByTestId("bbox-view-mode-toggle")).toBeInTheDocument();
+    expect(screen.queryByTestId("bbox-view-mode-toggle")).not.toBeInTheDocument();
   });
 });
+
