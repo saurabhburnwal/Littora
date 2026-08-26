@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   X,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -112,7 +113,7 @@ export default function SettingsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Settings</h1>
@@ -134,7 +135,7 @@ export default function SettingsPage() {
       </div>
 
       {!user && (
-        <div className="p-5 rounded-2xl bg-surface border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm mb-6">
+        <div className="p-5 rounded-2xl bg-surface border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
           <div>
             <h4 className="font-display text-sm sm:text-base font-bold text-text-primary mb-1">
               👋 Guest Preferences Mode
@@ -202,17 +203,20 @@ export default function SettingsPage() {
                 <div className="text-xs sm:text-sm font-bold text-text-primary">Language</div>
                 <div className="text-xs text-text-muted mt-0.5">Interface language</div>
               </div>
-              <select
-                id="settings-language"
-                className="px-3 py-1.5 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
-                aria-label="Select interface language"
-                value={pendingLanguage}
-                onChange={(e) => setPendingLanguage(e.target.value)}
-              >
-                <option value="en">English</option>
-                <option value="hi">Hindi</option>
-                <option value="ta">Tamil</option>
-              </select>
+              <div className="relative">
+                <select
+                  id="settings-language"
+                  className="pl-3.5 pr-9 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
+                  aria-label="Select interface language"
+                  value={pendingLanguage}
+                  onChange={(e) => setPendingLanguage(e.target.value)}
+                >
+                  <option value="en">English</option>
+                  <option value="hi">Hindi</option>
+                  <option value="ta">Tamil</option>
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              </div>
             </div>
 
             {/* Date Format */}
@@ -224,17 +228,20 @@ export default function SettingsPage() {
                 </div>
                 <div className="text-xs text-text-muted mt-0.5">How dates are displayed across the app</div>
               </div>
-              <select
-                id="settings-dateformat"
-                className="px-3 py-1.5 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
-                aria-label="Select date format"
-                value={pendingDateFormat}
-                onChange={(e) => setPendingDateFormat(e.target.value)}
-              >
-                <option value="DD MMM YYYY">DD MMM YYYY</option>
-                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-              </select>
+              <div className="relative">
+                <select
+                  id="settings-dateformat"
+                  className="pl-3.5 pr-9 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
+                  aria-label="Select date format"
+                  value={pendingDateFormat}
+                  onChange={(e) => setPendingDateFormat(e.target.value)}
+                >
+                  <option value="DD MMM YYYY">DD MMM YYYY</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              </div>
             </div>
 
             {/* Items per page */}
@@ -246,17 +253,20 @@ export default function SettingsPage() {
                 </div>
                 <div className="text-xs text-text-muted mt-0.5">Rows shown in history and table views</div>
               </div>
-              <select
-                id="settings-ipp"
-                className="px-3 py-1.5 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
-                aria-label="Select items per page"
-                value={pendingIPP}
-                onChange={(e) => setPendingIPP(e.target.value)}
-              >
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-              </select>
+              <div className="relative">
+                <select
+                  id="settings-ipp"
+                  className="pl-3.5 pr-9 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
+                  aria-label="Select items per page"
+                  value={pendingIPP}
+                  onChange={(e) => setPendingIPP(e.target.value)}
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              </div>
             </div>
           </div>
 

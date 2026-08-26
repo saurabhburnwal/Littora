@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import axios from "axios";
-import { Download, Search, Filter, Database, MapPin, FileSpreadsheet, ExternalLink, Sparkles, Layers } from "lucide-react";
+import { Download, Search, Filter, Database, MapPin, FileSpreadsheet, ExternalLink, Sparkles, Layers, ChevronDown } from "lucide-react";
 import { useStats } from "../context/StatsContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import SectionHeader from "../components/ui/SectionHeader.jsx";
@@ -145,7 +145,7 @@ export default function DatasetPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-1 mb-6">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2.5">
           <Database size={24} className="text-primary shrink-0" />
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Data Explorer</h1>
@@ -156,7 +156,7 @@ export default function DatasetPage() {
       </div>
 
       {/* Dataset Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Catalog Records"
           value={(stats.totalAnalyses || 0).toLocaleString()}
@@ -184,14 +184,14 @@ export default function DatasetPage() {
       </div>
 
       {/* Section Header & Toolbar */}
-      <div className="mb-4">
+      <div>
         <SectionHeader
           title="Available Datasets"
           subtitle="Machine-learning annotations and geospatial feature collections"
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
           <input
@@ -204,9 +204,8 @@ export default function DatasetPage() {
         </div>
 
         <div className="relative flex items-center">
-          <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
           <select
-            className="pl-9 pr-8 py-2 text-xs sm:text-sm bg-surface text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer transition-all appearance-none"
+            className="w-full sm:w-auto pl-3.5 pr-9 py-2 text-xs sm:text-sm bg-surface text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer transition-all appearance-none"
             value={formatFilter}
             onChange={(e) => setFormatFilter(e.target.value)}
           >
@@ -216,6 +215,7 @@ export default function DatasetPage() {
             <option value="CSV">CSV</option>
             <option value="JSON">JSON</option>
           </select>
+          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
         </div>
       </div>
 

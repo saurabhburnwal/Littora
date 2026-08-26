@@ -93,7 +93,7 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="mb-6">
+      <div>
         <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Detect Waste</h1>
         <p className="text-xs sm:text-sm text-text-muted mt-1">Upload or capture a beach photo to detect waste using AI.</p>
       </div>

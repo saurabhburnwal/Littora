@@ -123,7 +123,7 @@ End of Report - Littora Coastal Monitoring Systems
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Reports</h1>
           <p className="text-xs sm:text-sm text-text-muted mt-1">Generate, preview, download, and email comprehensive environmental audit reports.</p>
@@ -131,12 +131,12 @@ End of Report - Littora Coastal Monitoring Systems
       </div>
 
       {/* Report Template Selector Cards */}
-      <section className="space-y-4 mb-8">
+      <section className="space-y-4">
         <SectionHeader
           title="Select Report Period"
           subtitle="Choose the temporal scope for coastal waste monitoring"
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {REPORT_TYPES.map((r) => (
             <div
               key={r.id}

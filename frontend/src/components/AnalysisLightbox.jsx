@@ -23,22 +23,12 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/50 dark:bg-black/70 backdrop-blur-md overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/60 dark:bg-black/75 backdrop-blur-md overflow-hidden"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Photo analysis detail"
     >
-      {/* Full-screen ambient atmospheric glow */}
-      {item.image_url && (
-        <img
-          src={item.image_url}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover blur-[90px] scale-125 opacity-40 dark:opacity-30 pointer-events-none"
-        />
-      )}
-
       <section
         className="relative w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden border border-white/25 dark:border-white/10 bg-surface/15 dark:bg-black/30 backdrop-blur-2xl flex items-center justify-center"
         data-testid="lightbox-container"

@@ -1,5 +1,5 @@
 import { useState, useContext, useRef, useEffect } from "react";
-import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check, Navigation } from "lucide-react";
+import { UploadCloud, Camera, MapPin, Cpu, Sparkles, Check, Navigation, ChevronDown } from "lucide-react";
 import { StatsContext } from "../context/StatsContext.jsx";
 import { extractGPS } from "../utils/extractGPS.js";
 import ToastNotification from "./ToastNotification.jsx";
@@ -140,19 +140,19 @@ export default function UploadForm({
   const boxes = result?.boxes || [];
 
   return (
-    <form className="flex flex-col gap-4 max-w-xl mx-auto" onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-4 w-full" onSubmit={handleSubmit}>
       <label
         htmlFor="image-input"
-        className={`relative flex flex-col items-center justify-center min-h-[220px] p-6 border-2 border-dashed border-border hover:border-primary/60 rounded-2xl bg-surface transition-all duration-200 cursor-pointer overflow-hidden ${
-          dragging ? "drag-over border-primary bg-primary/5" : ""
-        }`}
+        className={`relative flex flex-col items-center justify-center min-h-[280px] sm:min-h-[360px] w-full border-2 border-border hover:border-primary/60 rounded-2xl transition-all duration-200 cursor-pointer overflow-hidden ${
+          previewUrl ? "p-0 border-solid bg-black/5 dark:bg-black/20" : "p-6 border-dashed bg-surface"
+        } ${dragging ? "drag-over border-primary bg-primary/5" : ""}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         {previewUrl ? (
           <div className="relative w-full flex items-center justify-center">
-            <img src={previewUrl} alt="Selected beach photo" className="max-h-90 w-auto rounded-xl object-contain" />
+            <img src={previewUrl} alt="Selected beach photo" className="w-full h-auto max-h-[680px] rounded-2xl object-contain block" />
 
             {/* Bounding box overlays */}
             {boxes.length > 0 && (
@@ -227,7 +227,7 @@ export default function UploadForm({
             <div className="text-xs text-text-muted">
               <strong className="text-text-primary">System Admin Control:</strong> Select model for system-wide inference across all users.
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {availableModels.map((m) => {
                 const isSelected = activeModel === m.id;
                 return (
@@ -270,24 +270,27 @@ export default function UploadForm({
           </div>
         )}
 
-        <select
-          value={selectedBeach}
-          onChange={(e) => setSelectedBeach(e.target.value)}
-          className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-xs font-medium text-text-primary focus:outline-none focus:border-primary"
-        >
-          <option value="auto">
-            {exifCoords ? "Photo EXIF GPS (Auto-detected)" : "Device GPS (Auto-detect)"}
-          </option>
-          {dbLocations.map((item, idx) => {
-            const key = item.id ? String(item.id) : `loc_${idx}`;
-            const label = item.location_label || item.locationLabel || item.beach || (item.latitude != null && item.longitude != null ? `${item.latitude}, ${item.longitude}` : `Location #${idx + 1}`);
-            return (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            );
-          })}
-        </select>
+        <div className="relative">
+          <select
+            value={selectedBeach}
+            onChange={(e) => setSelectedBeach(e.target.value)}
+            className="w-full pl-3.5 pr-9 py-2 bg-bg-secondary text-text-primary border border-border rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
+          >
+            <option value="auto">
+              {exifCoords ? "Photo EXIF GPS (Auto-detected)" : "Device GPS (Auto-detect)"}
+            </option>
+            {dbLocations.map((item, idx) => {
+              const key = item.id ? String(item.id) : `loc_${idx}`;
+              const label = item.location_label || item.locationLabel || item.beach || (item.latitude != null && item.longitude != null ? `${item.latitude}, ${item.longitude}` : `Location #${idx + 1}`);
+              return (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              );
+            })}
+          </select>
+          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+        </div>
       </div>
 
       <button

@@ -88,7 +88,7 @@ export default function CleanupPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Cleanup Recommendations</h1>
           <p className="text-xs sm:text-sm text-text-muted mt-1">AI-powered recommendations calculated dynamically from real-time database scans &amp; pollution analytics.</p>

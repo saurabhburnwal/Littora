@@ -92,7 +92,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
               return (
                 <div
                   key={to}
-                  className={`${isCollapsed ? "w-11 h-11 mx-auto justify-center p-0 rounded-xl" : "flex items-center gap-3 px-3.5 py-2.5 rounded-xl"} text-text-secondary/70 hover:text-text-primary font-semibold text-sm transition-colors cursor-pointer`}
+                  className={`${isCollapsed ? "flex items-center justify-center w-11 h-11 mx-auto p-0 rounded-xl" : "flex items-center gap-3 px-3.5 py-2.5 rounded-xl"} text-text-secondary/70 hover:text-text-primary font-semibold text-sm transition-colors cursor-pointer`}
                   title={isCollapsed ? `${label} (Sign in required)` : "Sign in required"}
                   onClick={() => navigate("/login")}
                   role="button"
@@ -116,7 +116,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
                 to={to}
                 end={end}
                 title={isCollapsed ? label : undefined}
-                className={({ isActive }) => `${isActive ? "text-primary bg-primary/15 font-bold" : "text-text-secondary hover:text-text-primary hover:bg-primary/10"} ${isCollapsed ? "w-11 h-11 mx-auto justify-center p-0 rounded-xl" : "flex items-center gap-3 px-3.5 py-2.5 rounded-xl"} font-semibold text-sm transition-colors cursor-pointer`}
+                className={({ isActive }) => `${isActive ? "text-primary bg-primary/15 font-bold" : "text-text-secondary hover:text-text-primary hover:bg-primary/10"} ${isCollapsed ? "flex items-center justify-center w-11 h-11 mx-auto p-0 rounded-xl" : "flex items-center gap-3 px-3.5 py-2.5 rounded-xl"} font-semibold text-sm transition-colors cursor-pointer`}
                 onClick={onClose}
               >
                 <Icon size={18} strokeWidth={1.8} aria-hidden="true" className="shrink-0" />

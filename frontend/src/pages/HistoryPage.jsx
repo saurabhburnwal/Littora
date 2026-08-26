@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ImageOff, RefreshCw } from "lucide-react";
+import { ImageOff, RefreshCw, ChevronDown } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
 import SectionHeader from "../components/ui/SectionHeader.jsx";
@@ -246,7 +246,7 @@ export default function HistoryPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Detection History</h1>
           <p className="text-xs sm:text-sm text-text-muted mt-1">
@@ -271,7 +271,7 @@ export default function HistoryPage() {
 
       {/* KPI Section */}
       {!loading && !error && history.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             label="Detection Sessions"
             value={history.length}
@@ -361,57 +361,66 @@ export default function HistoryPage() {
             {/* Waste Type Filter Group */}
             <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="filter-waste-select">Waste Type</label>
-              <select
-                id="filter-waste-select"
-                className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
-                aria-label="Filter by waste type"
-                value={filterWasteType}
-                onChange={(e) => setFilterWasteType(e.target.value)}
-              >
-                <option value="all">All Waste Types</option>
-                {SUPPORTED_WASTE_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {formatWasteType(type)}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="filter-waste-select"
+                  className="w-full pl-3.5 pr-9 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
+                  aria-label="Filter by waste type"
+                  value={filterWasteType}
+                  onChange={(e) => setFilterWasteType(e.target.value)}
+                >
+                  <option value="all">All Waste Types</option>
+                  {SUPPORTED_WASTE_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {formatWasteType(type)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              </div>
             </div>
 
             {/* Date Filter Group */}
             <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="filter-date-select">Date Range</label>
-              <select
-                id="filter-date-select"
-                className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
-                aria-label="Filter by date range"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-              >
-                {DATE_OPTIONS.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="filter-date-select"
+                  className="w-full pl-3.5 pr-9 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
+                  aria-label="Filter by date range"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                >
+                  {DATE_OPTIONS.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              </div>
             </div>
 
             {/* Location Filter Group */}
             <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider" htmlFor="filter-loc-select">Beach Location</label>
-              <select
-                id="filter-loc-select"
-                className="w-full px-3 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
-                aria-label="Filter by location"
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-              >
-                <option value="all">All Locations</option>
-                {uniqueLocations.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="filter-loc-select"
+                  className="w-full pl-3.5 pr-9 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
+                  aria-label="Filter by location"
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                >
+                  <option value="all">All Locations</option>
+                  {uniqueLocations.map((loc) => (
+                    <option key={loc} value={loc}>
+                      {loc}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              </div>
             </div>
           </FilterToolbar>
 
