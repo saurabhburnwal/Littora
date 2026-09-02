@@ -23,7 +23,7 @@ export default function AnalysisLightbox({ item, showUser = false, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/60 dark:bg-black/75 backdrop-blur-md overflow-hidden"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/60 dark:bg-black/75 backdrop-blur-md overflow-hidden"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

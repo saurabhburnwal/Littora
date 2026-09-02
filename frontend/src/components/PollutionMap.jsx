@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+import { useState, useEffect, useMemo, useContext, useRef } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
 import { Layers, Filter, MapPin, AlertCircle, Compass, Search, Calendar, Eye, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
@@ -60,6 +60,20 @@ function AutoFitBounds({ locations }) {
     }
   }, [locations, map]);
 
+  return null;
+}
+
+/**
+ * Helper component that closes all open Leaflet popups when the lightbox is activated.
+ * This prevents the Leaflet popup from bleeding through the lightbox overlay.
+ */
+function MapPopupCloser({ isOpen }) {
+  const map = useMap();
+  useEffect(() => {
+    if (isOpen) {
+      map.closePopup();
+    }
+  }, [isOpen, map]);
   return null;
 }
 
@@ -323,6 +337,7 @@ export default function PollutionMap({ locations: locationsProp }) {
               scrollWheelZoom={true}
             >
               <AutoFitBounds locations={filteredLocations} />
+              <MapPopupCloser isOpen={selectedModalLoc !== null} />
 
               <TileLayer
                 key={tileMode}
@@ -331,9 +346,14 @@ export default function PollutionMap({ locations: locationsProp }) {
               />
 
               {filteredLocations.map((loc) => {
-                const normSev = normalizeSeverity(loc.severity);
-                const color   = SEVERITY_COLORS[normSev] || "#2f6f5e";
+                // normSev = worst-ever severity → drives pin COLOUR and aura ring
+                const normSev    = normalizeSeverity(loc.severity);
+                const color      = SEVERITY_COLORS[normSev] || "#2f6f5e";
                 const isCritical = normSev === "High" || normSev === "Severe";
+
+                // peakSev = the scan that earned the pin colour → shown in popup badge & stats
+                const ps       = loc.peak_scan || loc;
+                const peakSev  = normalizeSeverity(ps.severity);
 
                 return (
                   <div key={loc.id || `${loc.latitude}-${loc.longitude}`}>
@@ -364,22 +384,25 @@ export default function PollutionMap({ locations: locationsProp }) {
                     >
                       <Popup className="custom-map-popup">
                         <div className="p-3 min-w-[220px] max-w-[280px] flex flex-col gap-2 font-sans">
-                          {loc.image_url && (
+                          {ps.image_url && (
                             <div className="w-full h-28 rounded-lg overflow-hidden bg-bg-secondary mb-1">
-                              <img src={loc.image_url} alt="Beach analysis preview" decoding="async" className="w-full h-full object-cover" />
+                              <img src={ps.image_url} alt="Beach analysis preview" decoding="async" className="w-full h-full object-cover" />
                             </div>
                           )}
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <strong className="text-xs font-bold text-text-primary truncate">
                               {loc.location_label || `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`}
                             </strong>
-                            <span className={`severity-badge severity-${normSev.toLowerCase()} px-2 py-0.5 rounded-pill text-[10px] font-bold`}>
-                              {normSev} Risk
-                            </span>
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className={`severity-badge severity-${peakSev.toLowerCase()} px-2 py-0.5 rounded-pill text-[10px] font-bold`}>
+                                {peakSev} Risk
+                              </span>
+                              <span className="text-[9px] text-text-muted">Peak scan</span>
+                            </div>
                           </div>
-                          {loc.created_at && (
+                          {ps.created_at && (
                             <div className="text-[11px] text-text-muted font-mono">
-                              {new Date(loc.created_at).toLocaleDateString("en-IN", {
+                              {new Date(ps.created_at).toLocaleDateString("en-IN", {
                                 day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
                               })}
                             </div>
@@ -387,11 +410,11 @@ export default function PollutionMap({ locations: locationsProp }) {
                           <div className="flex items-center gap-2 text-xs">
                             <div className="flex-1 p-1.5 rounded-lg bg-bg-secondary/40 border border-border/50 text-center">
                               <span className="text-[10px] text-text-muted block">Items</span>
-                              <strong className="text-xs text-text-primary">{loc.total_waste || 0}</strong>
+                              <strong className="text-xs text-text-primary">{ps.total_waste || 0}</strong>
                             </div>
                             <div className="flex-1 p-1.5 rounded-lg bg-bg-secondary/40 border border-border/50 text-center">
                               <span className="text-[10px] text-text-muted block">Score</span>
-                              <strong className="text-xs text-text-primary">{loc.pollution_score || 0}</strong>
+                              <strong className="text-xs text-text-primary">{ps.pollution_score || 0}</strong>
                             </div>
                           </div>
 
@@ -401,7 +424,17 @@ export default function PollutionMap({ locations: locationsProp }) {
                             onClick={(e) => {
                               e.stopPropagation();
                               e.preventDefault();
-                              setSelectedModalLoc(loc);
+                              // Use peak_scan's own coherent data — the scan with the highest
+                              // pollution score. The image, boxes, severity and detections all
+                              // belong to the same single analysis so nothing mismatches.
+                              const ps = loc.peak_scan || loc;
+                              setSelectedModalLoc({
+                                ...ps,
+                                location_label: loc.location_label,
+                                locationLabel:  loc.location_label,
+                                latitude:       loc.latitude,
+                                longitude:      loc.longitude,
+                              });
                             }}
                           >
                             <Eye size={14} /> View Analysis Details

@@ -451,11 +451,21 @@ export async function getStats(userId = null) {
         country,
         pollution_scores: [],
         total_waste:     0,
-        severity:        rowSev,
-        created_at:      r.created_at,
-        image_url:       r.image_url,
+        // worst_severity: all-time highest severity → drives map pin colour
+        worst_severity:  rowSev,
+        // peak_scan: the single scan with the highest pollution_score.
+        // This is what the map pin colour represents, so popup & lightbox
+        // must show this scan's image, boxes, score and severity.
+        peak_scan: {
+          created_at:      r.created_at,
+          image_url:       r.image_url,
+          boxes:           r.boxes || [],
+          severity:        rowSev,
+          pollution_score: rowScore,
+          total_waste:     rowWaste,
+          detections:      {},
+        },
         detections:      {},
-        boxes:           r.boxes || [],
         scan_count:      0,
         scans:           [],
       });
@@ -465,12 +475,8 @@ export async function getStats(userId = null) {
     group.total_waste += rowWaste;
     group.pollution_scores.push(rowScore);
     group.scan_count += 1;
-    if (new Date(r.created_at) >= new Date(group.created_at)) {
-      group.image_url = r.image_url;
-      group.boxes = r.boxes || [];
-      group.created_at = r.created_at;
-    }
 
+    // Accumulate aggregate detections (kept for any future analytics usage)
     if (r.detections_map && typeof r.detections_map === "object") {
       Object.entries(r.detections_map).forEach(([type, count]) => {
         const k = type.toLowerCase();
@@ -485,10 +491,43 @@ export async function getStats(userId = null) {
       });
     }
 
-    const currentRank = SEV_RANK[group.severity.toLowerCase()] ?? 0;
+    // Update worst_severity for map pin colour
+    const currentWorstRank = SEV_RANK[group.worst_severity.toLowerCase()] ?? 0;
     const newRank = SEV_RANK[rowSev.toLowerCase()] ?? 0;
-    if (newRank > currentRank) {
-      group.severity = rowSev;
+    if (newRank > currentWorstRank) {
+      group.worst_severity = rowSev;
+    }
+
+    // Update peak_scan if this row has a higher pollution score.
+    // Tie-break: prefer the more recent scan so we don't show a stale image
+    // when two scans have identical scores.
+    const isPeakByScore  = rowScore > group.peak_scan.pollution_score;
+    const isTiebreakNewer = rowScore === group.peak_scan.pollution_score &&
+      new Date(r.created_at) > new Date(group.peak_scan.created_at);
+
+    if (isPeakByScore || isTiebreakNewer) {
+      // Build this scan's own detections map (not aggregated)
+      const scanDetections = {};
+      if (r.detections_map && typeof r.detections_map === "object") {
+        Object.entries(r.detections_map).forEach(([type, count]) => {
+          scanDetections[type.toLowerCase()] = Number(count || 1);
+        });
+      } else if (Array.isArray(r.detections)) {
+        r.detections.forEach((d) => {
+          if (d && d.waste_type) {
+            scanDetections[d.waste_type.toLowerCase()] = Number(d.count || 1);
+          }
+        });
+      }
+      group.peak_scan = {
+        created_at:      r.created_at,
+        image_url:       r.image_url,
+        boxes:           r.boxes || [],
+        severity:        rowSev,
+        pollution_score: rowScore,
+        total_waste:     rowWaste,
+        detections:      scanDetections,
+      };
     }
 
     group.scans.push({
@@ -506,6 +545,7 @@ export async function getStats(userId = null) {
     const avgScore = g.pollution_scores.length
       ? Math.round(g.pollution_scores.reduce((sum, s) => sum + s, 0) / g.pollution_scores.length)
       : 0;
+    const ps = g.peak_scan;  // the single scan that earned the map pin colour
     return {
       id:              g.id,
       location_id:     g.location_id,
@@ -516,17 +556,34 @@ export async function getStats(userId = null) {
       beach:           g.beach,
       city:            g.city,
       country:         g.country,
+      // avg score across all scans shown in the popup stats bar
       pollution_score: avgScore,
       pollutionScore:  avgScore,
-      severity:        g.severity,
-      created_at:      g.created_at,
+      // worst severity drives the map pin colour
+      severity:        g.worst_severity,
+      // cumulative totals
       total_waste:     g.total_waste,
       totalWaste:      g.total_waste,
-      image_url:       g.image_url,
+      // aggregate detections
       detections:      g.detections,
-      boxes:           g.boxes || [],
       scan_count:      g.scan_count,
       scans:           g.scans,
+      // peak_scan: the scan with the highest pollution_score.
+      // The popup thumbnail, badge, items, score AND the lightbox all
+      // use this so everything is internally consistent.
+      peak_scan: {
+        created_at:      ps.created_at,
+        image_url:       ps.image_url,
+        boxes:           ps.boxes,
+        severity:        ps.severity,
+        pollution_score: ps.pollution_score,
+        total_waste:     ps.total_waste,
+        detections:      ps.detections,
+      },
+      // top-level image/boxes/created_at come from peak_scan for the Popup thumbnail
+      image_url:       ps.image_url,
+      boxes:           ps.boxes,
+      created_at:      ps.created_at,
     };
   });
 
