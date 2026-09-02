@@ -16,7 +16,7 @@ export default function MapPage() {
       <div className="flex flex-col gap-1 mb-4">
         <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">Pollution Map</h1>
         <p className="text-xs sm:text-sm text-text-muted mt-1">
-          Geolocated hotspots from submitted beach waste analyses — attach location on upload to populate this map.
+          Your geolocated beach waste scan hotspots — attach location on upload to populate this map.
         </p>
       </div>
 

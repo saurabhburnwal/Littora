@@ -41,11 +41,13 @@ router.get("/", optionalAuth, async (req, res) => {
       });
     }
 
-    // Regular user sees their personal totals + global locations map & catalogs
+    // Regular user sees their personal totals + their OWN scan locations on the map.
+    // userStats is already scoped to userId (getStats(userId) filters vw_analysis_details
+    // by user_id), so userStats.locations already contains only this user's GPS-tagged scans.
+    // locationsCatalog & wasteTypesCatalog are global reference data (used by UploadForm dropdowns).
     const userStats = await getStats(userId);
     return res.json({
       ...userStats,
-      locations:         globalStats.locations,
       locationsCatalog:  globalStats.locationsCatalog,
       wasteTypesCatalog: globalStats.wasteTypesCatalog,
       isGuest:           false,

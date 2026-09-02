@@ -596,30 +596,9 @@ export async function getStats(userId = null) {
     getLocationsCatalog(),
   ]);
 
-  // If user has no scan locations yet, populate map locations from locationsCatalog so map and cleanup page render beach hotspots
-  const displayLocations = locations.length > 0 ? locations : locationsCatalog.map((loc) => {
-    const { beach, city, country } = parseLocationLabel(loc.location_label);
-    return {
-      id:              loc.id,
-      location_id:     loc.id,
-      latitude:        loc.latitude,
-      longitude:       loc.longitude,
-      location_label:  loc.location_label,
-      locationLabel:   loc.location_label,
-      beach,
-      city,
-      country,
-      pollution_score: 15,
-      pollutionScore:  15,
-      severity:        "Low",
-      created_at:      loc.created_at,
-      total_waste:     0,
-      totalWaste:      0,
-      detections:      {},
-      scan_count:      0,
-      scans:           [],
-    };
-  });
+  // Only include real, scan-backed locations — no synthetic placeholders.
+  // A user with no GPS-tagged scans correctly sees an empty map.
+  const displayLocations = locations;
 
   return {
     totalAnalyses,
