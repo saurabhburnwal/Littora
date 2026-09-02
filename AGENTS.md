@@ -19,3 +19,9 @@
 ## 5. UI & Lightbox Invariants
 - Photo inspection modals must never crop images (`object-fit: contain`).
 - Render normalized YOLO bounding boxes with category badges via `BoundingBoxImage.jsx`.
+- **Map Pin Multi-Scan Inspection Invariant**: When geographic maps group multiple analyses under a single location coordinate/label, the pin marker colour reflects peak/worst severity, but the popup must render all individual analyses with per-scan thumbnails, severity badges, scores, timestamps, and inspection buttons. Never hide non-peak scans.
+
+## 6. Role-Based Data Scoping & Authentic Data
+- **Telemetry Scoping**: In `/api/stats`, regular users must receive personal stats and only their own scan locations (`userStats.locations`). Never override a user's location list with `globalStats.locations`.
+- **Admin vs User Context**: Admins view global platform data. Header titles/subtitles must dynamically adapt to the user's active role.
+- **Zero Synthetic Placeholders**: Never fabricate phantom markers or placeholder analyses with hardcoded scores or severities. If no GPS-tagged records exist, render authentic empty states.
