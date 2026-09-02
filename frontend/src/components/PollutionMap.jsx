@@ -353,7 +353,6 @@ export default function PollutionMap({ locations: locationsProp }) {
 
                 // peakSev = the scan that earned the pin colour → shown in popup badge & stats
                 const ps       = loc.peak_scan || loc;
-                const peakSev  = normalizeSeverity(ps.severity);
 
                 return (
                   <div key={loc.id || `${loc.latitude}-${loc.longitude}`}>
@@ -383,62 +382,92 @@ export default function PollutionMap({ locations: locationsProp }) {
                       }}
                     >
                       <Popup className="custom-map-popup">
-                        <div className="p-3 min-w-[220px] max-w-[280px] flex flex-col gap-2 font-sans">
-                          {ps.image_url && (
-                            <div className="w-full h-28 rounded-lg overflow-hidden bg-bg-secondary mb-1">
-                              <img src={ps.image_url} alt="Beach analysis preview" decoding="async" className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <strong className="text-xs font-bold text-text-primary truncate">
+                        <div className="p-3 min-w-[240px] max-w-[300px] flex flex-col gap-2 font-sans">
+                          {/* ── Location header: name · worst severity · scan count ── */}
+                          <div className="flex items-start justify-between gap-2">
+                            <strong className="text-xs font-bold text-text-primary leading-snug flex-1">
                               {loc.location_label || `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}`}
                             </strong>
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className={`severity-badge severity-${peakSev.toLowerCase()} px-2 py-0.5 rounded-pill text-[10px] font-bold`}>
-                                {peakSev} Risk
+                            <div className="flex flex-col items-end gap-0.5 shrink-0">
+                              <span className={`severity-badge severity-${normSev.toLowerCase()} px-2 py-0.5 rounded-pill text-[10px] font-bold`}>
+                                {normSev} Risk
                               </span>
-                              <span className="text-[9px] text-text-muted">Peak scan</span>
-                            </div>
-                          </div>
-                          {ps.created_at && (
-                            <div className="text-[11px] text-text-muted font-mono">
-                              {new Date(ps.created_at).toLocaleDateString("en-IN", {
-                                day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
-                              })}
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2 text-xs">
-                            <div className="flex-1 p-1.5 rounded-lg bg-bg-secondary/40 border border-border/50 text-center">
-                              <span className="text-[10px] text-text-muted block">Items</span>
-                              <strong className="text-xs text-text-primary">{ps.total_waste || 0}</strong>
-                            </div>
-                            <div className="flex-1 p-1.5 rounded-lg bg-bg-secondary/40 border border-border/50 text-center">
-                              <span className="text-[10px] text-text-muted block">Score</span>
-                              <strong className="text-xs text-text-primary">{ps.pollution_score || 0}</strong>
+                              <span className="text-[9px] text-text-muted font-medium">
+                                {(loc.scans?.length || loc.scan_count || 1)}{" "}
+                                scan{(loc.scans?.length || loc.scan_count || 1) !== 1 ? "s" : ""}
+                              </span>
                             </div>
                           </div>
 
-                          <button
-                            type="button"
-                            className="w-full mt-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-pill bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              // Use peak_scan's own coherent data — the scan with the highest
-                              // pollution score. The image, boxes, severity and detections all
-                              // belong to the same single analysis so nothing mismatches.
-                              const ps = loc.peak_scan || loc;
-                              setSelectedModalLoc({
-                                ...ps,
-                                location_label: loc.location_label,
-                                locationLabel:  loc.location_label,
-                                latitude:       loc.latitude,
-                                longitude:      loc.longitude,
-                              });
-                            }}
-                          >
-                            <Eye size={14} /> View Analysis Details
-                          </button>
+                          {/* ── Scan list — one compact row per analysis ── */}
+                          <div className="flex flex-col gap-1.5 max-h-[260px] overflow-y-auto">
+                            {(loc.scans?.length > 0 ? loc.scans : [ps]).map((scan, i) => {
+                              const scanSev   = normalizeSeverity(scan.severity);
+                              const scanColor = SEVERITY_COLORS[scanSev] || "#2f6f5e";
+                              return (
+                                <div
+                                  key={scan.id || i}
+                                  className="flex items-center gap-2 p-1.5 rounded-xl bg-bg-secondary/50 border border-border/50 hover:border-primary/30 transition-colors"
+                                >
+                                  {/* Thumbnail */}
+                                  {scan.image_url ? (
+                                    <img
+                                      src={scan.image_url}
+                                      alt=""
+                                      className="w-10 h-10 rounded-lg object-cover shrink-0 bg-bg-secondary"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-lg bg-bg-secondary shrink-0 flex items-center justify-center">
+                                      <MapPin size={14} className="text-text-muted" />
+                                    </div>
+                                  )}
+
+                                  {/* Scan metadata */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1 mb-0.5">
+                                      <span
+                                        className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none"
+                                        style={{ backgroundColor: scanColor }}
+                                      >
+                                        {scanSev}
+                                      </span>
+                                      <span className="text-[10px] font-semibold text-text-primary">
+                                        Score {scan.pollution_score || 0}
+                                      </span>
+                                    </div>
+                                    <div className="text-[10px] text-text-muted truncate">
+                                      {scan.created_at
+                                        ? new Date(scan.created_at).toLocaleDateString("en-IN", {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric",
+                                          })
+                                        : "—"}
+                                    </div>
+                                  </div>
+
+                                  {/* Per-scan View button */}
+                                  <button
+                                    type="button"
+                                    className="shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-[10px] font-semibold transition-colors cursor-pointer shadow-sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setSelectedModalLoc({
+                                        ...scan,
+                                        location_label: loc.location_label,
+                                        locationLabel:  loc.location_label,
+                                        latitude:       loc.latitude,
+                                        longitude:      loc.longitude,
+                                      });
+                                    }}
+                                  >
+                                    <Eye size={11} /> View
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </Popup>
                     </CircleMarker>
