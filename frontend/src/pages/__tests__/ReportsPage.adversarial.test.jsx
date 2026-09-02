@@ -203,23 +203,23 @@ describe("ReportsPage - Adversarial & Edge Case Suite", () => {
   it("survives rapid multi-period tab clicking without state corruption or race conditions", async () => {
     renderReportsPageWithStats();
 
-    await waitFor(() => screen.getByRole("button", { name: /select daily report/i }));
+    await waitFor(() => screen.getByRole("button", { name: /select last 7 days/i }));
 
-    const dailyBtn = screen.getByRole("button", { name: /select daily report/i });
-    const weeklyBtn = screen.getByRole("button", { name: /select weekly report/i });
-    const monthlyBtn = screen.getByRole("button", { name: /select monthly report/i });
+    const btn7d = screen.getByRole("button", { name: /select last 7 days/i });
+    const btn30d = screen.getByRole("button", { name: /select last 30 days/i });
+    const btn90d = screen.getByRole("button", { name: /select last 90 days/i });
     const customBtn = screen.getByRole("button", { name: /select custom report/i });
 
     // Rapid sequential clicks
-    fireEvent.click(dailyBtn);
-    fireEvent.click(weeklyBtn);
-    fireEvent.click(monthlyBtn);
+    fireEvent.click(btn7d);
+    fireEvent.click(btn30d);
+    fireEvent.click(btn90d);
     fireEvent.click(customBtn);
-    fireEvent.click(dailyBtn);
-    fireEvent.click(monthlyBtn);
+    fireEvent.click(btn7d);
+    fireEvent.click(btn30d);
 
     await waitFor(() => {
-      expect(monthlyBtn.className).toContain("selected");
+      expect(btn30d.className).toContain("selected");
     });
   });
 

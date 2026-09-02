@@ -2,16 +2,29 @@ import { useState } from "react";
 import { Trash2, Loader2 } from "lucide-react";
 import AnalysisLightbox from "./AnalysisLightbox.jsx";
 
-export default function PhotoGallery({ items, showUser = false, onDeleteRequest, deletingId }) {
+export default function PhotoGallery({
+  items,
+  showUser = false,
+  onDeleteRequest,
+  deletingId,
+  colCount: controlledColCount,
+  onColChange,
+}) {
   const [modalItem, setModalItem] = useState(null);
-  const [colCount, setColCount] = useState(() => {
+  const [internalColCount, setInternalColCount] = useState(() => {
     const saved = parseInt(localStorage.getItem("photoGalleryColCount"), 10);
     return [2, 3, 4].includes(saved) ? saved : 3;
   });
 
+  const isControlled = controlledColCount !== undefined;
+  const colCount = isControlled ? controlledColCount : internalColCount;
+
   const handleColChange = (n) => {
-    setColCount(n);
+    if (!isControlled) {
+      setInternalColCount(n);
+    }
     localStorage.setItem("photoGalleryColCount", n);
+    onColChange?.(n);
   };
 
   const gridClass = {
@@ -32,24 +45,26 @@ export default function PhotoGallery({ items, showUser = false, onDeleteRequest,
 
   return (
     <>
-      {/* Column count toggle */}
-      <div className="flex items-center justify-end gap-1.5 mb-3">
-        <span className="text-xs text-text-muted mr-1">Columns:</span>
-        {[2, 3, 4].map((n) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => handleColChange(n)}
-            className={`px-3 py-1 rounded-pill text-xs font-semibold transition-all cursor-pointer border ${
-              colCount === n
-                ? "bg-primary text-white border-primary shadow-sm"
-                : "bg-surface text-text-muted border-border hover:text-text-primary"
-            }`}
-          >
-            {n}
-          </button>
-        ))}
-      </div>
+      {/* Column count toggle (rendered only if not controlled by parent) */}
+      {!isControlled && (
+        <div className="flex items-center justify-end gap-1.5 mb-3">
+          <span className="text-xs text-text-muted mr-1">Columns:</span>
+          {[2, 3, 4].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => handleColChange(n)}
+              className={`px-3 py-1 rounded-pill text-xs font-semibold transition-all cursor-pointer border ${
+                colCount === n
+                  ? "bg-primary text-white border-primary shadow-sm"
+                  : "bg-surface text-text-muted border-border hover:text-text-primary"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className={`grid ${gridClass} gap-4`}>
         {items.map((row) => {

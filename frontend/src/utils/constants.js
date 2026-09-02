@@ -10,3 +10,10 @@ export const SEVERITY_RANKS = {
   Severe: 3,
 };
 
+export const STANDARD_TIMEFRAMES = [
+  { id: "all", label: "All Time",      shortLabel: "All Time", days: null },
+  { id: "7d",  label: "Last 7 Days",   shortLabel: "7d",       days: 7 },
+  { id: "30d", label: "Last 30 Days",  shortLabel: "30d",      days: 30 },
+  { id: "90d", label: "Last 90 Days",  shortLabel: "90d",      days: 90 },
+];
+

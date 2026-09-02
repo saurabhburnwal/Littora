@@ -143,31 +143,32 @@ describe("ReportsPage component", () => {
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: /^reports$/i })).toBeInTheDocument();
     });
-    expect(screen.getByText("Daily Report")).toBeInTheDocument();
-    expect(screen.getByText("Weekly Report")).toBeInTheDocument();
-    expect(screen.getAllByText("Monthly Report").length).toBeGreaterThan(0);
+    expect(screen.getByText("Last 7 Days")).toBeInTheDocument();
+    expect(screen.getAllByText("Last 30 Days").length).toBeGreaterThan(0);
+    expect(screen.getByText("Last 90 Days")).toBeInTheDocument();
+    expect(screen.getByText("All Time")).toBeInTheDocument();
     expect(screen.getByText("Custom Report")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /email report/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /markdown/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /download pdf report/i })).toBeInTheDocument();
   });
 
-  it("dynamically scopes metrics when switching between Daily, Weekly, and Monthly", async () => {
+  it("dynamically scopes metrics when switching between Last 7 Days, Last 30 Days, and Last 90 Days", async () => {
     renderReports({ user: { id: "u-reporter", email: "reporter@example.com" } });
     
-    // Switch to Daily
-    await waitFor(() => screen.getByRole("button", { name: /select daily report/i }));
-    fireEvent.click(screen.getByRole("button", { name: /select daily report/i }));
+    // Switch to Last 7 Days
+    await waitFor(() => screen.getByRole("button", { name: /select last 7 days/i }));
+    fireEvent.click(screen.getByRole("button", { name: /select last 7 days/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /select daily report/i }).className).toContain("selected");
-      expect(screen.getAllByText("Daily Report").length).toBeGreaterThan(0);
+      expect(screen.getByRole("button", { name: /select last 7 days/i }).className).toContain("selected");
+      expect(screen.getAllByText("Last 7 Days").length).toBeGreaterThan(0);
     });
 
-    // Switch to Weekly
-    fireEvent.click(screen.getByRole("button", { name: /select weekly report/i }));
+    // Switch to Last 90 Days
+    fireEvent.click(screen.getByRole("button", { name: /select last 90 days/i }));
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /select weekly report/i }).className).toContain("selected");
+      expect(screen.getByRole("button", { name: /select last 90 days/i }).className).toContain("selected");
     });
   });
 
@@ -238,7 +239,7 @@ describe("ReportsPage component", () => {
         expect.stringContaining("/api/email/send-report"),
         expect.objectContaining({
           recipientEmail: "officer@coastalgov.org",
-          reportType: "monthly",
+          reportType: "30d",
         }),
         expect.any(Object)
       );
@@ -265,14 +266,14 @@ describe("ReportsPage component", () => {
 
   it("selects report period via Enter and Space keyboard interaction", async () => {
     renderReports({ user: { id: "u-reporter", email: "reporter@example.com" } });
-    await waitFor(() => screen.getByRole("button", { name: /select daily report/i }));
+    await waitFor(() => screen.getByRole("button", { name: /select last 7 days/i }));
 
-    const dailyCard = screen.getByRole("button", { name: /select daily report/i });
-    fireEvent.keyDown(dailyCard, { key: "Enter" });
-    expect(dailyCard.className).toContain("selected");
+    const card7d = screen.getByRole("button", { name: /select last 7 days/i });
+    fireEvent.keyDown(card7d, { key: "Enter" });
+    expect(card7d.className).toContain("selected");
 
-    const weeklyCard = screen.getByRole("button", { name: /select weekly report/i });
-    fireEvent.keyDown(weeklyCard, { key: " " });
-    expect(weeklyCard.className).toContain("selected");
+    const card90d = screen.getByRole("button", { name: /select last 90 days/i });
+    fireEvent.keyDown(card90d, { key: " " });
+    expect(card90d.className).toContain("selected");
   });
 });

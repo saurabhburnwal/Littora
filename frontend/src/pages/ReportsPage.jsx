@@ -20,10 +20,11 @@ const RFC5322_EMAIL_REGEX =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
 const REPORT_TYPES = [
-  { id: "daily",   icon: <FileText size={20} />,   title: "Daily Report",   desc: "Last 24 hours coastal scans" },
-  { id: "weekly",  icon: <Calendar size={20} />,   title: "Weekly Report",  desc: "Last 7 days monitoring audit" },
-  { id: "monthly", icon: <BarChart3 size={20} />,  title: "Monthly Report", desc: "Last 30 days complete analysis" },
-  { id: "custom",  icon: <Settings size={20} />,   title: "Custom Report",  desc: "Interactive date range & site filters" },
+  { id: "7d",     icon: <Calendar size={20} />,   title: "Last 7 Days",   desc: "Last 7 days monitoring audit" },
+  { id: "30d",    icon: <BarChart3 size={20} />,  title: "Last 30 Days",  desc: "Last 30 days complete analysis" },
+  { id: "90d",    icon: <TrendingUp size={20} />, title: "Last 90 Days",  desc: "Last 90 days quarterly review" },
+  { id: "all",    icon: <FileText size={20} />,   title: "All Time",      desc: "Complete historical monitoring audit" },
+  { id: "custom", icon: <Settings size={20} />,   title: "Custom Report", desc: "Interactive date range & site filters" },
 ];
 
 export function synthesizeStatisticalSummary(period, metrics, dateRangeText, locText) {
@@ -64,7 +65,7 @@ export default function ReportsPage() {
   const { getToken, user } = useAuth();
   
   // Filtering states
-  const [selected, setSelected] = useState("monthly");
+  const [selected, setSelected] = useState("30d");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [customLocation, setCustomLocation] = useState("all");
@@ -115,22 +116,32 @@ export default function ReportsPage() {
     const history = Array.isArray(stats?.history) ? stats.history : [];
     const now = Date.now();
 
-    if (selected === "daily") {
-      const cutoff = now - 24 * 60 * 60 * 1000;
-      return history.filter((h) => {
-        const t = h.created_at ? new Date(h.created_at).getTime() : 0;
-        return t >= cutoff;
-      });
-    }
-    if (selected === "weekly") {
+    if (selected === "7d" || selected === "weekly") {
       const cutoff = now - 7 * 24 * 60 * 60 * 1000;
       return history.filter((h) => {
         const t = h.created_at ? new Date(h.created_at).getTime() : 0;
         return t >= cutoff;
       });
     }
-    if (selected === "monthly") {
+    if (selected === "30d" || selected === "monthly") {
       const cutoff = now - 30 * 24 * 60 * 60 * 1000;
+      return history.filter((h) => {
+        const t = h.created_at ? new Date(h.created_at).getTime() : 0;
+        return t >= cutoff;
+      });
+    }
+    if (selected === "90d" || selected === "quarterly") {
+      const cutoff = now - 90 * 24 * 60 * 60 * 1000;
+      return history.filter((h) => {
+        const t = h.created_at ? new Date(h.created_at).getTime() : 0;
+        return t >= cutoff;
+      });
+    }
+    if (selected === "all") {
+      return history;
+    }
+    if (selected === "daily") {
+      const cutoff = now - 24 * 60 * 60 * 1000;
       return history.filter((h) => {
         const t = h.created_at ? new Date(h.created_at).getTime() : 0;
         return t >= cutoff;
@@ -222,9 +233,11 @@ export default function ReportsPage() {
   }, [scopedMetrics.aggregateDetections]);
 
   const dateRangeLabel = useMemo(() => {
+    if (selected === "7d" || selected === "weekly") return "Last 7 Days";
+    if (selected === "30d" || selected === "monthly") return "Last 30 Days";
+    if (selected === "90d" || selected === "quarterly") return "Last 90 Days";
+    if (selected === "all") return "All Time";
     if (selected === "daily") return "Last 24 Hours";
-    if (selected === "weekly") return "Last 7 Days";
-    if (selected === "monthly") return "Last 30 Days";
     if (selected === "custom") {
       if (customStart && customEnd) return `${customStart} to ${customEnd}`;
       if (customStart) return `From ${customStart}`;
@@ -537,7 +550,7 @@ ${actionsList || "- Deploy routine maintenance patrols."}
 
       {/* Report Template Selector Cards */}
       <section className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {REPORT_TYPES.map((r) => (
             <div
               key={r.id}

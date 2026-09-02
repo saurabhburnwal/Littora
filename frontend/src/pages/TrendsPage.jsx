@@ -58,11 +58,11 @@ export default function TrendsPage() {
     let list = Array.isArray(stats.history) ? stats.history : [];
     const now = Date.now();
 
-    if (dateRange === "last7") {
+    if (dateRange === "7d" || dateRange === "last7") {
       list = list.filter((r) => r.created_at && (now - new Date(r.created_at).getTime()) <= 7 * 24 * 3600 * 1000);
-    } else if (dateRange === "last30") {
+    } else if (dateRange === "30d" || dateRange === "last30") {
       list = list.filter((r) => r.created_at && (now - new Date(r.created_at).getTime()) <= 30 * 24 * 3600 * 1000);
-    } else if (dateRange === "last90") {
+    } else if (dateRange === "90d" || dateRange === "last90") {
       list = list.filter((r) => r.created_at && (now - new Date(r.created_at).getTime()) <= 90 * 24 * 3600 * 1000);
     }
 
@@ -265,9 +265,9 @@ export default function TrendsPage() {
               className="w-full pl-3.5 pr-9 py-2 text-xs sm:text-sm bg-bg-secondary text-text-primary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer appearance-none"
             >
               <option value="all">All Time</option>
-              <option value="last7">Last 7 Days</option>
-              <option value="last30">Last 30 Days</option>
-              <option value="last90">Last 90 Days</option>
+              <option value="7d">Last 7 Days</option>
+              <option value="30d">Last 30 Days</option>
+              <option value="90d">Last 90 Days</option>
             </select>
             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
           </div>

@@ -20,11 +20,10 @@ const SEVERITY_OPTIONS = [
 ];
 
 const DATE_OPTIONS = [
-  { id: "all",    label: "All Time" },
-  { id: "today",  label: "Today" },
-  { id: "7days",  label: "Last 7 Days" },
-  { id: "30days", label: "Last 30 Days" },
-  { id: "90days", label: "Last 90 Days" },
+  { id: "all", label: "All Time" },
+  { id: "7d",  label: "Last 7 Days" },
+  { id: "30d", label: "Last 30 Days" },
+  { id: "90d", label: "Last 90 Days" },
 ];
 
 export default function HistoryPage() {
@@ -45,6 +44,17 @@ export default function HistoryPage() {
   const [confirm,  setConfirm]  = useState(null); // analysis id awaiting confirmation
   const [deleting, setDeleting] = useState(null); // id currently being deleted
   const [toast,    setToast]    = useState(null);  // { type, message }
+
+  // Photo gallery column layout state (2, 3, or 4 columns)
+  const [galleryColCount, setGalleryColCount] = useState(() => {
+    const saved = parseInt(localStorage.getItem("photoGalleryColCount"), 10);
+    return [2, 3, 4].includes(saved) ? saved : 3;
+  });
+
+  const handleGalleryColChange = (n) => {
+    setGalleryColCount(n);
+    localStorage.setItem("photoGalleryColCount", n);
+  };
 
   const showToast = (type, message) => {
     setToast({ type, message });
@@ -177,10 +187,9 @@ export default function HistoryPage() {
       if (filterDate !== "all" && r.created_at) {
         const itemTime = new Date(r.created_at).getTime();
         const diffMs = now - itemTime;
-        if (filterDate === "today" && diffMs > 24 * 3600 * 1000) return false;
-        if (filterDate === "7days" && diffMs > 7 * 24 * 3600 * 1000) return false;
-        if (filterDate === "30days" && diffMs > 30 * 24 * 3600 * 1000) return false;
-        if (filterDate === "90days" && diffMs > 90 * 24 * 3600 * 1000) return false;
+        if ((filterDate === "7d" || filterDate === "7days") && diffMs > 7 * 24 * 3600 * 1000) return false;
+        if ((filterDate === "30d" || filterDate === "30days") && diffMs > 30 * 24 * 3600 * 1000) return false;
+        if ((filterDate === "90d" || filterDate === "90days") && diffMs > 90 * 24 * 3600 * 1000) return false;
       }
 
       // 5. Global Text Search
@@ -271,7 +280,7 @@ export default function HistoryPage() {
 
       {/* KPI Section */}
       {!loading && !error && history.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-4`}>
           <MetricCard
             label="Detection Sessions"
             value={history.length}
@@ -285,10 +294,12 @@ export default function HistoryPage() {
             value={avgScore}
             tier={avgScoreStatus}
           />
-          <MetricCard
-            label="Unique Contributors"
-            value={uniqueUsers}
-          />
+          {isAdmin && (
+            <MetricCard
+              label="Unique Contributors"
+              value={uniqueUsers}
+            />
+          )}
         </div>
       )}
 
@@ -429,12 +440,36 @@ export default function HistoryPage() {
             <SectionHeader
               title="Photo Gallery"
               subtitle="Visual detection catalog and photo inspection"
+              action={
+                filtered.length > 0 ? (
+                  <div className="flex items-center gap-1.5 pt-0.5">
+                    <span className="text-xs text-text-muted mr-1 hidden sm:inline">Columns:</span>
+                    {[2, 3, 4].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => handleGalleryColChange(n)}
+                        className={`px-2.5 sm:px-3 py-1 rounded-pill text-xs font-semibold transition-all cursor-pointer border ${
+                          galleryColCount === n
+                            ? "bg-primary text-white border-primary shadow-sm"
+                            : "bg-surface text-text-muted border-border hover:text-text-primary"
+                        }`}
+                        aria-label={`Show ${n} columns`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                ) : null
+              }
             />
             <PhotoGallery
               items={filtered}
               showUser={isAdmin}
               onDeleteRequest={(id) => setConfirm(id)}
               deletingId={deleting}
+              colCount={galleryColCount}
+              onColChange={handleGalleryColChange}
             />
           </section>
 

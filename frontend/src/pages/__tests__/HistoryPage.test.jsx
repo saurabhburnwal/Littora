@@ -107,6 +107,7 @@ describe("HistoryPage — rendering and filtering", () => {
     expect(screen.getByText("Detection Sessions")).toBeInTheDocument();
     expect(screen.getByText("Waste Items")).toBeInTheDocument();
     expect(screen.getByText("Avg. Severity Score")).toBeInTheDocument();
+    expect(screen.queryByText("Unique Contributors")).not.toBeInTheDocument();
   });
 
   it("filters analyses correctly when clicking Low severity pill in filters popover", async () => {
