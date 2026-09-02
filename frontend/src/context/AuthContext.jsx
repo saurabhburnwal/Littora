@@ -80,12 +80,25 @@ export function AuthProvider({ children }) {
     return session?.access_token ?? null;
   }, []);
 
+  /**
+   * Sends a Supabase password-reset email.
+   * Supabase appends a recovery token to redirectTo; SetPasswordPage
+   * (at /set-password) handles type=recovery to let the user pick a new password.
+   */
+  const resetPassword = useCallback(async (email) => {
+    const redirectTo = `${window.location.origin}/set-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo,
+    });
+    if (error) throw error;
+  }, []);
+
   const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "admin@littora.app").toLowerCase();
   const isAdmin = Boolean(user?.email && user.email.toLowerCase() === adminEmail);
 
   const value = useMemo(
-    () => ({ user, loading, login, signUp, logout, isAdmin, getToken }),
-    [user, loading, login, signUp, logout, isAdmin, getToken]
+    () => ({ user, loading, login, signUp, logout, isAdmin, getToken, resetPassword }),
+    [user, loading, login, signUp, logout, isAdmin, getToken, resetPassword]
   );
 
   return (

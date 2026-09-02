@@ -9,14 +9,14 @@ import { calculatePasswordStrength } from "../utils/wasteUtils.js";
 import logo from "../assets/logo.png";
 
 export default function LoginPage() {
-  const { login, signUp } = useAuth();
+  const { login, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || "/";
 
   /* ── Shared state ───────────────────────────────────────── */
-  const [mode,    setMode]    = useState("login"); // "login" | "signup"
+  const [mode,    setMode]    = useState("login"); // "login" | "signup" | "forgot"
   const [email,   setEmail]   = useState("");
   const [password, setPassword] = useState("");
   const [showPw,  setShowPw]  = useState(false);
@@ -28,11 +28,15 @@ export default function LoginPage() {
   const [confirm,   setConfirm]   = useState("");
   const [signedUp,  setSignedUp]  = useState(false);
 
+  /* ── Forgot password only ───────────────────────────────── */
+  const [resetSent, setResetSent] = useState(false);
+
   /* ── Switch tab (reset form state) ─────────────────────── */
   function switchMode(next) {
     setMode(next);
     setError(null);
     setSignedUp(false);
+    setResetSent(false);
     setPassword("");
     setConfirm("");
     setShowPw(false);
@@ -73,6 +77,21 @@ export default function LoginPage() {
       setSignedUp(true);
     } catch (err) {
       setError(err.message || "Sign up failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* ── Forgot password submit ──────────────────────────────── */
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await resetPassword(email.trim());
+      setResetSent(true);
+    } catch (err) {
+      setError(err.message || "Could not send reset email. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -229,6 +248,17 @@ export default function LoginPage() {
                         {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
+                  </div>
+
+                  {/* Forgot password link */}
+                  <div className="flex justify-end -mt-1">
+                    <button
+                      type="button"
+                      className="text-xs text-primary hover:underline cursor-pointer font-medium"
+                      onClick={() => { setError(null); setResetSent(false); setMode("forgot"); }}
+                    >
+                      Forgot password?
+                    </button>
                   </div>
 
                   <button
@@ -417,20 +447,109 @@ export default function LoginPage() {
                 </form>
               )}
 
-              {/* Guest option */}
-              <div className="relative flex items-center justify-center my-6">
-                <div className="border-t border-border w-full" />
-                <span className="bg-surface px-3 text-xs text-text-muted shrink-0">or explore without an account</span>
-              </div>
+              {/* ══ FORGOT PASSWORD FORM ══ */}
+              {mode === "forgot" && (
+                <>
+                  {!resetSent ? (
+                    <>
+                      <h1 className="font-display text-2xl font-bold text-text-primary mb-1">Reset password</h1>
+                      <p className="text-xs sm:text-sm text-text-muted mb-6">
+                        Enter your email and we&apos;ll send you a link to set a new password.
+                      </p>
 
-              <button
-                type="button"
-                id="continue-as-guest-btn"
-                className="w-full py-2.5 px-4 bg-bg-secondary/60 hover:bg-bg-secondary text-text-primary font-semibold text-xs sm:text-sm rounded-pill border border-border transition-all flex items-center justify-center gap-2 cursor-pointer"
-                onClick={() => navigate("/")}
-              >
-                <Compass size={17} className="text-primary shrink-0" /> Continue as Guest
-              </button>
+                      {error && (
+                        <div className="flex items-center gap-2 p-3 mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs sm:text-sm font-medium">
+                          <AlertCircle size={15} className="shrink-0" />
+                          <span>{error}</span>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleForgotPassword} className="space-y-4" noValidate>
+                        <div className="space-y-1.5">
+                          <label htmlFor="forgot-email" className="block text-xs font-semibold text-text-primary">
+                            Email address
+                          </label>
+                          <div className="relative flex items-center">
+                            <Mail size={15} className="absolute left-3.5 text-text-muted pointer-events-none shrink-0" />
+                            <input
+                              id="forgot-email"
+                              type="email"
+                              autoComplete="email"
+                              required
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 bg-bg-secondary/50 border border-border rounded-xl text-sm text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all disabled:opacity-50"
+                              placeholder="you@example.com"
+                              disabled={loading}
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="w-full py-3 px-6 bg-primary hover:bg-primary-hover active:bg-primary-active disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-pill shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
+                          disabled={loading || !email}
+                        >
+                          {loading ? (
+                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                          ) : (
+                            <Mail size={17} />
+                          )}
+                          {loading ? "Sending…" : "Send reset link"}
+                        </button>
+
+                        <p className="text-center text-xs text-text-muted pt-2">
+                          Remember it?{" "}
+                          <button
+                            type="button"
+                            className="font-semibold text-primary hover:underline cursor-pointer ml-1"
+                            onClick={() => switchMode("login")}
+                          >
+                            Sign in
+                          </button>
+                        </p>
+                      </form>
+                    </>
+                  ) : (
+                    /* ── Reset email sent — success state ── */
+                    <div className="text-center py-6 space-y-4">
+                      <CheckCircle size={48} className="mx-auto text-emerald-500" />
+                      <h2 className="font-display text-xl sm:text-2xl font-bold text-text-primary">Check your inbox!</h2>
+                      <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-md mx-auto">
+                        We sent a password reset link to{" "}
+                        <strong className="text-text-primary font-semibold">{email}</strong>.
+                        Click the link to set a new password, then come back here to sign in.
+                      </p>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-pill bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors cursor-pointer"
+                        onClick={() => switchMode("login")}
+                      >
+                        <LogIn size={15} /> Back to Sign In
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Guest option — hidden in forgot-password mode */}
+              {mode !== "forgot" && (
+                <>
+                  <div className="relative flex items-center justify-center my-6">
+                    <div className="border-t border-border w-full" />
+                    <span className="bg-surface px-3 text-xs text-text-muted shrink-0">or explore without an account</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    id="continue-as-guest-btn"
+                    className="w-full py-2.5 px-4 bg-bg-secondary/60 hover:bg-bg-secondary text-text-primary font-semibold text-xs sm:text-sm rounded-pill border border-border transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    onClick={() => navigate("/")}
+                  >
+                    <Compass size={17} className="text-primary shrink-0" /> Continue as Guest
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>
