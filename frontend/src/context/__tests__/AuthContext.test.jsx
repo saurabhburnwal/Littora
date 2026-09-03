@@ -7,11 +7,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("../../lib/supabase.js", () => ({
   supabase: {
     auth: {
-      getSession:         vi.fn().mockResolvedValue({ data: { session: null } }),
-      onAuthStateChange:  vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
-      signInWithPassword: vi.fn(),
-      signUp:             vi.fn(),
-      signOut:            vi.fn(),
+      getSession:            vi.fn().mockResolvedValue({ data: { session: null } }),
+      onAuthStateChange:     vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      signInWithPassword:    vi.fn(),
+      signUp:                vi.fn(),
+      signOut:               vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      resend:                vi.fn(),
     },
   },
 }));
@@ -29,6 +31,7 @@ const mockOnAuthStateChange = vi.mocked(supabase.auth.onAuthStateChange);
 const mockSignIn            = vi.mocked(supabase.auth.signInWithPassword);
 const mockSignUp            = vi.mocked(supabase.auth.signUp);
 const mockSignOut           = vi.mocked(supabase.auth.signOut);
+const mockResend            = vi.mocked(supabase.auth.resend);
 
 // Helper component that exposes context values
 function AuthDisplay() {
@@ -179,7 +182,51 @@ describe("AuthContext — signUp", () => {
     expect(mockSignUp).toHaveBeenCalledWith({
       email:    "ok@b.com",
       password: "pass123",
-      options:  { data: { full_name: "Jane" } },
+      options:  {
+        data: { full_name: "Jane" },
+        emailRedirectTo: `${window.location.origin}/login?verified=true`,
+      },
+    });
+  });
+
+  it("calls supabase.auth.resend with signup type and redirect url", async () => {
+    mockResend.mockResolvedValueOnce({ error: null });
+
+    let capturedResend;
+    function ResendCaller() {
+      const { resendVerificationEmail } = useAuth();
+      capturedResend = resendVerificationEmail;
+      return null;
+    }
+
+    render(<SettingsProvider><AuthProvider><ResendCaller /></AuthProvider></SettingsProvider>);
+    await act(async () => {});
+
+    await capturedResend("verify@test.com");
+    expect(mockResend).toHaveBeenCalledWith({
+      type: "signup",
+      email: "verify@test.com",
+      options: {
+        emailRedirectTo: `${window.location.origin}/login?verified=true`,
+      },
+    });
+  });
+
+  it("throws when resendVerificationEmail fails", async () => {
+    mockResend.mockResolvedValueOnce({ error: { message: "Rate limit exceeded" } });
+
+    let capturedResend;
+    function ResendCaller() {
+      const { resendVerificationEmail } = useAuth();
+      capturedResend = resendVerificationEmail;
+      return null;
+    }
+
+    render(<SettingsProvider><AuthProvider><ResendCaller /></AuthProvider></SettingsProvider>);
+    await act(async () => {});
+
+    await expect(capturedResend("verify@test.com")).rejects.toMatchObject({
+      message: "Rate limit exceeded",
     });
   });
 });

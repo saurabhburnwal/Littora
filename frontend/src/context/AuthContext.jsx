@@ -40,11 +40,13 @@ export function AuthProvider({ children }) {
    * Register a new user with email + password.
    */
   const signUp = useCallback(async (email, password, fullName) => {
+    const redirectTo = `${window.location.origin}/login?verified=true`;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName?.trim() || "" },
+        emailRedirectTo: redirectTo,
       },
     });
     if (error) throw error;
@@ -52,6 +54,21 @@ export function AuthProvider({ children }) {
       throw new Error("This email is already registered. Please sign in instead.");
     }
     return data;
+  }, []);
+
+  /**
+   * Resends a signup email verification link via Supabase Auth (routed through Resend).
+   */
+  const resendVerificationEmail = useCallback(async (email) => {
+    const redirectTo = `${window.location.origin}/login?verified=true`;
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: {
+        emailRedirectTo: redirectTo,
+      },
+    });
+    if (error) throw error;
   }, []);
 
   /**
@@ -97,8 +114,18 @@ export function AuthProvider({ children }) {
   const isAdmin = Boolean(user?.email && user.email.toLowerCase() === adminEmail);
 
   const value = useMemo(
-    () => ({ user, loading, login, signUp, logout, isAdmin, getToken, resetPassword }),
-    [user, loading, login, signUp, logout, isAdmin, getToken, resetPassword]
+    () => ({
+      user,
+      loading,
+      login,
+      signUp,
+      logout,
+      isAdmin,
+      getToken,
+      resetPassword,
+      resendVerificationEmail,
+    }),
+    [user, loading, login, signUp, logout, isAdmin, getToken, resetPassword, resendVerificationEmail]
   );
 
   return (

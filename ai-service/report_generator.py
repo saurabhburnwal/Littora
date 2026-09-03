@@ -31,15 +31,20 @@ SYSTEM_PROMPT = (
 
 def _format_period_label(period: str, location_filter: Optional[str] = None) -> str:
     loc_suffix = f" — {location_filter}" if location_filter and location_filter != "All Locations" else ""
-    if period == "daily":
-        return f"Daily Coastal Environmental Audit (Last 24h){loc_suffix}"
-    elif period == "weekly":
+    p = str(period).lower().strip()
+    if p in ("7d", "weekly", "last7"):
         return f"Weekly Coastal Environmental Audit (Last 7 Days){loc_suffix}"
-    elif period == "monthly":
+    elif p in ("30d", "monthly", "last30"):
         return f"Monthly Coastal Environmental Audit (Last 30 Days){loc_suffix}"
-    elif period == "custom":
+    elif p in ("90d", "quarterly", "last90"):
+        return f"Quarterly Coastal Environmental Audit (Last 90 Days){loc_suffix}"
+    elif p in ("all", "all_time", "all-time"):
+        return f"All-Time Coastal Environmental Audit Report{loc_suffix}"
+    elif p in ("daily", "today", "24h"):
+        return f"Daily Coastal Environmental Audit (Last 24h){loc_suffix}"
+    elif p == "custom":
         return f"Custom Scope Coastal Environmental Audit{loc_suffix}"
-    return f"Coastal Environmental Audit Report{loc_suffix}"
+    return f"Coastal Environmental Audit Report ({period.upper()}){loc_suffix}"
 
 
 def _get_primary_contaminant_desc(top_categories: Dict[str, int]) -> str:

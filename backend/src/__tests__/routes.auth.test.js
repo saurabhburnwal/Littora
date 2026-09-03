@@ -8,11 +8,13 @@ import request from "supertest";
 
 // ── Mock supabaseClient before app import ───────────────────────────────────
 const mockSignIn = jest.fn();
+const mockResend = jest.fn();
 jest.unstable_mockModule("../services/supabaseClient.js", () => ({
   supabase: {
     auth: {
       getUser:            jest.fn(),
       signInWithPassword: mockSignIn,
+      resend:             mockResend,
       admin:              { getUserById: jest.fn() },
     },
   },
@@ -107,5 +109,62 @@ describe("POST /api/auth/logout", () => {
     const res = await request(app).post("/api/auth/logout");
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/logged out/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("POST /api/auth/resend-verification", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("returns 400 when email is missing", async () => {
+    const res = await request(app)
+      .post("/api/auth/resend-verification")
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/required/i);
+  });
+
+  it("returns 400 when email is whitespace", async () => {
+    const res = await request(app)
+      .post("/api/auth/resend-verification")
+      .send({ email: "   " });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/required/i);
+  });
+
+  it("returns 400 when Supabase resend returns an error", async () => {
+    mockResend.mockResolvedValueOnce({
+      error: { message: "User not found or rate limited" },
+    });
+
+    const res = await request(app)
+      .post("/api/auth/resend-verification")
+      .send({ email: "missing@test.com" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/User not found/i);
+  });
+
+  it("returns 200 on successful verification resend", async () => {
+    mockResend.mockResolvedValueOnce({ error: null });
+
+    const res = await request(app)
+      .post("/api/auth/resend-verification")
+      .send({ email: "valid@test.com" });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      message: expect.stringMatching(/verification email sent/i),
+      recipient: "valid@test.com",
+    });
+    expect(mockResend).toHaveBeenCalledWith({
+      type: "signup",
+      email: "valid@test.com",
+      options: {
+        emailRedirectTo: expect.stringContaining("/login?verified=true"),
+      },
+    });
   });
 });

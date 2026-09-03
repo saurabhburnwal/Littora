@@ -177,7 +177,7 @@ class ReportTelemetry(BaseModel):
 
 
 class ReportRequest(BaseModel):
-    period: Literal["daily", "weekly", "monthly", "custom"] = Field("monthly", description="Report temporal scope")
+    period: str = Field("30d", description="Report temporal scope (7d, 30d, 90d, all, custom, daily, weekly, monthly)")
     date_range: Optional[DateRange] = None
     location_filter: Optional[str] = Field(None, description="Optional location filter (e.g. beach name or 'All Locations')")
     telemetry: ReportTelemetry = Field(default_factory=ReportTelemetry)

@@ -51,4 +51,37 @@ router.post("/logout", async (_req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
+/**
+ * POST /api/auth/resend-verification
+ * Body: { email }
+ * Dispatches a new signup email confirmation link via Supabase Auth + Resend SMTP.
+ */
+router.post("/resend-verification", authLimiter, async (req, res) => {
+  const { email } = req.body || {};
+  if (!email || typeof email !== "string" || !email.trim()) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  const cleanEmail = email.trim();
+  const origin = (process.env.FRONTEND_ORIGINS || "http://localhost:5173").split(",")[0].trim();
+  const redirectTo = `${origin}/login?verified=true`;
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: cleanEmail,
+    options: {
+      emailRedirectTo: redirectTo,
+    },
+  });
+
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
+
+  return res.json({
+    message: "Verification email sent successfully via Resend",
+    recipient: cleanEmail,
+  });
+});
+
 export default router;

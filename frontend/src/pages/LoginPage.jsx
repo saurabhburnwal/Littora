@@ -1,19 +1,21 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
   LogIn, UserPlus, Eye, EyeOff, Waves,
-  AlertCircle, CheckCircle, User, Mail, Lock, Compass,
+  AlertCircle, CheckCircle, User, Mail, Lock, Compass, RefreshCw,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { calculatePasswordStrength } from "../utils/wasteUtils.js";
 import logo from "../assets/logo.png";
 
 export default function LoginPage() {
-  const { login, signUp, resetPassword } = useAuth();
+  const { login, signUp, resetPassword, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const from = location.state?.from?.pathname || "/";
+  const isVerifiedFromUrl = searchParams.get("verified") === "true";
 
   /* ── Shared state ───────────────────────────────────────── */
   const [mode,    setMode]    = useState("login"); // "login" | "signup" | "forgot"
@@ -22,6 +24,11 @@ export default function LoginPage() {
   const [showPw,  setShowPw]  = useState(false);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
+
+  /* ── Email verification state ───────────────────────────── */
+  const [isEmailUnconfirmed, setIsEmailUnconfirmed] = useState(false);
+  const [resending,          setResending]          = useState(false);
+  const [resendStatus,       setResendStatus]       = useState(null);
 
   /* ── Sign-up only ───────────────────────────────────────── */
   const [name,      setName]      = useState("");
@@ -35,6 +42,8 @@ export default function LoginPage() {
   function switchMode(next) {
     setMode(next);
     setError(null);
+    setIsEmailUnconfirmed(false);
+    setResendStatus(null);
     setSignedUp(false);
     setResetSent(false);
     setPassword("");
@@ -42,16 +51,48 @@ export default function LoginPage() {
     setShowPw(false);
   }
 
+  /* ── Resend verification link ────────────────────────────── */
+  async function handleResendVerification(targetEmail = email) {
+    const cleanEmail = (targetEmail || "").trim();
+    if (!cleanEmail) {
+      setError("Please enter your email address to receive a verification link.");
+      return;
+    }
+    setResending(true);
+    setResendStatus(null);
+    try {
+      await resendVerificationEmail(cleanEmail);
+      setResendStatus({
+        type: "success",
+        message: `Verification link dispatched to ${cleanEmail} via Resend. Check your inbox!`,
+      });
+    } catch (err) {
+      setResendStatus({
+        type: "error",
+        message: err.message || "Could not resend verification link. Please try again.",
+      });
+    } finally {
+      setResending(false);
+    }
+  }
+
   /* ── Login submit ───────────────────────────────────────── */
   async function handleLogin(e) {
     e.preventDefault();
     setError(null);
+    setIsEmailUnconfirmed(false);
+    setResendStatus(null);
     setLoading(true);
     try {
       await login(email.trim(), password);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message || "Login failed. Please check your credentials.");
+      const msg = err.message || "Login failed. Please check your credentials.";
+      const isUnconfirmed =
+        msg.toLowerCase().includes("email not confirmed") ||
+        msg.toLowerCase().includes("not confirmed");
+      setIsEmailUnconfirmed(isUnconfirmed);
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -157,17 +198,44 @@ export default function LoginPage() {
               <CheckCircle size={48} className="mx-auto text-emerald-500" />
               <h2 className="font-display text-xl sm:text-2xl font-bold text-text-primary">Check your inbox!</h2>
               <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-md mx-auto">
-                We sent a confirmation link to <strong className="text-text-primary font-semibold">{email}</strong>.
+                We sent a confirmation link to <strong className="text-text-primary font-semibold">{email}</strong> via Resend.
                 Click the link in the email to activate your account, then come
                 back here to sign in.
               </p>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-pill bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors cursor-pointer"
-                onClick={() => switchMode("login")}
-              >
-                <LogIn size={15} /> Go to Sign In
-              </button>
+
+              {/* Resend verification trigger & feedback */}
+              <div className="pt-1">
+                <button
+                  type="button"
+                  disabled={resending}
+                  onClick={() => handleResendVerification(email)}
+                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw size={13} className={resending ? "animate-spin" : ""} />
+                  {resending ? "Dispatching new link..." : "Resend verification link"}
+                </button>
+                {resendStatus && (
+                  <p
+                    className={`text-xs mt-2 font-medium ${
+                      resendStatus.type === "success"
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-rose-500"
+                    }`}
+                  >
+                    {resendStatus.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-pill bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors cursor-pointer"
+                  onClick={() => switchMode("login")}
+                >
+                  <LogIn size={15} /> Go to Sign In
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -188,11 +256,56 @@ export default function LoginPage() {
                 </>
               )}
 
+              {/* ── Verified query banner ── */}
+              {isVerifiedFromUrl && mode === "login" && (
+                <div className="flex items-start gap-2.5 p-3.5 mb-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm font-medium">
+                  <CheckCircle size={17} className="shrink-0 mt-0.5 text-emerald-500" />
+                  <div>
+                    <span className="font-bold">Email verified successfully!</span>
+                    <p className="text-xs opacity-90 mt-0.5">Your account is confirmed. Enter your credentials below to sign in.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Resend feedback in login/forgot mode ── */}
+              {resendStatus && mode !== "signup" && (
+                <div
+                  className={`p-3 mb-5 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 ${
+                    resendStatus.type === "success"
+                      ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                      : "bg-rose-500/10 border border-rose-500/20 text-rose-500"
+                  }`}
+                >
+                  {resendStatus.type === "success" ? (
+                    <CheckCircle size={15} className="shrink-0" />
+                  ) : (
+                    <AlertCircle size={15} className="shrink-0" />
+                  )}
+                  <span>{resendStatus.message}</span>
+                </div>
+              )}
+
               {/* ── Error banner ── */}
               {error && (
-                <div className="flex items-center gap-2 p-3 mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs sm:text-sm font-medium">
-                  <AlertCircle size={15} className="shrink-0" />
-                  <span>{error}</span>
+                <div className="p-3 mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs sm:text-sm font-medium space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle size={15} className="shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                  {isEmailUnconfirmed && (
+                    <div className="pt-1 pl-6 flex items-center gap-2 text-xs">
+                      <span>Haven't received the link?</span>
+                      <button
+                        type="button"
+                        onClick={() => handleResendVerification(email)}
+                        disabled={resending}
+                        className="text-primary font-bold hover:underline cursor-pointer disabled:opacity-50 inline-flex items-center gap-1"
+                      >
+                        <RefreshCw size={11} className={resending ? "animate-spin" : ""} />
+                        {resending ? "Sending..." : "Resend Verification Link"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -531,7 +531,8 @@ ${actionsList || "- Deploy routine maintenance patrols."}
       setIsEmailModalOpen(false);
       showToast("success", `Report dispatched to ${cleanEmail}!`);
     } catch (err) {
-      const errMsg = err.response?.data?.error || err.message || "Failed to dispatch email report.";
+      const errMsg =
+        err.response?.data?.details || err.response?.data?.error || err.message || "Failed to dispatch email report.";
       setEmailModalError(errMsg);
     } finally {
       setEmailing(false);

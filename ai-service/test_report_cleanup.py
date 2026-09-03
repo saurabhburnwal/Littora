@@ -197,7 +197,7 @@ async def test_ollama_generate_connect_error(mock_ollama_offline):
 # 2. Report Generation Endpoints & Fallback Tests
 # =====================================================================
 
-@pytest.mark.parametrize("period", ["daily", "weekly", "monthly", "custom"])
+@pytest.mark.parametrize("period", ["daily", "weekly", "monthly", "custom", "7d", "30d", "90d", "all"])
 async def test_report_generate_endpoint_ollama_success(
     async_client: AsyncClient, mock_ollama_report_success, period: str
 ):
@@ -229,7 +229,7 @@ async def test_report_generate_endpoint_ollama_success(
     assert "raw_text" in data
 
 
-@pytest.mark.parametrize("period", ["daily", "weekly", "monthly", "custom"])
+@pytest.mark.parametrize("period", ["daily", "weekly", "monthly", "custom", "7d", "30d", "90d", "all"])
 async def test_report_generate_endpoint_offline_fallback(
     async_client: AsyncClient, mock_ollama_offline, period: str
 ):
