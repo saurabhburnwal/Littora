@@ -25,3 +25,17 @@
 - **Telemetry Scoping**: In `/api/stats`, regular users must receive personal stats and only their own scan locations (`userStats.locations`). Never override a user's location list with `globalStats.locations`.
 - **Admin vs User Context**: Admins view global platform data. Header titles/subtitles must dynamically adapt to the user's active role.
 - **Zero Synthetic Placeholders**: Never fabricate phantom markers or placeholder analyses with hardcoded scores or severities. If no GPS-tagged records exist, render authentic empty states.
+
+## 7. Git Workflow, Documentation & Commit Standards
+- **Explicit Approval Only**: Never commit or push to git without explicit user permission. Do not make intermediate commits autonomously.
+- **Synchronize Documentation First**: Always update all relevant documentation files (`README.md`, `backend/README.md`, `frontend/README.md`, `ai-service/README.md`) with new capabilities, directory structures, and verified test counts *before* committing.
+- **Human-Style Commit Messages**: Never prefix commit messages with conventional tags like `feat:`, `fix:`, or `chore:`. Write clear, narrative titles in human style, followed by structured bullet points explaining what changed.
+
+## 8. Multi-Agent Swarm Parallelism
+- **Maximize Parallelism**: In multi-agent tasks, scale subagent parallelism concurrently across distinct functional domains (frontend, backend, AI microservice, database, test verification) rather than running serial workflows or using undersized teams.
+
+## 9. Test Suite Veracity & Anti-Tautology Standards
+- **Zero Tautologies**: Eradicate identity mocks and tautological assertions (e.g., asserting mocks against themselves).
+- **Negative & Boundary Testing**: Assert real HTTP status codes, error boundaries, rejected polyglots, and unauthorized attempts.
+- **Mutation Resilience**: Ensure tests genuinely verify application logic so that any intentional regression or removed security guard immediately fails the test suite.
+
