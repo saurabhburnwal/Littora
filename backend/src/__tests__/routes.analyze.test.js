@@ -186,4 +186,43 @@ describe("POST /api/analyze", () => {
     expect(res.body.error).toMatch(/unexpected field|invalid/i);
     expect(mockRunDetection).not.toHaveBeenCalled();
   });
+
+  it("returns 400 Bad Request when non-image magic bytes are uploaded disguised as JPEG", async () => {
+    const fakeJpg = Buffer.from("Hello world this is definitely plain text not an image!");
+
+    const res = await request(app)
+      .post("/api/analyze")
+      .attach("image", fakeJpg, { filename: "disguised.jpg", contentType: "image/jpeg" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/signature does not match|invalid image file/i);
+    expect(mockRunDetection).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 Bad Request when polyglot file with script payload is detected", async () => {
+    const polyglotJpg = Buffer.concat([
+      Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01]),
+      Buffer.from("<script>alert('pwned')</script>"),
+    ]);
+
+    const res = await request(app)
+      .post("/api/analyze")
+      .attach("image", polyglotJpg, { filename: "polyglot.jpg", contentType: "image/jpeg" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/malicious polyglot payload/i);
+    expect(mockRunDetection).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 Bad Request when truncated byte stream (<12 bytes) is uploaded", async () => {
+    const truncated = Buffer.from([0xff, 0xd8, 0xff, 0xe0]);
+
+    const res = await request(app)
+      .post("/api/analyze")
+      .attach("image", truncated, { filename: "corrupted.jpg", contentType: "image/jpeg" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/invalid or empty image buffer|too small/i);
+    expect(mockRunDetection).not.toHaveBeenCalled();
+  });
 });

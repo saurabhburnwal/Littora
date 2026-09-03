@@ -77,16 +77,26 @@ describe("GET /api/analyses", () => {
     expect(res.body).toEqual(fakeData);
   });
 
-  it("passes default limit=50 and offset=0 to service", async () => {
+  it("passes default limit=50, offset=0, and userId to service for regular user", async () => {
     mockListAnalyses.mockResolvedValueOnce([]);
     await request(app).get("/api/analyses").set("Authorization", "Bearer mock-token");
-    expect(mockListAnalyses).toHaveBeenCalledWith({ limit: 50, offset: 0 });
+    expect(mockListAnalyses).toHaveBeenCalledWith({ limit: 50, offset: 0, userId: "u1" });
   });
 
-  it("passes custom limit and offset query params", async () => {
+  it("passes custom limit, offset, and userId query params for regular user", async () => {
     mockListAnalyses.mockResolvedValueOnce([]);
     await request(app).get("/api/analyses?limit=10&offset=20").set("Authorization", "Bearer mock-token");
-    expect(mockListAnalyses).toHaveBeenCalledWith({ limit: 10, offset: 20 });
+    expect(mockListAnalyses).toHaveBeenCalledWith({ limit: 10, offset: 20, userId: "u1" });
+  });
+
+  it("calls listAnalyses without userId scoping when caller is admin", async () => {
+    const { supabase } = await import("../services/supabaseClient.js");
+    supabase.auth.getUser = jest.fn().mockResolvedValueOnce({
+      data: { user: { id: "admin-1", email: "admin@littora.app" } },
+    });
+    mockListAnalyses.mockResolvedValueOnce([]);
+    await request(app).get("/api/analyses").set("Authorization", "Bearer admin-token");
+    expect(mockListAnalyses).toHaveBeenCalledWith({ limit: 50, offset: 0 });
   });
 
   it("returns 500 when listAnalyses throws", async () => {
@@ -129,5 +139,58 @@ describe("GET /api/stats", () => {
     const res = await request(app).get("/api/stats").set("Authorization", "Bearer valid-token");
     expect(res.status).toBe(500);
     expect(res.body.error).toMatch(/could not fetch stats/i);
+  });
+
+  it("returns strictly user-scoped locations for regular authenticated member", async () => {
+    const { supabase } = await import("../services/supabaseClient.js");
+    supabase.auth.getUser = jest.fn().mockResolvedValue({
+      data: { user: { id: "u-member-123", email: "member@littora.org" } },
+    });
+
+    const globalStats = {
+      totalAnalyses: 100,
+      totalWasteAllTime: 500,
+      avgScore: 5.5,
+      severityCounts: { Low: 50, Moderate: 30, High: 15, Severe: 5 },
+      aggregateDetections: { bottle: 250, can: 150 },
+      locations: [
+        { name: "Public Beach A", latitude: 12.0, longitude: 80.0 },
+        { name: "Foreign User Beach", latitude: 13.0, longitude: 80.5 },
+      ],
+      history: [],
+      wasteTypesCatalog: ["bottle", "can"],
+      locationsCatalog: ["Public Beach A", "Foreign User Beach"],
+    };
+
+    const userStats = {
+      totalAnalyses: 5,
+      totalWasteAllTime: 20,
+      avgScore: 3.2,
+      severityCounts: { Low: 4, Moderate: 1, High: 0, Severe: 0 },
+      aggregateDetections: { bottle: 15, can: 5 },
+      locations: [
+        { name: "My Scanned Beach", latitude: 12.0, longitude: 80.0 },
+      ],
+      history: [{ id: "analysis-1" }],
+    };
+
+    mockGetStats.mockImplementation(async (userId) => {
+      if (userId === null) return globalStats;
+      if (userId === "u-member-123") return userStats;
+      return globalStats;
+    });
+
+    const res = await request(app)
+      .get("/api/stats")
+      .set("Authorization", "Bearer member-token");
+
+    expect(res.status).toBe(200);
+    expect(res.body.isGuest).toBe(false);
+    expect(res.body.isAdmin).toBe(false);
+    expect(res.body.locations).toEqual(userStats.locations);
+    expect(res.body.locations).not.toEqual(globalStats.locations);
+    expect(res.body.totalAnalyses).toBe(5);
+    expect(res.body.locationsCatalog).toEqual(globalStats.locationsCatalog);
+    expect(res.body.wasteTypesCatalog).toEqual(globalStats.wasteTypesCatalog);
   });
 });

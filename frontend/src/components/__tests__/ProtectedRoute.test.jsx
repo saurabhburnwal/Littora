@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 
 // ── Mock supabase ──────────────────────────────────────────────────────────
 vi.mock("../../lib/supabase.js", () => ({
@@ -102,5 +102,121 @@ describe("ProtectedRoute", () => {
     await vi.waitFor(() => {
       expect(screen.getByTestId("content")).toBeInTheDocument();
     });
+  });
+
+  it("redirects to /login when user is unauthenticated and allowGuest={false}", async () => {
+    const { supabase } = await import("../../lib/supabase.js");
+    supabase.auth.getSession.mockResolvedValueOnce({ data: { session: null } });
+
+    render(
+      <MemoryRouter initialEntries={["/protected"]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<div data-testid="login-page">Login Page</div>} />
+            <Route
+              path="/protected"
+              element={
+                <ProtectedRoute allowGuest={false}>
+                  <div data-testid="content">Protected Content</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("login-page")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("content")).not.toBeInTheDocument();
+  });
+
+  it("renders children when user is unauthenticated but allowGuest={true}", async () => {
+    const { supabase } = await import("../../lib/supabase.js");
+    supabase.auth.getSession.mockResolvedValueOnce({ data: { session: null } });
+
+    render(
+      <MemoryRouter initialEntries={["/protected"]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<div data-testid="login-page">Login Page</div>} />
+            <Route
+              path="/protected"
+              element={
+                <ProtectedRoute allowGuest={true}>
+                  <div data-testid="guest-content">Guest Allowed Content</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("guest-content")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("login-page")).not.toBeInTheDocument();
+  });
+
+  it("redirects non-admin user to / when adminOnly={true}", async () => {
+    const { supabase } = await import("../../lib/supabase.js");
+    supabase.auth.getSession.mockResolvedValueOnce({
+      data: { session: { user: { id: "u-regular", email: "member@test.com" } } },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/admin-only"]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<div data-testid="home-page">Home Page</div>} />
+            <Route
+              path="/admin-only"
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <div data-testid="admin-content">Admin Secret</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("home-page")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("admin-content")).not.toBeInTheDocument();
+  });
+
+  it("renders children for administrator when adminOnly={true}", async () => {
+    const { supabase } = await import("../../lib/supabase.js");
+    supabase.auth.getSession.mockResolvedValueOnce({
+      data: { session: { user: { id: "u-admin", email: "admin@littora.app" } } },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/admin-only"]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<div data-testid="home-page">Home Page</div>} />
+            <Route
+              path="/admin-only"
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <div data-testid="admin-content">Admin Secret</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("admin-content")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("home-page")).not.toBeInTheDocument();
   });
 });

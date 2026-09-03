@@ -11,6 +11,11 @@ The **ai-service** component is a stateless microservice responsible for real-ti
 - **FastAPI Lifespan Warm-Up & Memory Management**: Pre-warms active default models on service startup and cleanly reclaims GPU/CPU memory (`torch.cuda.empty_cache()`, `torch.mps.empty_cache()`, `gc.collect()`) on shutdown.
 - **Pydantic Validation**: Strictly typed request/response schemas for `/detect`, `/predict`, `/models`, and `/health` endpoints.
 - **Pollution Scoring**: Calculates an unbounded weighted pollution score and severity classification (`Low`, `Moderate`, `High`, `Severe`). Each detected bag, wrapper, bottle, can, and unknown item contributes 5, 3, 2, 2, and 1 point respectively (`severity.py`).
+- **Security & Ingestion Guardrails**:
+  - **Magic-Byte Signature Inspection**: Inspects binary byte headers for JPEG, PNG, WebP, BMP, and TIFF before tensor decoding.
+  - **Polyglot & Script Ingestion Blocker**: Inspects raw byte streams to reject polyglot scripts (`<script`, `<?php`, `<html`, `<svg`, `javascript:`).
+  - **Payload Size Enforcement**: Rejects uploads exceeding 10MB (`MAX_CONTENT_LENGTH`) with HTTP 413.
+  - **Hardware Fault Defenses**: Gracefully catches CUDA tensor faults and GPU out-of-memory (OOM) exceptions.
 - **Stateless Execution**: Operates purely in-memory; returns JSON inference results without direct database or storage dependencies.
 
 ---
@@ -19,13 +24,16 @@ The **ai-service** component is a stateless microservice responsible for real-ti
 
 ```text
 ai-service/
-├── main.py            → FastAPI application, inference pipeline & endpoints
+├── main.py            → FastAPI application, magic-byte validation & inference endpoints
 ├── severity.py        → Pollution scoring algorithm & severity calculator
+├── ollama_client.py   → Asynchronous Ollama LLM client for environmental reports
+├── report_generator.py → Ollama LLM ecological report synthesis & deterministic fallback
+├── cleanup_recommender.py → Actionable cleanup logistics & equipment recommendation engine
 ├── conftest.py        → Pytest fixtures (ASGI client, sample image, cache cleaner)
-├── test_ai_service.py → Comprehensive test suite
-├── models/            → YOLO model weights directory
-│   ├── yolov11m.pt    → Trained YOLOv11 Medium weights (default)
-│   └── yolov26s.pt    → Trained YOLOv26 Small weights (edge)
+├── test_ai_service.py → Comprehensive unit & integration test suite
+├── test_challenger1_security.py → Adversarial penetration test suite (magic bytes, polyglots, CORS)
+├── test_report_cleanup.py → Ollama report & cleanup recommendation test suite
+├── models/            → YOLO model weights directory (yolov11m.pt, yolov26s.pt)
 ├── requirements.txt   → PyTorch, Ultralytics, FastAPI, Pillow, Uvicorn dependencies
 ├── pytest.ini         → Pytest test runner configuration
 ├── pyrightconfig.json → Language server configuration
@@ -57,6 +65,8 @@ uvicorn main:app --reload --port 8000
 ```bash
 pytest -v
 ```
+- **Passing**: **205 / 205 tests** (100% pass rate) across unit, Ollama fallback, and adversarial security suites.
+
 
 ---
 

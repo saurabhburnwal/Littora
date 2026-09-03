@@ -5,6 +5,7 @@ import cors from "cors";
 import compression from "compression";
 import helmet from "helmet";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 
 import analyzeRouter    from "./routes/analyze.js";
 import analysesRouter   from "./routes/analyses.js";
@@ -18,20 +19,65 @@ import datasetRouter    from "./routes/dataset.js";
 
 const app = express();
 
-const allowedOrigins = (process.env.FRONTEND_ORIGINS || "")
+const defaultAllowed = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:4000",
+];
+const envOrigins = (process.env.FRONTEND_ORIGINS || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+const allowedOrigins = Array.from(new Set([...defaultAllowed, ...envOrigins]));
 
-app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "same-site" },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:", "blob:"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        connectSrc: ["'self'", ...allowedOrigins],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
 app.use(compression());
-app.use(cors({
-  // Set FRONTEND_ORIGINS in production. The permissive fallback keeps local
-  // development and existing deployments working until that is configured.
-  origin: allowedOrigins.length ? allowedOrigins : true,
-  maxAge: 86400,
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Blocked by CORS policy"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    maxAge: 86400,
+  })
+);
 app.use(express.json({ limit: "1mb" }));
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // limit each IP to 1000 requests per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests from this IP, please try again later." },
+});
+
+app.use("/api", apiLimiter);
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
@@ -69,6 +115,10 @@ app.use((_req, res) => {
 // Global Error Handler
 app.use((err, _req, res, _next) => {
   console.error("Unhandled API error:", err.message);
+
+  if (err.message === "Blocked by CORS policy") {
+    return res.status(403).json({ error: "Blocked by CORS policy" });
+  }
 
   if (err instanceof multer.MulterError || err?.name === "MulterError") {
     if (err.code === "LIMIT_FILE_SIZE") {

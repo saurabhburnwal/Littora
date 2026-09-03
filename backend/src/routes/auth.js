@@ -92,9 +92,9 @@ router.post("/resend-verification", authLimiter, async (req, res) => {
  */
 router.delete("/account", requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
-    const userEmail = req.user.email?.toLowerCase();
-    const adminEmail = getAdminEmail();
+    const userId = req.user?.id;
+    const userEmail = req.user?.email ? req.user.email.trim().toLowerCase() : "";
+    const adminEmail = getAdminEmail().trim().toLowerCase();
 
     // Guard: Primary administrator account cannot be deleted
     if (userEmail && userEmail === adminEmail) {
@@ -110,6 +110,11 @@ router.delete("/account", requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error("[auth] Account deletion error:", err);
+    if (err.message && err.message.toLowerCase().includes("primary administrator account cannot be deleted")) {
+      return res.status(403).json({
+        error: "Primary administrator account cannot be deleted.",
+      });
+    }
     return res.status(500).json({
       error: err.message || "Failed to delete account.",
     });

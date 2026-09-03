@@ -79,6 +79,20 @@ export const PDF_STYLES = {
 };
 
 /**
+ * Escapes unsafe characters for secure HTML injection into off-screen containers.
+ * Prevents DOM injection / XSS from unescaped dynamic strings.
+ */
+export function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
  * Generates and downloads a styled PDF report for Littora Beach Waste Detection.
  * @param {string} reportType - "daily" | "weekly" | "monthly" | "custom"
  * @param {object} stats - Analytics data from StatsContext or scoped telemetry
@@ -124,8 +138,8 @@ export async function generatePdfReport(reportType, stats = {}, user = null, opt
   const wasteCategoryHtml = wasteEntries.length > 0
     ? wasteEntries.map(([type, count]) => `
         <div style="${PDF_STYLES.wasteItem}">
-          <span>📦 ${formatWasteName(type)}</span>
-          <strong>${count.toLocaleString()}</strong>
+          <span>📦 ${escapeHtml(formatWasteName(type))}</span>
+          <strong>${escapeHtml(count.toLocaleString())}</strong>
         </div>
       `).join("")
     : `<div style="${PDF_STYLES.wasteItemEmpty}">No waste items recorded.</div>`;
@@ -195,10 +209,10 @@ export async function generatePdfReport(reportType, stats = {}, user = null, opt
         </div>
         <div style="${PDF_STYLES.headerMeta}">
           <div style="${PDF_STYLES.reportTypeBadge}">
-            ${reportType} Report
+            ${escapeHtml(reportType)} Report
           </div>
           <div style="${PDF_STYLES.timestamp}">
-            Generated: ${timestamp}
+            Generated: ${escapeHtml(timestamp)}
           </div>
         </div>
       </div>
@@ -207,11 +221,11 @@ export async function generatePdfReport(reportType, stats = {}, user = null, opt
       <div style="${PDF_STYLES.metaCard}">
         <div>
           <span style="${PDF_STYLES.metaLabel}">Scope:</span> 
-          <strong style="${PDF_STYLES.metaValue}">${scopeLabel} (${locationScope})</strong>
+          <strong style="${PDF_STYLES.metaValue}">${escapeHtml(scopeLabel)} (${escapeHtml(locationScope)})</strong>
         </div>
         <div>
           <span style="${PDF_STYLES.metaLabel}">Generated For:</span> 
-          <strong style="${PDF_STYLES.metaValue}">${user?.email || "Authenticated User"}</strong>
+          <strong style="${PDF_STYLES.metaValue}">${escapeHtml(user?.email || "Authenticated User")}</strong>
         </div>
       </div>
 
@@ -222,19 +236,19 @@ export async function generatePdfReport(reportType, stats = {}, user = null, opt
         </h3>
         <div style="${PDF_STYLES.kpiGrid}">
           <div style="${PDF_STYLES.kpiCardDetections}">
-            <div style="${PDF_STYLES.kpiValDetections}">${totalDetections}</div>
+            <div style="${PDF_STYLES.kpiValDetections}">${escapeHtml(totalDetections)}</div>
             <div style="${PDF_STYLES.kpiLabelDetections}">Analyses Performed</div>
           </div>
           <div style="${PDF_STYLES.kpiCardWaste}">
-            <div style="${PDF_STYLES.kpiValWaste}">${totalWaste}</div>
+            <div style="${PDF_STYLES.kpiValWaste}">${escapeHtml(totalWaste)}</div>
             <div style="${PDF_STYLES.kpiLabelWaste}">Total Waste Items</div>
           </div>
           <div style="${PDF_STYLES.kpiCardLocations}">
-            <div style="${PDF_STYLES.kpiValLocations}">${locationsCount}</div>
+            <div style="${PDF_STYLES.kpiValLocations}">${escapeHtml(locationsCount)}</div>
             <div style="${PDF_STYLES.kpiLabelLocations}">Beaches Monitored</div>
           </div>
           <div style="${PDF_STYLES.kpiCardScore}">
-            <div style="${PDF_STYLES.kpiValScore}">${avgScore} / 10</div>
+            <div style="${PDF_STYLES.kpiValScore}">${escapeHtml(avgScore)} / 10</div>
             <div style="${PDF_STYLES.kpiLabelScore}">Avg Pollution Index</div>
           </div>
         </div>
@@ -247,9 +261,9 @@ export async function generatePdfReport(reportType, stats = {}, user = null, opt
           <h3 style="${PDF_STYLES.aiSummaryTitle}">🤖 AI Executive Environmental Summary</h3>
           <span style="${PDF_STYLES.aiBadge}">Certified AI Audit</span>
         </div>
-        <p style="${PDF_STYLES.aiSummaryText}">${summaryText}</p>
-        ${riskText ? `<p style="${PDF_STYLES.aiImpactText}"><strong>Risk Assessment:</strong> ${riskText}</p>` : ""}
-        ${impactText ? `<p style="${PDF_STYLES.aiImpactText}; margin-top: 4px;"><strong>Impact Analysis:</strong> ${impactText}</p>` : ""}
+        <p style="${PDF_STYLES.aiSummaryText}">${escapeHtml(summaryText)}</p>
+        ${riskText ? `<p style="${PDF_STYLES.aiImpactText}"><strong>Risk Assessment:</strong> ${escapeHtml(riskText)}</p>` : ""}
+        ${impactText ? `<p style="${PDF_STYLES.aiImpactText}; margin-top: 4px;"><strong>Impact Analysis:</strong> ${escapeHtml(impactText)}</p>` : ""}
       </div>
       ` : ""}
 
@@ -270,22 +284,22 @@ export async function generatePdfReport(reportType, stats = {}, user = null, opt
             <tr style="${PDF_STYLES.tableRow}">
               <td style="${PDF_STYLES.tableCellName}">Low</td>
               <td style="${PDF_STYLES.tableCellBadge}"><span style="${PDF_STYLES.badgeLow}">Minimal Risk</span></td>
-              <td style="${PDF_STYLES.tableCellCount}">${lowCount}</td>
+              <td style="${PDF_STYLES.tableCellCount}">${escapeHtml(lowCount)}</td>
             </tr>
             <tr style="${PDF_STYLES.tableRow}">
               <td style="${PDF_STYLES.tableCellName}">Moderate</td>
               <td style="${PDF_STYLES.tableCellBadge}"><span style="${PDF_STYLES.badgeModerate}">Monitor Closely</span></td>
-              <td style="${PDF_STYLES.tableCellCount}">${modCount}</td>
+              <td style="${PDF_STYLES.tableCellCount}">${escapeHtml(modCount)}</td>
             </tr>
             <tr style="${PDF_STYLES.tableRow}">
               <td style="${PDF_STYLES.tableCellName}">High</td>
               <td style="${PDF_STYLES.tableCellBadge}"><span style="${PDF_STYLES.badgeHigh}">Cleanup Priority</span></td>
-              <td style="${PDF_STYLES.tableCellCount}">${highCount}</td>
+              <td style="${PDF_STYLES.tableCellCount}">${escapeHtml(highCount)}</td>
             </tr>
             <tr>
               <td style="${PDF_STYLES.tableCellName}">Severe</td>
               <td style="${PDF_STYLES.tableCellBadge}"><span style="${PDF_STYLES.badgeSevere}">Urgent Action Required</span></td>
-              <td style="${PDF_STYLES.tableCellCount}">${severeCount}</td>
+              <td style="${PDF_STYLES.tableCellCount}">${escapeHtml(severeCount)}</td>
             </tr>
           </tbody>
         </table>
@@ -307,7 +321,7 @@ export async function generatePdfReport(reportType, stats = {}, user = null, opt
           💡 Actionable Recommendations
         </h3>
         <ul style="${PDF_STYLES.recsList}">
-          ${dynamicRecs.map((rec) => `<li>${rec}</li>`).join("")}
+          ${dynamicRecs.map((rec) => `<li>${escapeHtml(rec)}</li>`).join("")}
         </ul>
       </div>
 

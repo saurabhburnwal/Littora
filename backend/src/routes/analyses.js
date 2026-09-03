@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, getAdminEmail } from "../middleware/auth.js";
 import { listAnalyses } from "../services/supabaseClient.js";
 
 const router = Router();
@@ -13,7 +13,15 @@ router.get("/", requireAuth, async (req, res) => {
     const limit = !isNaN(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 100) : 50;
     const offset = !isNaN(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
 
-    const analyses = await listAnalyses({ limit, offset });
+    const adminEmail = getAdminEmail();
+    const isAdmin = Boolean(req.user?.email && req.user.email.toLowerCase() === adminEmail);
+    const userId = isAdmin ? (req.query.userId || null) : req.user?.id;
+
+    const analyses = await listAnalyses({
+      limit,
+      offset,
+      ...(userId ? { userId } : {}),
+    });
     res.json(analyses);
   } catch (err) {
     console.error("Fetching analyses failed:", err.message);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, getAdminEmail } from "../middleware/auth.js";
 import { listAnalyses } from "../services/supabaseClient.js";
 
 const router = Router();
@@ -76,10 +76,18 @@ function buildCsv(analyses) {
   return [headers.join(","), ...rows].join("\n");
 }
 
-// Handler for GeoJSON export
-async function handleGeoJsonExport(_req, res) {
+// Handler for GeoJSON export — scoped to user unless caller is admin
+async function handleGeoJsonExport(req, res) {
   try {
-    const analyses = await listAnalyses({ limit: 1000, offset: 0 });
+    const adminEmail = getAdminEmail();
+    const isAdmin = Boolean(req.user?.email && req.user.email.toLowerCase() === adminEmail);
+    const userId = isAdmin ? null : req.user?.id;
+
+    const analyses = await listAnalyses({
+      limit: 1000,
+      offset: 0,
+      ...(userId ? { userId } : {}),
+    });
     const geojson = buildGeoJson(analyses);
 
     res.setHeader("Content-Type", "application/geo+json");
@@ -91,10 +99,18 @@ async function handleGeoJsonExport(_req, res) {
   }
 }
 
-// Handler for CSV export
-async function handleCsvExport(_req, res) {
+// Handler for CSV export — scoped to user unless caller is admin
+async function handleCsvExport(req, res) {
   try {
-    const analyses = await listAnalyses({ limit: 1000, offset: 0 });
+    const adminEmail = getAdminEmail();
+    const isAdmin = Boolean(req.user?.email && req.user.email.toLowerCase() === adminEmail);
+    const userId = isAdmin ? null : req.user?.id;
+
+    const analyses = await listAnalyses({
+      limit: 1000,
+      offset: 0,
+      ...(userId ? { userId } : {}),
+    });
     const csv = buildCsv(analyses);
 
     res.setHeader("Content-Type", "text/csv; charset=utf-8");

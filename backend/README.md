@@ -17,6 +17,12 @@ The backend of **Littora** serves as the central orchestration API between the R
 - **Email Notifications**: Automated report emailing via Nodemailer transport (`/api/email/send-report`).
 - **Analytics Aggregation**: Pure JS aggregation for severity breakdowns, waste item counts, geolocated beach markers, and chronological history lists.
 
+- **Security & Defensive Engineering**:
+  - **Magic-Byte Image Validation**: Inspects binary byte headers for JPEG (`FF D8 FF`), PNG (`89 50 4E 47`), and WebP (`RIFF` + `WEBP`), rejecting disguised executable and polyglot payloads (`fileValidation.js`).
+  - **HTTP Security Headers & CORS**: Configures `helmet` with Content Security Policy (`default-src 'self'`, `object-src 'none'`), HSTS (1 year with subdomains and preload), and strict CORS origin whitelisting.
+  - **Tiered Rate Limiting**: Dedicated rate limiters on sensitive routes (auth: 30/15m, analyze: 20/1m, email: 10/1h, global: 1,000/15m).
+  - **Primary Admin Safeguard**: Hardcoded protection preventing deletion or tampering of the platform primary administrator (`admin@littora.app`).
+
 ---
 
 ## Directory Structure
@@ -24,22 +30,26 @@ The backend of **Littora** serves as the central orchestration API between the R
 ```text
 backend/
 ├── src/
-│   ├── index.js           → Express application setup & middleware initialization
+│   ├── index.js           → Express server, Helmet, CORS, and global rate limiter
 │   ├── middleware/
-│   │   └── auth.js        → requireAuth and requireAdmin middleware
+│   │   ├── auth.js        → requireAuth and requireAdmin middleware
+│   │   └── fileValidation.js → Magic-byte image validation & polyglot script blocker
 │   ├── routes/
 │   │   ├── admin.js       → /api/admin endpoints (manage all user analyses)
-│   │   ├── analyses.js    → /api/analyses endpoints
-│   │   ├── analyze.js     → /api/analyze multipart upload & AI orchestration
-│   │   ├── email.js       → /api/email send report endpoint
+│   │   ├── analyses.js    → /api/analyses endpoints (user-scoped queries)
+│   │   ├── analyze.js     → /api/analyze multipart upload, rate-limited & magic-byte verified
+│   │   ├── auth.js        → /api/auth endpoints (account deletion, login)
+│   │   ├── dataset.js     → /api/dataset endpoints
+│   │   ├── email.js       → /api/email send report endpoint (requireAuth & rate-limited)
 │   │   ├── model.js       → /api/model active AI model selection endpoint
 │   │   ├── myAnalyses.js  → /api/my-analyses authenticated user history
-│   │   └── stats.js       → /api/stats summary metrics
-│   │   ├── services/
-│   │   │   ├── aiService.js       → HTTP client forwarding to Python FastAPI
-│   │   │   ├── emailService.js    → Nodemailer configuration & transport
-│   │   │   └── supabaseClient.js  → Supabase client querying public.vw_analysis_details & 5NF tables
-│   │   └── __tests__/         → Jest unit & integration test suite (11 suites, 80 tests passing 100%)
+│   │   └── stats.js       → /api/stats summary metrics (user vs global scoping)
+│   ├── services/
+│   │   ├── aiService.js       → HTTP client forwarding to Python FastAPI
+│   │   ├── emailService.js    → Nodemailer & Resend SMTP transport
+│   │   └── supabaseClient.js  → Supabase client querying public.vw_analysis_details & 5NF tables
+│   └── __tests__/         → Jest test suite (13 suites, 188 tests passing 100%)
+│       └── challenger1_security.test.js → 402-line empirical adversarial penetration suite
 ├── .env.example           → Environment variable template
 ├── jest.config.js         → Jest ES modules configuration
 └── package.json           → Express dependencies & scripts
@@ -86,8 +96,8 @@ npm test
 npm run test:coverage
 ```
 
-### Coverage Metrics (Jest V8)
-- **Statements**: **91.2%**
-- **Functions**: **97.8%**
-- **Lines**: **92.4%**
-- **Passing**: **80 / 80 tests** across 11 test suites (100% pass rate)
+### Verification Metrics (Jest V8)
+- **Passing**: **188 / 188 tests** across 13 test suites (100% pass rate)
+- **Vulnerability Audit**: **0 CVEs** (`npm audit`)
+- **Adversarial Resilience**: Empirical coverage for polyglots, spoofed MIMEs, CORS violations, and rate-limiting exhaustion.
+

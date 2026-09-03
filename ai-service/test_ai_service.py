@@ -157,7 +157,7 @@ async def test_detect_and_predict_default_model(
     response = await async_client.post(endpoint, files=files)
     assert response.status_code == 200
     data = response.json()
-    assert data["model_used"] in ["yolov11m", "yolov26s"]
+    assert data["model_used"] == "yolov11m"
 
 
 @pytest.mark.parametrize("endpoint", ["/detect", "/predict"])
@@ -192,6 +192,45 @@ async def test_detect_predict_corrupted_image(
     assert response.status_code == 400
     data = response.json()
     assert "Could not decode image file" in data["detail"]
+
+
+@pytest.mark.parametrize("endpoint", ["/detect", "/predict"])
+async def test_detect_predict_truncated_image(
+    async_client: AsyncClient, endpoint: str
+):
+    files = {"file": ("truncated.jpg", b"\xff\xd8\xff\xe0", "image/jpeg")}
+    response = await async_client.post(endpoint, files=files)
+    assert response.status_code == 400
+    data = response.json()
+    assert "too small or truncated (< 12 bytes)" in data["detail"]
+
+
+@pytest.mark.parametrize("endpoint", ["/detect", "/predict"])
+@pytest.mark.parametrize(
+    "polyglot_tag",
+    [b"<script>alert(1)</script>", b"<?php phpinfo(); ?>", b"<svg onload=alert(1)>"],
+)
+async def test_detect_predict_polyglot_payload_rejected(
+    async_client: AsyncClient, endpoint: str, polyglot_tag: bytes
+):
+    polyglot = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01" + polyglot_tag
+    files = {"file": ("polyglot.jpg", polyglot, "image/jpeg")}
+    response = await async_client.post(endpoint, files=files)
+    assert response.status_code == 400
+    data = response.json()
+    assert "Security violation: Polyglot image payload rejected." in data["detail"]
+
+
+@pytest.mark.parametrize("endpoint", ["/detect", "/predict"])
+async def test_detect_predict_oversized_payload_rejected(
+    async_client: AsyncClient, endpoint: str
+):
+    oversized = b"\xff\xd8\xff\xe0" + b"A" * (10 * 1024 * 1024 + 1024)
+    files = {"file": ("oversized.jpg", oversized, "image/jpeg")}
+    response = await async_client.post(endpoint, files=files)
+    assert response.status_code == 413
+    data = response.json()
+    assert "exceeds maximum limit of 10MB" in data["detail"]
 
 
 @pytest.mark.parametrize("endpoint", ["/detect", "/predict"])

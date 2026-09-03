@@ -8,9 +8,12 @@ jest.unstable_mockModule("axios", () => ({
   default: { post: mockAxiosPost },
 }));
 
+const mockAppend = jest.fn();
 jest.unstable_mockModule("form-data", () => ({
   default: class MockFormData {
-    append()     {}
+    constructor() {
+      this.append = mockAppend;
+    }
     getHeaders() { return { "content-type": "multipart/form-data" }; }
   },
 }));
@@ -36,11 +39,30 @@ describe("runDetection", () => {
 
     const result = await runDetection(buffer, name, mimeType);
 
+    expect(mockAppend).toHaveBeenCalledWith("file", buffer, {
+      filename: name,
+      contentType: mimeType,
+    });
+    expect(mockAppend).not.toHaveBeenCalledWith("model_name", expect.anything());
     expect(mockAxiosPost).toHaveBeenCalledTimes(1);
     const [url, _form, options] = mockAxiosPost.mock.calls[0];
     expect(url).toMatch(/\/detect$/);
     expect(options.timeout).toBe(120000);
     expect(result).toEqual(fakeResult);
+  });
+
+  it("forwards model_name in FormData when specified", async () => {
+    mockAxiosPost.mockResolvedValueOnce({
+      data: { detections: {}, total_waste: 0, pollution_score: 0, severity: "Low" },
+    });
+
+    await runDetection(buffer, name, mimeType, "yolov11m");
+
+    expect(mockAppend).toHaveBeenCalledWith("file", buffer, {
+      filename: name,
+      contentType: mimeType,
+    });
+    expect(mockAppend).toHaveBeenCalledWith("model_name", "yolov11m");
   });
 
   it("throws when the AI service returns an error", async () => {
@@ -51,7 +73,7 @@ describe("runDetection", () => {
     );
   });
 
-  it("uses the correct AI_SERVICE_URL from env", async () => {
+  it("posts to the configured default /detect endpoint URL", async () => {
     mockAxiosPost.mockResolvedValueOnce({
       data: { detections: {}, total_waste: 0, pollution_score: 0, severity: "Low" },
     });
@@ -59,6 +81,6 @@ describe("runDetection", () => {
     await runDetection(buffer, name, mimeType);
 
     const [url] = mockAxiosPost.mock.calls[0];
-    expect(url).toContain(process.env.AI_SERVICE_URL || "http://localhost:8000");
+    expect(url).toBe("http://localhost:8000/detect");
   });
 });

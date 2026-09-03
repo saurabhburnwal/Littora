@@ -1,188 +1,91 @@
-# Project: Littora AI Microservice & Reporting Overhaul
+# Project: Littora Full-Stack Security & Test Veracity Hardening
 
 ## Architecture
 
-The Littora platform consists of three integrated application layers:
-1. **AI Microservice (`ai-service/`)**:
-   - High-performance FastAPI application for YOLOv8 computer vision detection and Ollama LLM intelligence.
-   - Communicates with local Ollama (`http://localhost:11434`, model `ministral-3:3b`) asynchronously via `httpx.AsyncClient` with 30s timeouts.
-   - Implements a robust statistical fallback engine that guarantees deterministic HTTP 200 responses if Ollama is offline or times out.
-   - Endpoints: `GET /health`, `GET /models`, `POST /detect`, `POST /predict`, `POST /report/generate`, `POST /cleanup/recommendations`.
-2. **Backend API Service (`backend/`)**:
-   - Node.js / Express microservice orchestrating data ingestion, Supabase persistence, authentication, and email notifications.
-   - Supports configurable SMTP delivery with automatic fallback to simulated email logging when credentials are unset.
-   - Routes: `POST /api/email/send-report` (using `optionalAuth` and RFC 5322 validation for guest/authenticated multi-recipient delivery), `GET /api/email/status`.
-3. **Frontend Web Application (`frontend/`)**:
-   - Single-Page React application styled with Tailwind CSS v4.
-   - `ReportsPage.jsx`: Dynamic multi-period slicing (Daily 24h, Weekly 7d, Monthly 30d, Custom start/end date range + location filter), AI executive summary & risk assessment, interactive Email Report modal, Markdown/Text export.
-   - `generatePdfReport.js`: Renders formatted A4 PDF reports with AI executive summaries and filtered telemetry.
-   - `CleanupPage.jsx`: Visualizes AI intervention plans with priority tiers, volunteer estimates, equipment lists, and target zones.
-   - `DashboardPage.jsx`: Hero secondary button "View Live Analytics" with smooth scroll to `#dashboard-analytics`.
+The Littora platform is a full-stack coastal waste telemetry and AI monitoring system comprising four layers:
+1. **Frontend Web Application (`frontend/`)**: React 19 SPA with Tailwind CSS v4, Leaflet GIS mapping, real-time analytics, report generation (html2canvas/jsPDF), and authentication state management.
+2. **Backend API Microservice (`backend/`)**: Node.js Express REST API orchestrating image upload ingestion, Supabase PostgreSQL persistence, JWT authentication, role authorization, SMTP email notifications, and communication with the AI microservice.
+3. **AI Microservice (`ai-service/`)**: FastAPI Python service running YOLOv8 object detection (PyTorch) and Ollama LLM report/cleanup generation (`ministral-3:3b`) with deterministic statistical fallback.
+4. **Database & Storage Layer (`supabase/migrations/`)**: Supabase PostgreSQL database with Row Level Security (RLS) policies, PostgREST Data API, authentication, and object storage.
 
 ## Feature Inventory
+
+Every security hardening requirement and test veracity deliverable assigned to milestones:
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Ollama Async Client & Health | Async HTTP client for `ministral-3:3b` with timeout handling and health check in `ai-service` | M1 | ORIGINAL_REQUEST §R1 |
-| 2 | Report Generation AI Endpoint | `POST /report/generate` synthesizing executive summary, risk assessment, and actionable takeaways | M1 | ORIGINAL_REQUEST §R1 |
-| 3 | Cleanup Recommendations AI Endpoint | `POST /cleanup/recommendations` synthesizing prioritized intervention plans, equipment, volunteers | M1 | ORIGINAL_REQUEST §R1 |
-| 4 | Deterministic AI Fallback Engine | Statistical fallback for reports and cleanup plans when Ollama is offline or times out | M1 | ORIGINAL_REQUEST §R1 |
-| 5 | AI Service Pytest Test Suite | 100% test coverage for all AI endpoints including mock Ollama and fallback paths | M1 | ORIGINAL_REQUEST §Acceptance Criteria |
-| 6 | Email Transport & Status Health | Configurable SMTP with simulated mode fallback and `GET /api/email/status` in backend | M2 | ORIGINAL_REQUEST §R3 |
-| 7 | Multi-Recipient Email Dispatch | `POST /api/email/send-report` with `optionalAuth` and RFC 5322 regex validation for guests/users | M2 | ORIGINAL_REQUEST §R3 |
-| 8 | Branded HTML Email Template | Responsive HTML email with Littora branding, KPI cards, and severity breakdown pills | M2 | ORIGINAL_REQUEST §R3 |
-| 9 | Backend Jest Test Suite | 100% passing tests for email routes, optionalAuth, status endpoint, and templates | M2 | ORIGINAL_REQUEST §Acceptance Criteria |
-| 10 | Dynamic Multi-Period Reporting | `ReportsPage.jsx` dynamic filtering for Daily (24h), Weekly (7d), Monthly (30d), and Custom ranges | M3 | ORIGINAL_REQUEST §R2 |
-| 11 | AI Executive Summary UI & Regenerate | Display AI executive summary, risk assessment, priority actions with loading/regeneration state | M3 | ORIGINAL_REQUEST §R2 |
-| 12 | Interactive Email Report Modal | Modal in `ReportsPage.jsx` with recipient input, transport mode badge, and send feedback | M3 | ORIGINAL_REQUEST §R3 |
-| 13 | Enhanced PDF Report Generation | `generatePdfReport.js` rendering filtered metrics and AI executive summary into A4 PDF | M3 | ORIGINAL_REQUEST §R2 |
-| 14 | AI Cleanup Intervention UI | `CleanupPage.jsx` rendering priority tiers, volunteer estimates, equipment, and targeted zones | M3 | ORIGINAL_REQUEST §R4 |
-| 15 | Dashboard Hero Button Refinement | Update hero secondary button to "View Live Analytics" with smooth scroll to `#dashboard-analytics` | M3 | ORIGINAL_REQUEST §R5 |
-| 16 | Frontend Vitest Suite & Build | 100% passing Vitest suite and clean Vite production build with zero errors | M3 | ORIGINAL_REQUEST §Acceptance Criteria |
-| 17 | End-to-End System Verification | Full verification across all tiers, services, and integration points | M4 | ORIGINAL_REQUEST §Acceptance Criteria |
+| 1 | Express Security Headers & CSP/HSTS | Helmet configuration with same-site CORP, CSP directives, HSTS preload, frameguard | M1 | ORIGINAL_REQUEST §R1 |
+| 2 | Express Strict CORS Origin Policy | Restrict allowed origins to FRONTEND_ORIGINS with local fallbacks, remove `origin: true` | M1 | ORIGINAL_REQUEST §R1 |
+| 3 | Express Tiered Rate Limiting | Rate limiting for `/api` (global), `/api/analyze` (upload), `/api/email/send-report` (email), and `/api/auth/` | M1 | ORIGINAL_REQUEST §R1 |
+| 4 | Express Magic Byte File Ingestion | Enforce JPEG/PNG/WebP magic byte signatures, reject polyglot script payloads and corrupt streams | M1 | ORIGINAL_REQUEST §R1 |
+| 5 | Email Endpoint Authentication & Spam Shield | Enforce `requireAuth` on `POST /api/email/send-report` and rate limit dispatch | M1 | ORIGINAL_REQUEST §R1 |
+| 6 | Express Dependency Vulnerability Fixes | Remediate `body-parser`, `qs`, `multer` vulnerabilities via package updates | M1 | ORIGINAL_REQUEST §R1 |
+| 7 | FastAPI Strict CORS & Headers | Restrict CORS to authorized backend/frontend origins, remove wildcard `*` | M2 | ORIGINAL_REQUEST §R1 |
+| 8 | FastAPI Magic Byte & Polyglot Defense | True file signature validation for image endpoints, reject HTML/SVG polyglots and truncate empty files | M2 | ORIGINAL_REQUEST §R1 |
+| 9 | FastAPI Payload Limits & GPU OOM Catch | Enforce 10MB payload size limit, defensive GPU OOM catch with automatic CPU fallback | M2 | ORIGINAL_REQUEST §R1 |
+| 10 | FastAPI Dependency Vulnerability Fixes | Update `python-multipart` and `pillow` to patched secure releases | M2 | ORIGINAL_REQUEST §R1 |
+| 11 | Supabase RLS Hardening for Admin Tables | Revoke authenticated write policies on `ai_models`, `system_settings`, `waste_types`; restrict to `service_role` | M3 | ORIGINAL_REQUEST §R1 |
+| 12 | Scoped Telemetry & Dataset Authorization | Scope `GET /api/analyses` and `/api/dataset.*` to requesting user or require admin; enforce Rule 6 in `/api/stats` | M3 | ORIGINAL_REQUEST §R1 |
+| 13 | Primary Administrator Protection Trigger | Database-level and API safeguards preventing primary administrator account deletion | M3 | ORIGINAL_REQUEST §R1 |
+| 14 | Frontend Vitest Anti-Tautology Hardening | Fix `UploadForm.test.jsx`, `downloadUtils.test.js`, `ProtectedRoute.test.jsx`, `Badge.test.jsx`, `generatePdfReport.js` HTML escaping | M4 | ORIGINAL_REQUEST §R2 |
+| 15 | Backend Jest Anti-Tautology Hardening | Fix `aiService.test.js`, `routes.model.test.js`, `middleware.test.js`, `routes.analyses.test.js`, negative upload/auth tests | M4 | ORIGINAL_REQUEST §R2 |
+| 16 | AI Microservice Pytest Negative Tests | Add negative magic-byte rejection, polyglot rejection, corrupted stream tests, fix model assertions | M4 | ORIGINAL_REQUEST §R2 |
+| 17 | Cross-Stack Integration & Full Gate Verification | Run 100% clean test suites (Vitest, Jest, Pytest), verify build, and pass Forensic Auditor integrity checks | M5 | ORIGINAL_REQUEST §Acceptance Criteria |
 
 ## Milestones
+
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | AI Microservice Ollama & Endpoints | `ai-service/` (Ollama client, schemas, `/report/generate`, `/cleanup/recommendations`, fallback, pytest) | none | DONE |
-| M2 | Backend Email Service & Multi-Recipient | `backend/` (`emailService.js`, `email.js`, `optionalAuth`, HTML email templates, `/status`, Jest) | none | DONE |
-| M3 | Frontend Reports, Cleanup & Dashboard | `frontend/` (`ReportsPage.jsx`, `CleanupPage.jsx`, `DashboardPage.jsx`, `generatePdfReport.js`, Vitest) | M1, M2 interface contracts | DONE |
-| M4 | Cross-Stack Integration & Gate Verification | Comprehensive verification of all test suites (Pytest, Jest, Vitest, Vite build) and audit | M1, M2, M3 | DONE |
+| M1 | Express Backend Security & Ingestion Hardening | `backend/src/index.js`, `backend/src/routes/analyze.js`, `backend/src/routes/email.js`, `backend/src/middleware/fileValidation.js`, `backend/package.json` | none | DONE |
+| M2 | FastAPI AI Microservice Hardening | `ai-service/main.py`, `ai-service/requirements.txt` | none | DONE |
+| M3 | Authorization, Supabase RLS & Admin Protection | `supabase/migrations/`, `backend/src/routes/analyses.js`, `backend/src/routes/dataset.js`, `backend/src/services/supabaseClient.js`, `backend/src/routes/auth.js` | none | DONE |
+| M4 | Test Suite Veracity & Anti-Tautology Hardening | `frontend/src/**/__tests__/`, `frontend/src/utils/generatePdfReport.js`, `backend/src/__tests__/`, `ai-service/test_*.py` | M1, M2, M3 contracts | DONE |
+| M5 | Full-Stack Integration & Verification Gate | Cross-stack test execution (`vitest run`, `npm test`, `pytest`), Vite production build, Forensic Integrity Audit | M1, M2, M3, M4 | DONE |
 
 ## Interface Contracts
 
-### AI Microservice (`POST /report/generate`)
-- **Request Body**:
-  ```json
-  {
-    "period": "daily" | "weekly" | "monthly" | "custom",
-    "date_range": { "start": "2026-08-25T00:00:00Z", "end": "2026-08-26T23:59:59Z" },
-    "location_filter": "All Locations" | "<Location Name>",
-    "telemetry": {
-      "total_scans": 12,
-      "total_waste_items": 154,
-      "avg_pollution_score": 38.5,
-      "severity_breakdown": { "Low": 2, "Moderate": 5, "High": 4, "Severe": 1 },
-      "top_categories": [ { "category": "Plastic", "count": 82 } ]
-    }
-  }
-  ```
-- **Response Body (200 OK)**:
-  ```json
-  {
-    "period": "daily",
-    "executive_summary": "string",
-    "risk_assessment": "string",
-    "actionable_takeaways": ["string"],
-    "impact_analysis": "string",
-    "priority_actions": ["string"],
-    "source": "ollama_ministral-3:3b" | "rule_based_fallback",
-    "generated_at": "ISO-8601 string"
-  }
-  ```
+### File Ingestion Signature Contract
+- Accepted formats: JPEG (`FF D8 FF`), PNG (`89 50 4E 47 0D 0A 1A 0A`), WebP (`RIFF....WEBP`).
+- Disallowed: All other magic bytes, zero-byte buffers, polyglot payloads containing `<script`, `<?php`, `<html`, `javascript:`, `<svg`.
+- Error Response: HTTP 400 Bad Request with `{ "error": "..." }` (Express) or `{ "detail": "..." }` (FastAPI).
 
-### AI Microservice (`POST /cleanup/recommendations`)
-- **Request Body**:
-  ```json
-  {
-    "locations": [
-      {
-        "location": "Juhu Beach",
-        "scans": 5,
-        "pollution_score": 65.2,
-        "severity": "High",
-        "top_waste": "Plastic",
-        "categories": { "Plastic": 45, "Glass": 12 }
-      }
-    ]
-  }
-  ```
-- **Response Body (200 OK)**:
-  ```json
-  {
-    "recommendations": [
-      {
-        "location": "Juhu Beach",
-        "priority_tier": "Tier 1 - Critical",
-        "urgency": "High",
-        "estimated_volunteers": 15,
-        "estimated_duration_hours": 3,
-        "equipment": ["Heavy-duty gloves", "Trash grabbers", "Plastic sorting bags"],
-        "targeted_zones": ["High-tide waterline", "Rocky crevices"],
-        "rationale": "High pollution score with elevated plastic debris.",
-        "suggested_schedule": "Immediate (Within 48 hours)"
-      }
-    ],
-    "source": "ollama_ministral-3:3b" | "rule_based_fallback",
-    "generated_at": "ISO-8601 string"
-  }
-  ```
+### CORS & Security Header Contract
+- Express: Strict allowed origins array `["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:4000"]` (or `FRONTEND_ORIGINS`). `origin: true` is forbidden.
+- Security Headers: Helmet enabled with `crossOriginResourcePolicy: { policy: "same-site" }`, explicit CSP, HSTS maxAge 31536000 with includeSubDomains and preload, X-Content-Type-Options `nosniff`, Frameguard `DENY` or `SAMEORIGIN`.
+- FastAPI: `CORSMiddleware` restricted to `ALLOWED_ORIGINS` (defaulting to Express server origins), no wildcard `*`.
 
-### Backend (`POST /api/email/send-report`)
-- **Headers**: `Authorization: Bearer <token>` (optional via `optionalAuth`)
-- **Request Body**:
-  ```json
-  {
-    "recipientEmail": "user@example.com",
-    "reportType": "daily" | "weekly" | "monthly" | "custom",
-    "reportText": "Plain text summary for fallback",
-    "reportData": {
-      "period": "Daily (Last 24h)",
-      "totalScans": 12,
-      "totalWaste": 154,
-      "avgPollutionScore": 38.5,
-      "severityBreakdown": { "Low": 2, "Moderate": 5, "High": 4, "Severe": 1 },
-      "executiveSummary": "...",
-      "riskAssessment": "...",
-      "actionableTakeaways": ["..."]
-    }
-  }
-  ```
-- **Response Body (200 OK)**:
-  ```json
-  {
-    "message": "Report email sent successfully",
-    "recipient": "user@example.com",
-    "mode": "smtp" | "simulated",
-    "messageId": "..."
-  }
-  ```
+### Rate Limiting Contract
+- Global API: 1000 requests per 15 minutes per IP.
+- Upload `/api/analyze`: 20 requests per minute per IP.
+- Email Report `/api/email/send-report`: 10 requests per hour per IP; requires valid authentication.
+- Auth `/api/auth/login`: 30 requests per 15 minutes per IP.
+- Throttled Response: HTTP 429 Too Many Requests.
 
-### Backend (`GET /api/email/status`)
-- **Response Body (200 OK)**:
-  ```json
-  {
-    "status": "healthy",
-    "mode": "smtp" | "simulated",
-    "configured": true,
-    "transport": {
-      "host": "smtp.example.com",
-      "port": 587,
-      "secure": false,
-      "authConfigured": true
-    }
-  }
-  ```
+### Supabase RLS Privilege Isolation Contract
+- `ai_models`, `system_settings`, `waste_types`: `SELECT` granted to public / authenticated; all write operations (`INSERT`, `UPDATE`, `DELETE`) restricted strictly to `service_role`.
+- `analyses`, `detections`: User-scoped reads/writes. `GET /api/analyses` only returns records for `req.user.id` unless the user is an admin.
+- `auth.users`: Deletion of configured primary admin email is blocked by application checks and Postgres trigger.
 
 ## Code Layout
 
-- `ai-service/`
-  - `schemas.py`: Pydantic models for Report, Cleanup, Health, Detections
-  - `ollama_client.py`: Async Ollama client for `ministral-3:3b` with timeouts & health check
-  - `report_generator.py`: Prompt synthesis & statistical fallback for reports
-  - `cleanup_recommender.py`: Prompt synthesis & statistical fallback for cleanups
-  - `main.py`: Route definitions & FastAPI lifespan integration
-  - `test_report_cleanup.py`: Pytest tests for all new endpoints & Ollama mocks
 - `backend/`
-  - `src/services/emailService.js`: HTML email generator, SMTP transporter, simulated fallback, `getEmailStatus`
-  - `src/routes/email.js`: `optionalAuth`, recipient validation, send-report route, `/status` route
-  - `src/__tests__/emailService.test.js`: Unit tests for email service
-  - `src/__tests__/routes.email.test.js`: Route integration tests for `/send-report` and `/status`
-  - `.env.example`: Documented `SMTP_*` variables
+  - `src/index.js`: CORS, Helmet, rate limiting configuration, global error handling.
+  - `src/middleware/fileValidation.js`: Magic byte inspection and polyglot detection utility.
+  - `src/middleware/auth.js`: JWT verification, role checks, admin email validation.
+  - `src/routes/analyze.js`: Image upload validation with magic bytes, rate limiter, AI dispatch.
+  - `src/routes/email.js`: Authenticated and rate-limited email report dispatch.
+  - `src/routes/analyses.js`: User-scoped analysis retrieval.
+  - `src/routes/dataset.js`: User-scoped or admin-only dataset exports.
+  - `src/services/supabaseClient.js`: Scoped database queries and storage uploads with sanitized filenames.
+  - `src/__tests__/`: Hardened, non-tautological Jest test suites.
+- `ai-service/`
+  - `main.py`: Hardened CORS, magic byte and polyglot validation, 10MB payload cap, GPU OOM catch.
+  - `requirements.txt`: Patched secure dependencies.
+  - `test_ai_service.py`: Pytest suite with genuine negative and boundary tests.
+- `supabase/migrations/`
+  - `20260903120000_harden_admin_rls_policies.sql`: RLS write revocation for non-admin roles.
+  - `20260903130000_protect_primary_admin.sql`: Postgres trigger guarding primary admin account.
 - `frontend/`
-  - `src/pages/ReportsPage.jsx`: Dynamic period selector, date/location picker, AI summary card, Email modal, PDF export
-  - `src/utils/generatePdfReport.js`: PDF builder with AI summary and filtered telemetry
-  - `src/pages/CleanupPage.jsx`: Dynamic AI intervention plans with priority tiers, equipment, zones
-  - `src/pages/DashboardPage.jsx`: "View Live Analytics" hero action button
-  - `src/pages/__tests__/DashboardPage.test.jsx`: Updated hero button test
-  - `src/pages/__tests__/ReportsPage.test.jsx`: Tests for period switching and email modal
-  - `src/pages/__tests__/CleanupPage.test.jsx`: Tests for AI intervention rendering
+  - `src/utils/generatePdfReport.js`: HTML entity escaping for dynamic strings.
+  - `src/components/__tests__/`: Hardened Vitest component tests (EXIF GPS in UploadForm, ProtectedRoute adminOnly).
+  - `src/utils/__tests__/`: Verifiable Blob serialization and download tests.
+  - `src/pages/__tests__/`: Behavioral tests for DatasetPage and TrendsPage.

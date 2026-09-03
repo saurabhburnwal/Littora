@@ -227,5 +227,53 @@ describe("DELETE /api/auth/account", () => {
     expect(res.status).toBe(500);
     expect(res.body.error).toMatch(/Database cascade failed/i);
   });
+
+  it("returns 401 when Bearer token is expired on account deletion", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: null },
+      error: { message: "JWT expired" },
+    });
+
+    const res = await request(app)
+      .delete("/api/auth/account")
+      .set("Authorization", "Bearer expired-token");
+
+    expect(res.status).toBe(401);
+    expect(res.body.error).toMatch(/invalid or expired token/i);
+    expect(mockDeleteUserAccountAndData).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when primary administrator deletion is attempted with uppercase email", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { id: "admin-id", email: "ADMIN@LITTORA.APP" } },
+      error: null,
+    });
+
+    const res = await request(app)
+      .delete("/api/auth/account")
+      .set("Authorization", "Bearer admin-token");
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/primary administrator/i);
+    expect(mockDeleteUserAccountAndData).not.toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("POST /api/auth/login (Rate Limiting)", () => {
+  it("enforces rate limit throttling returning 429 when max login attempts exceeded", async () => {
+    mockSignIn.mockResolvedValue({ data: { session: null }, error: { message: "Invalid credentials" } });
+
+    let lastRes;
+    for (let i = 0; i < 35; i++) {
+      lastRes = await request(app)
+        .post("/api/auth/login")
+        .send({ email: "spammer@test.com", password: "password123" });
+      if (lastRes.status === 429) break;
+    }
+
+    expect(lastRes.status).toBe(429);
+    expect(lastRes.body.error).toMatch(/too many login attempts/i);
+  });
 });
 

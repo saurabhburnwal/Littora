@@ -1,5 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 
 import { runDetection } from "../services/aiService.js";
 import {
@@ -8,8 +9,18 @@ import {
   getActiveSystemModel,
 } from "../services/supabaseClient.js";
 import { optionalAuth } from "../middleware/auth.js";
+import { validateImageBuffer } from "../middleware/fileValidation.js";
 
 const router = Router();
+
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // limit each IP to 20 uploads per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many upload requests. Please try again after a minute." },
+});
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
@@ -37,15 +48,21 @@ const handleUpload = (req, res, next) => {
 // POST /api/analyze — multipart/form-data, field name "image"
 // Optional extra fields: latitude, longitude, location_label (all nullable)
 // Optional header: Authorization: Bearer <jwt>  → tags upload with user_id
-router.post("/", optionalAuth, handleUpload, async (req, res) => {
+router.post("/", uploadLimiter, optionalAuth, handleUpload, async (req, res) => {
   if (!req.file) {
     return res
       .status(400)
       .json({ error: "No image file provided (field name: image). Allowed formats: JPEG, PNG, WebP (max 10MB)" });
   }
 
+  const validation = validateImageBuffer(req.file.buffer);
+  if (!validation.valid) {
+    return res.status(400).json({ error: validation.error });
+  }
+
   try {
-    const { buffer, originalname, mimetype } = req.file;
+    const { buffer, originalname } = req.file;
+    const mimetype = validation.mime;
 
     // Parse optional location fields with bounds checking
     const rawLat = req.body.latitude ? parseFloat(req.body.latitude) : null;

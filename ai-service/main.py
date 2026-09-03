@@ -221,10 +221,19 @@ app = FastAPI(
 
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:4000,http://127.0.0.1:4000,http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
@@ -251,7 +260,56 @@ import report_generator
 import cleanup_recommender
 
 
-# --- Core Helpers for Thread Offloading & Synchronization ---
+# --- Core Helpers for Thread Offloading, Validation & Synchronization ---
+
+MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB maximum payload limit
+
+
+def validate_magic_bytes_and_format(data: bytes) -> str:
+    """
+    Validates magic byte signatures for allowed image formats (JPEG, PNG, WebP)
+    and guards against truncated payloads and malicious polyglot script injections.
+    Raises HTTPException 400 if validation fails.
+    Returns the detected canonical MIME type string.
+    """
+    if len(data) < 12:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Could not decode image file: File provided is too small or truncated (< 12 bytes).",
+        )
+
+    # Polyglot inspection: scan first 4096 bytes for active script and markup tags
+    sample = data[:4096].lower()
+    dangerous_signatures = [b"<script", b"<?php", b"<html", b"javascript:", b"<svg"]
+    if any(sig in sample for sig in dangerous_signatures):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Security violation: Polyglot image payload rejected.",
+        )
+
+    # Magic byte verification
+    is_jpeg = data[:3] == b"\xff\xd8\xff"
+    is_png = data[:8] == b"\x89PNG\r\n\x1a\n"
+    is_webp = data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+    is_bmp = data[:2] == b"BM"
+    is_tiff = len(data) >= 4 and (data[:4] == b"II*\x00" or data[:4] == b"MM\x00*")
+
+    if is_jpeg:
+        return "image/jpeg"
+    if is_png:
+        return "image/png"
+    if is_webp:
+        return "image/webp"
+    if is_bmp:
+        return "image/bmp"
+    if is_tiff:
+        return "image/tiff"
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Could not decode image file: Invalid image signature. Only JPEG, PNG, and WebP images are permitted.",
+    )
+
 
 def _sync_load_image(data: bytes) -> Image.Image:
     """Synchronously decode image bytes in a worker thread."""
@@ -266,12 +324,31 @@ def _sync_inference(
     Synchronously run YOLO inference in a worker thread with an execution lock.
     Serializes inference calls on shared YOLO model instances to ensure thread safety.
     Uses GPU acceleration (CUDA / MPS) whenever available to maximize performance and minimize CPU load.
+    Catches GPU OutOfMemoryError, clears CUDA cache, and falls back to CPU inference.
     """
     model, model_id, model_display_name = get_yolo_model(model_name)
     device = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
     with _inference_lock:
-        with torch.inference_mode():
-            results = model.predict(image, device=device, verbose=False)[0]
+        try:
+            with torch.inference_mode():
+                results = model.predict(image, device=device, verbose=False)[0]
+        except (torch.cuda.OutOfMemoryError, RuntimeError) as err:
+            is_oom = isinstance(err, torch.cuda.OutOfMemoryError) or "out of memory" in str(err).lower()
+            if is_oom and device != "cpu":
+                logger.warning(
+                    f"CUDA OOM encountered during model '{model_id}' inference ({err}). "
+                    "Evicting VRAM cache and retrying on CPU..."
+                )
+                if torch.cuda.is_available():
+                    try:
+                        torch.cuda.empty_cache()
+                    except Exception:
+                        pass
+                gc.collect()
+                with torch.inference_mode():
+                    results = model.predict(image, device="cpu", verbose=False)[0]
+            else:
+                raise
     names_dict = getattr(results, "names", getattr(model, "names", {}))
     return results, model_id, model_display_name, names_dict
 
@@ -284,12 +361,26 @@ async def _process_detection(file: UploadFile, model_name: str) -> DetectionResp
             detail="File provided is not a valid image format."
         )
 
+    if file.size and file.size > MAX_CONTENT_LENGTH:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File size exceeds maximum limit of 10MB."
+        )
+
     contents = await file.read()
     if not contents:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded file is empty."
         )
+
+    if len(contents) > MAX_CONTENT_LENGTH:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File size exceeds maximum limit of 10MB."
+        )
+
+    validate_magic_bytes_and_format(contents)
 
     try:
         image = await asyncio.to_thread(_sync_load_image, contents)

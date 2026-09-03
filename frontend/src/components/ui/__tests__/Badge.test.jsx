@@ -4,9 +4,13 @@ import Badge from "../Badge.jsx";
 
 describe("Badge component", () => {
   it("renders severity variant with correct class", () => {
-    render(<Badge variant="severity" type="Moderate" />);
-    const badge = screen.getByText("Moderate");
+    const { container } = render(<Badge variant="severity" type="Moderate" className="bg-amber-100 text-amber-800" />);
+    const badge = container.firstChild;
     expect(badge).toBeInTheDocument();
+    expect(badge.className).toContain("rounded-pill");
+    expect(badge.className).toContain("bg-amber-100");
+    expect(badge.className).toContain("text-amber-800");
+    expect(badge.className).toContain("text-xs sm:text-sm");
   });
 
   it("renders waste category variant", () => {
@@ -25,12 +29,16 @@ describe("Badge component", () => {
   });
 
   it("supports compact size and overlay mode", () => {
-    render(
+    const { container } = render(
       <Badge variant="severity" type="high" size="compact" overlay>
         High
       </Badge>
     );
-    expect(screen.getByText("High")).toBeInTheDocument();
+    const badge = container.firstChild;
+    expect(badge).toBeInTheDocument();
+    expect(badge.className).toContain("text-xs");
+    expect(badge.className).not.toContain("sm:text-sm");
+    expect(badge.className).toContain("backdrop-blur-sm");
   });
 
   it("renders optional leading icon", () => {

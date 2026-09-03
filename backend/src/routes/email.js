@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { optionalAuth } from "../middleware/auth.js";
+import rateLimit from "express-rate-limit";
+import { requireAuth } from "../middleware/auth.js";
 import {
   sendEmail,
   sendReportEmail,
@@ -9,6 +10,15 @@ import {
 
 const router = Router();
 
+const emailLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // limit each IP to 10 email reports per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipFailedRequests: true,
+  message: { error: "Too many email report requests from this IP. Please try again after an hour." },
+});
+
 const RFC5322_EMAIL_REGEX =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
@@ -17,7 +27,7 @@ router.get("/status", (_req, res) => {
   return res.json(status);
 });
 
-router.post("/send-report", optionalAuth, async (req, res) => {
+router.post("/send-report", emailLimiter, requireAuth, async (req, res) => {
   const { reportType, reportText, recipientEmail, reportData } = req.body || {};
   const recipient = (recipientEmail || req.user?.email || "").trim();
 

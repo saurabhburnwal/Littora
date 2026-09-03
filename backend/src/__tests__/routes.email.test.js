@@ -45,6 +45,10 @@ describe("Email Routes", () => {
     });
     mockGenerateReportEmailHtml.mockReturnValue("<html><body>Sample Email</body></html>");
     mockSendReportEmail.mockResolvedValue({ messageId: "msg-12345" });
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-123", email: "auth.user@example.com" } },
+      error: null,
+    });
   });
 
   describe("GET /api/email/status", () => {
@@ -68,7 +72,7 @@ describe("Email Routes", () => {
   });
 
   describe("POST /api/email/send-report", () => {
-    it("successfully sends report for unauthenticated/guest user with recipientEmail", async () => {
+    it("returns 401 Unauthorized when unauthenticated caller attempts to send report", async () => {
       const res = await request(app)
         .post("/api/email/send-report")
         .send({
@@ -78,20 +82,9 @@ describe("Email Routes", () => {
           reportData: { totalScans: 10, totalWaste: 40 },
         });
 
-      expect(res.status).toBe(200);
-      expect(res.body.message).toBe("Report sent to email successfully");
-      expect(res.body.recipient).toBe("guest.analyst@example.com");
-      expect(mockGenerateReportEmailHtml).toHaveBeenCalledWith({
-        reportType: "WEEKLY",
-        reportText: "Weekly analysis report details",
-        reportData: { totalScans: 10, totalWaste: 40 },
-      });
-      expect(mockSendReportEmail).toHaveBeenCalledWith({
-        to: "guest.analyst@example.com",
-        subject: "Littora Beach Waste Report (WEEKLY)",
-        text: "Weekly analysis report details",
-        html: "<html><body>Sample Email</body></html>",
-      });
+      expect(res.status).toBe(401);
+      expect(res.body.error).toMatch(/authentication required/i);
+      expect(mockSendReportEmail).not.toHaveBeenCalled();
     });
 
     it("successfully delivers report to authenticated user default email when recipientEmail omitted", async () => {
@@ -141,9 +134,15 @@ describe("Email Routes", () => {
       }));
     });
 
-    it("returns 400 Bad Request if recipient email is missing (unauthenticated guest without recipientEmail)", async () => {
+    it("returns 400 Bad Request if recipient email is missing (authenticated user without email and no recipientEmail)", async () => {
+      mockGetUser.mockResolvedValueOnce({
+        data: { user: { id: "user-no-email", email: "" } },
+        error: null,
+      });
+
       const res = await request(app)
         .post("/api/email/send-report")
+        .set("Authorization", "Bearer valid-token")
         .send({ reportType: "pdf", reportText: "Test report body" });
 
       expect(res.status).toBe(400);
@@ -164,6 +163,7 @@ describe("Email Routes", () => {
       for (const invalid of invalidEmails) {
         const res = await request(app)
           .post("/api/email/send-report")
+          .set("Authorization", "Bearer valid-token")
           .send({
             recipientEmail: invalid,
             reportType: "monthly",
@@ -178,6 +178,7 @@ describe("Email Routes", () => {
     it("returns 400 Bad Request if reportType is missing from payload", async () => {
       const res = await request(app)
         .post("/api/email/send-report")
+        .set("Authorization", "Bearer valid-token")
         .send({
           recipientEmail: "valid@example.com",
           reportText: "Some report",
@@ -191,6 +192,7 @@ describe("Email Routes", () => {
     it("returns 400 Bad Request if reportType is non-string or whitespace", async () => {
       const resNum = await request(app)
         .post("/api/email/send-report")
+        .set("Authorization", "Bearer valid-token")
         .send({
           recipientEmail: "valid@example.com",
           reportType: 12345,
@@ -201,6 +203,7 @@ describe("Email Routes", () => {
 
       const resSpace = await request(app)
         .post("/api/email/send-report")
+        .set("Authorization", "Bearer valid-token")
         .send({
           recipientEmail: "valid@example.com",
           reportType: "   ",
@@ -214,6 +217,7 @@ describe("Email Routes", () => {
     it("uses default report text when reportText is omitted", async () => {
       const res = await request(app)
         .post("/api/email/send-report")
+        .set("Authorization", "Bearer valid-token")
         .send({
           recipientEmail: "analyst@example.com",
           reportType: "monthly",
@@ -232,6 +236,7 @@ describe("Email Routes", () => {
 
       const res = await request(app)
         .post("/api/email/send-report")
+        .set("Authorization", "Bearer valid-token")
         .send({
           recipientEmail: "target@example.com",
           reportType: "csv",

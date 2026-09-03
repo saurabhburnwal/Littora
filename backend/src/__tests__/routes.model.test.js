@@ -4,6 +4,9 @@ import express from "express";
 
 const mockGetUser = jest.fn();
 
+const mockGetActiveSystemModel = jest.fn().mockResolvedValue("yolov8m");
+const mockSetActiveSystemModel = jest.fn().mockImplementation(async (id) => id);
+
 jest.unstable_mockModule("../services/supabaseClient.js", () => ({
   supabase: {
     auth: {
@@ -15,13 +18,8 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
     { id: "yolov11m", name: "YOLOv11 Medium", tag: "Precision" },
     { id: "yolov26s", name: "YOLOv26 Small", tag: "Fast" },
   ]),
-  getActiveSystemModel: jest.fn().mockResolvedValue("yolov8m"),
-  setActiveSystemModel: jest.fn().mockImplementation(async (id) => {
-    if (!["yolov8m", "yolov11m", "yolov26s"].includes(id)) {
-      throw new Error(`Invalid model ID: ${id}`);
-    }
-    return id;
-  }),
+  getActiveSystemModel: mockGetActiveSystemModel,
+  setActiveSystemModel: mockSetActiveSystemModel,
   getWasteTypesCatalog: jest.fn().mockResolvedValue([]),
   getLocationsCatalog:  jest.fn().mockResolvedValue([]),
 }));
@@ -92,7 +90,7 @@ describe("GET /api/model & POST /api/model", () => {
     expect(res.body.activeModelDetails.name).toBe("YOLOv11 Medium");
   });
 
-  it("POST /api/model returns 400 when invalid modelId is supplied", async () => {
+  it("POST /api/model returns 400 when modelId is missing from request body", async () => {
     mockGetUser.mockResolvedValueOnce({
       data: { user: { id: "u-admin", email: "admin@littora.app" } },
       error: null,
@@ -101,9 +99,35 @@ describe("GET /api/model & POST /api/model", () => {
     const res = await request(app)
       .post("/api/model")
       .set("Authorization", "Bearer token-admin")
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("modelId is required");
+    expect(mockSetActiveSystemModel).not.toHaveBeenCalled();
+  });
+
+  it("POST /api/model returns 400 with error details when service rejects modelId", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { id: "u-admin", email: "admin@littora.app" } },
+      error: null,
+    });
+    mockSetActiveSystemModel.mockRejectedValueOnce(new Error("Invalid model ID: invalid-model-xyz"));
+
+    const res = await request(app)
+      .post("/api/model")
+      .set("Authorization", "Bearer token-admin")
       .send({ modelId: "invalid-model-xyz" });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/invalid model id/i);
+    expect(res.body.error).toBe("Invalid model ID: invalid-model-xyz");
+  });
+
+  it("GET /api/model returns 500 when fetching model info fails", async () => {
+    mockGetActiveSystemModel.mockRejectedValueOnce(new Error("Database offline"));
+
+    const res = await request(app).get("/api/model");
+
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe("Could not fetch model info");
   });
 });

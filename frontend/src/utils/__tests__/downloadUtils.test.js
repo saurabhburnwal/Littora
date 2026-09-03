@@ -31,45 +31,83 @@ describe("downloadUtils", () => {
     expect(global.URL.revokeObjectURL).toHaveBeenCalledWith("blob:http://localhost/test");
   });
 
-  it("handles downloadJson properly", () => {
+  it("handles downloadJson properly", async () => {
+    let capturedLink = null;
     const clickSpy = vi.fn();
     const origCreateElement = document.createElement.bind(document);
     vi.spyOn(document, "createElement").mockImplementation((tag) => {
       const el = origCreateElement(tag);
-      if (tag === "a") el.click = clickSpy;
+      if (tag === "a") {
+        el.click = clickSpy;
+        capturedLink = el;
+      }
       return el;
     });
 
-    downloadJson({ foo: "bar" }, "test.json");
-    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    const testData = { foo: "bar", count: 42, nested: { item: "bottle" } };
+    downloadJson(testData, "test.json");
+
+    expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+    const blob = global.URL.createObjectURL.mock.calls[0][0];
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.type).toBe("application/json");
+
+    const text = await blob.text();
+    expect(JSON.parse(text)).toEqual(testData);
+    expect(capturedLink.download).toBe("test.json");
     expect(clickSpy).toHaveBeenCalled();
   });
 
-  it("handles downloadCsv properly", () => {
+  it("handles downloadCsv properly", async () => {
+    let capturedLink = null;
     const clickSpy = vi.fn();
     const origCreateElement = document.createElement.bind(document);
     vi.spyOn(document, "createElement").mockImplementation((tag) => {
       const el = origCreateElement(tag);
-      if (tag === "a") el.click = clickSpy;
+      if (tag === "a") {
+        el.click = clickSpy;
+        capturedLink = el;
+      }
       return el;
     });
 
-    downloadCsv(["ID", "Name"], [["1", "Beach"]], "test.csv");
-    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    downloadCsv(["ID", "Name", "Score"], [["1", "Beach A", "8.5"], ["2", "Beach B", "4.0"]], "test.csv");
+
+    expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+    const blob = global.URL.createObjectURL.mock.calls[0][0];
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.type).toContain("text/csv");
+
+    const text = await blob.text();
+    expect(text).toBe("ID,Name,Score\n1,Beach A,8.5\n2,Beach B,4.0");
+    expect(capturedLink.download).toBe("test.csv");
     expect(clickSpy).toHaveBeenCalled();
   });
 
-  it("handles downloadMarkdown properly", () => {
+  it("handles downloadMarkdown properly", async () => {
+    let capturedLink = null;
     const clickSpy = vi.fn();
     const origCreateElement = document.createElement.bind(document);
     vi.spyOn(document, "createElement").mockImplementation((tag) => {
       const el = origCreateElement(tag);
-      if (tag === "a") el.click = clickSpy;
+      if (tag === "a") {
+        el.click = clickSpy;
+        capturedLink = el;
+      }
       return el;
     });
 
-    downloadMarkdown("# Littora Report", "report.md");
-    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    const markdownText = "# Littora Report\n\n- Total scans: 42\n- Status: Active";
+    downloadMarkdown(markdownText, "report.md");
+
+    expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+    const blob = global.URL.createObjectURL.mock.calls[0][0];
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.type).toContain("text/markdown");
+
+    const text = await blob.text();
+    expect(text).toBe(markdownText);
+    expect(capturedLink.download).toBe("report.md");
     expect(clickSpy).toHaveBeenCalled();
   });
 

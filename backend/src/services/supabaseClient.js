@@ -407,10 +407,16 @@ export async function deleteUserAccountAndData(userId) {
  * Returns past analyses, most recent first, for the history view.
  * Queries consolidated view public.vw_analysis_details.
  */
-export async function listAnalyses({ limit = 50, offset = 0 } = {}) {
-  const { data, error } = await supabase
+export async function listAnalyses({ limit = 50, offset = 0, userId } = {}) {
+  let query = supabase
     .from("vw_analysis_details")
-    .select("*")
+    .select("*");
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 

@@ -114,5 +114,39 @@ describe("generatePdfReport", () => {
     expect(mockSave).toHaveBeenCalled();
     expect(mockSave.mock.calls[0][0]).toMatch(/^littora_weekly_report_\d+\.pdf$/);
   });
+
+  it("escapes dynamic HTML entities in user email, location, AI summary, and recommendations", async () => {
+    const { default: html2canvas } = await import("html2canvas");
+    const stats = {
+      totalAnalyses: 10,
+      totalWaste: 20,
+      locationsCount: 1,
+      avgScore: 5,
+      severityCounts: { Low: 10 },
+      aggregateDetections: { "<evil_tag>": 5 },
+    };
+    const user = { email: "<script>alert('xss')</script>@test.com" };
+    const options = {
+      locationLabel: "<img src=x onerror=alert(1)>",
+      aiSummary: {
+        executive_summary: "<b>Bold</b> & dangerous <script>",
+        risk_assessment: "Risk with 'quotes' and \"double quotes\"",
+        impact_analysis: "<svg onload=alert(2)>",
+        priority_actions: ["<script>malicious()</script>"],
+      },
+    };
+
+    await generatePdfReport("daily", stats, user, options);
+
+    const container = html2canvas.mock.calls[html2canvas.mock.calls.length - 1][0];
+    const html = container.innerHTML;
+
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("<img src=x");
+    expect(html).not.toContain("<svg");
+    expect(html).toContain("&lt;script&gt;alert('xss')&lt;/script&gt;@test.com");
+    expect(html).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    expect(html).toContain("&lt;b&gt;Bold&lt;/b&gt; &amp; dangerous &lt;script&gt;");
+  });
 });
 

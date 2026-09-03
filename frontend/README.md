@@ -27,9 +27,10 @@ The frontend of **Littora** is a responsive, feature-rich Single Page Applicatio
   - **Language Switcher**: English, Hindi, Tamil.
   - **Date Formatters**: `DD MMM YYYY`, `MM/DD/YYYY`, `YYYY-MM-DD`.
   - **Dynamic Pagination**: `10`, `25`, `50` rows per page.
-- **Interactive Reports & PDF Export**:
+- **Interactive Reports & Secure PDF Export**:
   - Compact, publication-ready PDF Reports (`Daily`, `Weekly`, `Monthly`, `Custom`).
   - Powered by `jsPDF` + `html2canvas` with **75% JPEG compression** (~200KB file size).
+  - Built-in HTML entity sanitization (`escapeHtml`) preventing Stored XSS vectors from rendered user input and telemetry labels.
 - **Interactive Beach Pollution Map**:
   - Powered by Leaflet & React-Leaflet with satellite, clean light, and street map tiles, and coastal beach presets.
 
@@ -103,12 +104,13 @@ npm run dev
 ### 3. Run Unit Tests & Coverage
 ```bash
 # Run Vitest test runner
-npm test -- --run
+npx vitest run
 
 # Generate coverage report
 npm run test:coverage
 ```
-- **Passing**: **242 / 242 tests** across 33 test files (100% pass rate) with ~80% line coverage
+- **Passing**: **299 / 299 tests** across 37 test files (100% pass rate) with ~80% line coverage
+
 
 ### 4. Production Build
 ```bash

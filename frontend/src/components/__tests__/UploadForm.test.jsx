@@ -1,10 +1,16 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import UploadForm from "../UploadForm.jsx";
+import { extractGPS } from "../../utils/extractGPS.js";
+
+vi.mock("../../utils/extractGPS.js", () => ({
+  extractGPS: vi.fn().mockResolvedValue(null),
+}));
 
 describe("UploadForm component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    extractGPS.mockResolvedValue(null);
     global.URL.createObjectURL = vi.fn().mockReturnValue("blob:preview-url");
   });
 
@@ -124,16 +130,24 @@ describe("UploadForm component", () => {
   });
 
   it("submits with extracted EXIF coordinates when available", async () => {
+    extractGPS.mockResolvedValueOnce({ latitude: 15.2993, longitude: 74.1240 });
     const onUpload = vi.fn();
     const { container } = render(<UploadForm onUpload={onUpload} loading={false} result={null} />);
-    const file = new File(["dummy"], "photo_with_gps.jpg", { type: "image/jpeg" });
+    const file = new File(["dummy_image_with_exif"], "photo_with_gps.jpg", { type: "image/jpeg" });
 
     const input = container.querySelector("input[type='file']");
     fireEvent.change(input, { target: { files: [file] } });
 
+    // Wait for async extractGPS to complete and update state
+    await screen.findByText(/Extracted GPS from photo EXIF: 15.2993, 74.124/i);
+
     // Submit form
     fireEvent.submit(container.querySelector("form"));
-    expect(onUpload).toHaveBeenCalled();
+    expect(onUpload).toHaveBeenCalledWith(file, {
+      latitude: 15.2993,
+      longitude: 74.1240,
+      locationLabel: "Photo EXIF GPS",
+    });
   });
 });
 
