@@ -9,21 +9,24 @@ import request from "supertest";
 // ── Mock supabaseClient before app import ───────────────────────────────────
 const mockSignIn = jest.fn();
 const mockResend = jest.fn();
+const mockGetUser = jest.fn();
+const mockDeleteUserAccountAndData = jest.fn();
 jest.unstable_mockModule("../services/supabaseClient.js", () => ({
   supabase: {
     auth: {
-      getUser:            jest.fn(),
+      getUser:            mockGetUser,
       signInWithPassword: mockSignIn,
       resend:             mockResend,
       admin:              { getUserById: jest.fn() },
     },
   },
-  uploadImage:           jest.fn(),
-  saveAnalysis:          jest.fn(),
-  listAnalysesByUser:    jest.fn(),
-  listAllAnalysesAdmin:  jest.fn(),
-  deleteAnalysisForUser: jest.fn(),
-  deleteAnalysis:        jest.fn(),
+  uploadImage:              jest.fn(),
+  saveAnalysis:             jest.fn(),
+  listAnalysesByUser:       jest.fn(),
+  listAllAnalysesAdmin:     jest.fn(),
+  deleteAnalysisForUser:    jest.fn(),
+  deleteAnalysis:           jest.fn(),
+  deleteUserAccountAndData: mockDeleteUserAccountAndData,
   listAnalyses:          jest.fn(),
   getStats:              jest.fn(),
   getAvailableAiModels:  jest.fn().mockResolvedValue([]),
@@ -168,3 +171,61 @@ describe("POST /api/auth/resend-verification", () => {
     });
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("DELETE /api/auth/account", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("returns 401 when Authorization header is missing", async () => {
+    const res = await request(app).delete("/api/auth/account");
+    expect(res.status).toBe(401);
+    expect(res.body.error).toMatch(/authentication required/i);
+  });
+
+  it("returns 403 when the primary administrator attempts account deletion", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { id: "admin-id", email: "admin@littora.app" } },
+      error: null,
+    });
+
+    const res = await request(app)
+      .delete("/api/auth/account")
+      .set("Authorization", "Bearer admin-token");
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/primary administrator/i);
+    expect(mockDeleteUserAccountAndData).not.toHaveBeenCalled();
+  });
+
+  it("returns 200 and calls deleteUserAccountAndData for an authenticated member", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { id: "user-123", email: "member@example.com" } },
+      error: null,
+    });
+    mockDeleteUserAccountAndData.mockResolvedValueOnce({ success: true });
+
+    const res = await request(app)
+      .delete("/api/auth/account")
+      .set("Authorization", "Bearer valid-token");
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/account.*deleted/i);
+    expect(mockDeleteUserAccountAndData).toHaveBeenCalledWith("user-123");
+  });
+
+  it("returns 500 when deleteUserAccountAndData throws an error", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { id: "user-123", email: "member@example.com" } },
+      error: null,
+    });
+    mockDeleteUserAccountAndData.mockRejectedValueOnce(new Error("Database cascade failed"));
+
+    const res = await request(app)
+      .delete("/api/auth/account")
+      .set("Authorization", "Bearer valid-token");
+
+    expect(res.status).toBe(500);
+    expect(res.body.error).toMatch(/Database cascade failed/i);
+  });
+});
+

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "../lib/supabase.js";
+import { API_BASE } from "../utils/constants.js";
 
 export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
@@ -110,6 +111,34 @@ export function AuthProvider({ children }) {
     if (error) throw error;
   }, []);
 
+  /**
+   * Permanently deletes the authenticated user's account and all associated data
+   * via backend admin service, then clears session locally.
+   */
+  const deleteAccount = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error("No active session found.");
+    }
+
+    const res = await fetch(`${API_BASE}/api/auth/account`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to delete account.");
+    }
+
+    sessionStorage.removeItem("littora_session_active");
+    await supabase.auth.signOut();
+    setUser(null);
+  }, []);
+
   const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "admin@littora.app").toLowerCase();
   const isAdmin = Boolean(user?.email && user.email.toLowerCase() === adminEmail);
 
@@ -120,12 +149,13 @@ export function AuthProvider({ children }) {
       login,
       signUp,
       logout,
+      deleteAccount,
       isAdmin,
       getToken,
       resetPassword,
       resendVerificationEmail,
     }),
-    [user, loading, login, signUp, logout, isAdmin, getToken, resetPassword, resendVerificationEmail]
+    [user, loading, login, signUp, logout, deleteAccount, isAdmin, getToken, resetPassword, resendVerificationEmail]
   );
 
   return (

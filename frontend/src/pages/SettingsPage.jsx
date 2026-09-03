@@ -33,7 +33,7 @@ export default function SettingsPage() {
     itemsPerPage, setItemsPerPage,
     notifications, setNotifications,
   } = useSettings();
-  const { getToken, logout, user, isAdmin } = useAuth();
+  const { getToken, logout, deleteAccount, user, isAdmin } = useAuth();
 
   // --- Pending (unsaved) local state ---
   const [pendingTheme,       setPendingTheme]       = useState(theme);
@@ -102,10 +102,13 @@ export default function SettingsPage() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await logout();
-      navigate("/login");
+      if (isAdmin) {
+        throw new Error("Primary administrator account cannot be deleted.");
+      }
+      await deleteAccount();
+      navigate("/login?deleted=true");
     } catch (err) {
-      setDeleteError(err.message || "Something went wrong.");
+      setDeleteError(err.message || "Failed to delete account. Please try again.");
       setDeleting(false);
     }
   };
@@ -391,10 +394,9 @@ export default function SettingsPage() {
             </div>
             <h2 className="font-display text-lg font-bold text-text-primary mb-2">Delete your account?</h2>
             <p className="text-sm text-text-muted leading-relaxed mb-6">
-              This will sign you out immediately. To permanently delete your account and all data,
-              please contact the system administrator after signing out.
+              This will permanently delete your account, your uploaded coastal scans, and all associated analytics data from Littora.
               <br /><br />
-              <strong className="text-rose-500">This cannot be undone.</strong>
+              <strong className="text-rose-500">This action is irreversible and cannot be undone.</strong>
             </p>
             {deleteError && (
               <p className="text-xs text-rose-500 bg-rose-500/10 p-3 rounded-lg mb-4">{deleteError}</p>
@@ -409,11 +411,19 @@ export default function SettingsPage() {
               </button>
               <button
                 id="settings-confirm-delete-btn"
-                className="px-5 py-2.5 rounded-pill text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                className="px-5 py-2.5 rounded-pill text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 onClick={handleDeleteAccount}
                 disabled={deleting}
               >
-                {deleting ? "Signing out…" : <><Trash2 size={14} /> Yes, delete</>}
+                {deleting ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" /> Deleting account…
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} /> Yes, delete
+                  </>
+                )}
               </button>
             </div>
           </div>

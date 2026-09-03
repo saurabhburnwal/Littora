@@ -21,6 +21,7 @@ jest.unstable_mockModule("../services/supabaseClient.js", () => ({
   listAllAnalysesAdmin: jest.fn(),
   deleteAnalysisForUser: jest.fn(),
   deleteAnalysis: jest.fn(),
+  deleteUserAccountAndData: jest.fn(),
   getStats: jest.fn(),
   getAvailableAiModels: jest.fn(),
   getActiveSystemModel: jest.fn(),

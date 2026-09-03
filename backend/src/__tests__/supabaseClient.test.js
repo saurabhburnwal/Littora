@@ -5,7 +5,7 @@
 import { jest } from "@jest/globals";
 
 const mockFrom  = jest.fn();
-const mockAdmin = { getUserById: jest.fn() };
+const mockAdmin = { getUserById: jest.fn(), deleteUser: jest.fn() };
 const mockStorageFrom = jest.fn();
 
 jest.unstable_mockModule("@supabase/supabase-js", () => ({
@@ -25,6 +25,7 @@ const {
   listAllAnalysesAdmin,
   deleteAnalysis,
   deleteAnalysisForUser,
+  deleteUserAccountAndData,
   uploadImage,
   saveAnalysis,
   getWasteTypesCatalog,
@@ -523,3 +524,76 @@ describe("listAnalyses", () => {
     expect(result).toEqual(fakeData);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("deleteUserAccountAndData", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAdmin.deleteUser.mockResolvedValue({ error: null });
+  });
+
+  it("throws error when userId is missing", async () => {
+    await expect(deleteUserAccountAndData(null)).rejects.toThrow("User ID is required");
+  });
+
+  it("deletes user even when user has zero analyses", async () => {
+    const chain = {
+      select: jest.fn().mockReturnThis(),
+      eq:     jest.fn().mockResolvedValue({ data: [], error: null }),
+    };
+    mockFrom.mockReturnValue(chain);
+
+    const result = await deleteUserAccountAndData("u-empty");
+    expect(result).toEqual({ success: true });
+    expect(mockAdmin.deleteUser).toHaveBeenCalledWith("u-empty");
+  });
+
+  it("cleans up user analyses, detections, storage and deletes auth user", async () => {
+    const mockRemove = jest.fn().mockResolvedValue({ data: [], error: null });
+    mockStorageFrom.mockReturnValue({ remove: mockRemove });
+
+    // Mock query user analyses
+    const userAnalyses = [
+      { id: "a1", image_url: "https://supabase.co/storage/v1/object/public/beach-waste-images/img1.jpg" },
+      { id: "a2", image_url: "https://supabase.co/storage/v1/object/public/beach-waste-images/img2.jpg" },
+    ];
+
+    const mockSelectEq = jest.fn().mockResolvedValue({ data: userAnalyses, error: null });
+    const mockDeleteIn = jest.fn().mockResolvedValue({ error: null });
+    const mockDeleteEq = jest.fn().mockResolvedValue({ error: null });
+
+    mockFrom.mockImplementation((table) => {
+      if (table === "analyses") {
+        return {
+          select: jest.fn().mockReturnValue({ eq: mockSelectEq }),
+          delete: jest.fn().mockReturnValue({ eq: mockDeleteEq }),
+        };
+      }
+      if (table === "detections") {
+        return {
+          delete: jest.fn().mockReturnValue({ in: mockDeleteIn }),
+        };
+      }
+      return {};
+    });
+
+    const result = await deleteUserAccountAndData("u-active");
+    expect(result).toEqual({ success: true });
+    expect(mockDeleteIn).toHaveBeenCalledWith("analysis_id", ["a1", "a2"]);
+    expect(mockDeleteEq).toHaveBeenCalledWith("user_id", "u-active");
+    expect(mockRemove).toHaveBeenCalledWith(["img1.jpg", "img2.jpg"]);
+    expect(mockAdmin.deleteUser).toHaveBeenCalledWith("u-active");
+  });
+
+  it("throws error if supabase.auth.admin.deleteUser fails", async () => {
+    const chain = {
+      select: jest.fn().mockReturnThis(),
+      eq:     jest.fn().mockResolvedValue({ data: [], error: null }),
+    };
+    mockFrom.mockReturnValue(chain);
+    mockAdmin.deleteUser.mockResolvedValueOnce({ error: new Error("User deletion forbidden") });
+
+    await expect(deleteUserAccountAndData("u-fail")).rejects.toThrow("User deletion forbidden");
+  });
+});
+

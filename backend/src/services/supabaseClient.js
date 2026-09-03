@@ -335,6 +335,75 @@ export async function deleteAnalysis(id) {
 }
 
 /**
+ * Permanently deletes a user's account and all associated data:
+ * 1. Queries all analyses belonging to the user.
+ * 2. Deletes child detections for those analyses.
+ * 3. Deletes the analyses rows.
+ * 4. Removes user image uploads from Supabase Storage.
+ * 5. Deletes the user from Supabase Auth via supabase.auth.admin.deleteUser(userId).
+ */
+export async function deleteUserAccountAndData(userId) {
+  if (!userId) {
+    throw new Error("User ID is required for account deletion");
+  }
+
+  // 1. Fetch user's analyses to clean up images and detections
+  const { data: userAnalyses, error: fetchError } = await supabase
+    .from("analyses")
+    .select("id, image_url")
+    .eq("user_id", userId);
+
+  if (fetchError) {
+    console.error(`[account-delete] Error fetching analyses for user ${userId}:`, fetchError);
+  }
+
+  if (userAnalyses && userAnalyses.length > 0) {
+    const analysisIds = userAnalyses.map((a) => a.id);
+
+    // 2. Delete child detections rows
+    const { error: detectionsErr } = await supabase
+      .from("detections")
+      .delete()
+      .in("analysis_id", analysisIds);
+
+    if (detectionsErr) {
+      console.warn("[account-delete] Detections deletion warning:", detectionsErr.message);
+    }
+
+    // 3. Delete analyses rows
+    const { error: analysesErr } = await supabase
+      .from("analyses")
+      .delete()
+      .eq("user_id", userId);
+
+    if (analysesErr) {
+      console.warn("[account-delete] Analyses deletion warning:", analysesErr.message);
+    }
+
+    // 4. Remove image files from Supabase Storage (best-effort)
+    const fileNames = userAnalyses
+      .map((a) => a.image_url?.split("/").pop())
+      .filter(Boolean);
+
+    if (fileNames.length > 0) {
+      try {
+        await supabase.storage.from(BUCKET).remove(fileNames);
+      } catch (storageErr) {
+        console.warn("[account-delete] Storage cleanup warning:", storageErr.message);
+      }
+    }
+  }
+
+  // 5. Delete the user from auth.users via Supabase Admin API
+  const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+  if (authError) {
+    throw authError;
+  }
+
+  return { success: true };
+}
+
+/**
  * Returns past analyses, most recent first, for the history view.
  * Queries consolidated view public.vw_analysis_details.
  */

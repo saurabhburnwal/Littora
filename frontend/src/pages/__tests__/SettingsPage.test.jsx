@@ -32,7 +32,7 @@ function setupAuthMock(user = null) {
   supabase.auth.getSession.mockReset();
   supabase.auth.onAuthStateChange.mockReset();
 
-  const session = user ? { user } : null;
+  const session = user ? { user, access_token: "test-mock-token" } : null;
   supabase.auth.getSession.mockResolvedValue({ data: { session } });
   supabase.auth.onAuthStateChange.mockImplementation((cb) => {
     cb(user ? "SIGNED_IN" : "SIGNED_OUT", session);
@@ -61,6 +61,10 @@ describe("SettingsPage component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabase.auth.signOut.mockResolvedValue({});
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ message: "Account deleted" }),
+    });
     axios.get.mockImplementation((url) => {
       if (url.includes("/api/stats")) {
         return Promise.resolve({ data: {} });
@@ -116,7 +120,7 @@ describe("SettingsPage component", () => {
     });
   });
 
-  it("opens delete confirmation modal when Delete button is clicked", async () => {
+  it("opens delete confirmation modal when Delete button is clicked and deletes account", async () => {
     renderSettings({ user: { id: "u-settings", email: "user@test.com" } });
     await vi.waitFor(() => screen.getByRole("button", { name: /delete/i }));
 
@@ -125,7 +129,27 @@ describe("SettingsPage component", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /yes, delete/i }));
     await vi.waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/auth/account"),
+        expect.objectContaining({ method: "DELETE" })
+      );
       expect(supabase.auth.signOut).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("displays error in modal when delete account API call fails", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: "Cannot delete primary admin account" }),
+    });
+    renderSettings({ user: { id: "u-settings", email: "user@test.com" } });
+    await vi.waitFor(() => screen.getByRole("button", { name: /delete/i }));
+
+    fireEvent.click(screen.getByRole("button", { name: /delete/i }));
+    fireEvent.click(screen.getByRole("button", { name: /yes, delete/i }));
+
+    await vi.waitFor(() => {
+      expect(screen.getByText(/cannot delete primary admin account/i)).toBeInTheDocument();
     });
   });
 

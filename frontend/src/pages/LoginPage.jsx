@@ -16,6 +16,7 @@ export default function LoginPage() {
 
   const from = location.state?.from?.pathname || "/";
   const isVerifiedFromUrl = searchParams.get("verified") === "true";
+  const isDeletedFromUrl  = searchParams.get("deleted")  === "true";
 
   /* ── Shared state ───────────────────────────────────────── */
   const [mode,    setMode]    = useState("login"); // "login" | "signup" | "forgot"
@@ -263,6 +264,17 @@ export default function LoginPage() {
                   <div>
                     <span className="font-bold">Email verified successfully!</span>
                     <p className="text-xs opacity-90 mt-0.5">Your account is confirmed. Enter your credentials below to sign in.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Deleted query banner ── */}
+              {isDeletedFromUrl && mode === "login" && (
+                <div className="flex items-start gap-2.5 p-3.5 mb-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs sm:text-sm font-medium">
+                  <CheckCircle size={17} className="shrink-0 mt-0.5 text-amber-500" />
+                  <div>
+                    <span className="font-bold">Account successfully deleted.</span>
+                    <p className="text-xs opacity-90 mt-0.5">Your account, scans, and associated data have been permanently removed.</p>
                   </div>
                 </div>
               )}

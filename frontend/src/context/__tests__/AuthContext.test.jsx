@@ -346,3 +346,100 @@ describe("AuthContext — getToken", () => {
     expect(token).toBe("my-jwt");
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("AuthContext — deleteAccount", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.clear();
+  });
+
+  it("throws when no active session exists", async () => {
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+    mockOnAuthStateChange.mockReturnValue({
+      data: { subscription: { unsubscribe: vi.fn() } },
+    });
+
+    let capturedDelete;
+    function DeleteCaller() {
+      const { deleteAccount } = useAuth();
+      capturedDelete = deleteAccount;
+      return null;
+    }
+
+    render(<SettingsProvider><AuthProvider><DeleteCaller /></AuthProvider></SettingsProvider>);
+    await act(async () => {});
+
+    await expect(capturedDelete()).rejects.toThrow(/no active session/i);
+  });
+
+  it("successfully calls DELETE /api/auth/account and signs out", async () => {
+    mockGetSession.mockResolvedValue({
+      data: { session: { access_token: "delete-jwt-token", user: { id: "u-del" } } },
+    });
+    mockOnAuthStateChange.mockReturnValue({
+      data: { subscription: { unsubscribe: vi.fn() } },
+    });
+    mockSignOut.mockResolvedValue({});
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ message: "Account deleted" }),
+    });
+    globalThis.fetch = mockFetch;
+
+    sessionStorage.setItem("littora_session_active", "true");
+
+    let capturedDelete;
+    function DeleteCaller() {
+      const { deleteAccount } = useAuth();
+      capturedDelete = deleteAccount;
+      return null;
+    }
+
+    render(<SettingsProvider><AuthProvider><DeleteCaller /></AuthProvider></SettingsProvider>);
+    await act(async () => {});
+
+    await capturedDelete();
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/auth/account"),
+      expect.objectContaining({
+        method: "DELETE",
+        headers: expect.objectContaining({
+          Authorization: "Bearer delete-jwt-token",
+        }),
+      })
+    );
+    expect(sessionStorage.getItem("littora_session_active")).toBeNull();
+    expect(mockSignOut).toHaveBeenCalledOnce();
+  });
+
+  it("throws error when API deletion fails", async () => {
+    mockGetSession.mockResolvedValue({
+      data: { session: { access_token: "token-bad", user: { id: "u-bad" } } },
+    });
+    mockOnAuthStateChange.mockReturnValue({
+      data: { subscription: { unsubscribe: vi.fn() } },
+    });
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: "Server error during account removal" }),
+    });
+    globalThis.fetch = mockFetch;
+
+    let capturedDelete;
+    function DeleteCaller() {
+      const { deleteAccount } = useAuth();
+      capturedDelete = deleteAccount;
+      return null;
+    }
+
+    render(<SettingsProvider><AuthProvider><DeleteCaller /></AuthProvider></SettingsProvider>);
+    await act(async () => {});
+
+    await expect(capturedDelete()).rejects.toThrow("Server error during account removal");
+  });
+});
+

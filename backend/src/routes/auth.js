@@ -1,6 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
-import { supabase } from "../services/supabaseClient.js";
+import { supabase, deleteUserAccountAndData } from "../services/supabaseClient.js";
+import { requireAuth, getAdminEmail } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -82,6 +83,37 @@ router.post("/resend-verification", authLimiter, async (req, res) => {
     message: "Verification email sent successfully via Resend",
     recipient: cleanEmail,
   });
+});
+
+/**
+ * DELETE /api/auth/account
+ * Headers: Authorization: Bearer <jwt>
+ * Permanently deletes the authenticated user's account and all associated data.
+ */
+router.delete("/account", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userEmail = req.user.email?.toLowerCase();
+    const adminEmail = getAdminEmail();
+
+    // Guard: Primary administrator account cannot be deleted
+    if (userEmail && userEmail === adminEmail) {
+      return res.status(403).json({
+        error: "Primary administrator account cannot be deleted.",
+      });
+    }
+
+    await deleteUserAccountAndData(userId);
+
+    return res.json({
+      message: "Account and associated data deleted successfully.",
+    });
+  } catch (err) {
+    console.error("[auth] Account deletion error:", err);
+    return res.status(500).json({
+      error: err.message || "Failed to delete account.",
+    });
+  }
 });
 
 export default router;

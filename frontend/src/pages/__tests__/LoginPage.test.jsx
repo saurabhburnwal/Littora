@@ -365,4 +365,18 @@ describe("LoginPage — signup flow", () => {
 
     expect(screen.getByText(/email verified successfully!/i)).toBeInTheDocument();
   });
+
+  it("renders account deleted banner when url has ?deleted=true", () => {
+    render(
+      <MemoryRouter initialEntries={["/login?deleted=true"]}>
+        <SettingsProvider>
+          <AuthProvider>
+            <LoginPage />
+          </AuthProvider>
+        </SettingsProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/account successfully deleted/i)).toBeInTheDocument();
+  });
 });
